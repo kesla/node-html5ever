@@ -10,7 +10,7 @@ export const enum QuirksMode {
 }
 export function parseDocument(html: string): Html5EverDom
 export class Document {
-  get nodeName(): string
+  nodeName: string
   get docType(): DocType | null
 }
 export class DocType {

@@ -9,7 +9,7 @@ use napi::{bindgen_prelude::*, Result};
 #[macro_use]
 extern crate napi_derive;
 
-fn node_name(data: &NodeData) -> String {
+fn get_node_name(data: &NodeData) -> String {
   match data {
     NodeData::Document => "#document".to_string(),
     NodeData::Doctype { name, .. } => name.to_string(),
@@ -28,13 +28,17 @@ fn node_name(data: &NodeData) -> String {
 #[napi]
 pub struct Document {
   handle: Rc<Node>,
+  #[napi(writable = false)]
+  pub node_name: String,
 }
 
 #[napi]
 impl Document {
-  #[napi(getter)]
-  pub fn node_name(&self) -> String {
-    node_name(&self.handle.data)
+  pub fn new(handle: &Rc<Node>) -> Self {
+    Self {
+      handle: handle.clone(),
+      node_name: get_node_name(handle.data.borrow()),
+    }
   }
 
   #[napi(getter)]
@@ -74,6 +78,7 @@ pub struct Html5everDom {
   rc_dom: RcDom,
 }
 
+#[napi]
 impl From<RcDom> for Html5everDom {
   fn from(rc_dom: RcDom) -> Self {
     Self { rc_dom }
@@ -104,7 +109,7 @@ impl Html5everDom {
   pub fn document(&self) -> Document {
     let handle = self.rc_dom.document.clone();
 
-    Document { handle }
+    Document::new(&handle)
   }
 }
 
