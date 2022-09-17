@@ -11,11 +11,17 @@ export const enum QuirksMode {
 export function parseDocument(html: string): Html5EverDom
 export class Document {
   get docType(): DocType | null
+  get documentElement(): Element
+  get head(): Element
+  get body(): Element
   get nodeName(): string
-  get childNodes(): Array<Element>
 }
 export class Element {
-  tagName: string
+  getAttribute(key: string): string | null
+  get nodeName(): string
+  get tagName(): string
+  get childNodes(): Array<Element>
+  get outerHtml(): string
 }
 export class DocType {
   name: string

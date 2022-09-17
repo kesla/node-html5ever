@@ -3,7 +3,9 @@
 use std::{
   borrow::Borrow,
   cell::RefCell,
+  collections::HashMap,
   convert::{TryFrom, TryInto},
+  iter::FromIterator,
   rc::Rc,
 };
 
@@ -11,7 +13,7 @@ use html5ever::{
   serialize,
   tendril::TendrilSink,
   tree_builder::{NodeOrText, TreeSink},
-  QualName,
+  LocalName, QualName,
 };
 use markup5ever_rcdom::{Node, NodeData, SerializableHandle};
 use napi::{bindgen_prelude::*, Result};
@@ -30,26 +32,27 @@ type Handle = Rc<Node>;
 
 #[napi]
 pub struct Document {
-  handle: Rc<Node>,
+  handle: Handle,
 }
 
 #[napi]
 pub struct Element {
-  #[napi(writable = false)]
-  pub tag_name: String,
+  attribute_map: HashMap<String, String>,
+  handle: Handle,
 }
 
 impl TryFrom<Handle> for Element {
   type Error = Error;
 
-  fn try_from(value: Handle) -> Result<Self> {
-    match value.data.borrow() {
+  fn try_from(handle: Handle) -> Result<Self> {
+    match handle.data.borrow() {
       NodeData::Element {
         name,
         attrs,
         template_contents,
         mathml_annotation_xml_integration_point,
       } => Ok(Element::new(
+        handle.clone(),
         name,
         attrs,
         template_contents,
@@ -60,52 +63,93 @@ impl TryFrom<Handle> for Element {
   }
 }
 
+#[napi]
 impl Element {
   pub fn new(
+    handle: Handle,
     name: &QualName,
     attrs: &RefCell<Vec<html5ever::Attribute>>,
     template_contents: &RefCell<Option<Handle>>,
     mathml_annotation_xml_integration_point: &bool,
   ) -> Self {
+    let vec = attrs.borrow();
+    let attribute_map = HashMap::from_iter(vec.iter().map(|attribute| {
+      (
+        attribute.name.local.to_string(),
+        attribute.value.to_string(),
+      )
+    }));
+
     Element {
-      tag_name: name.local.to_string(),
+      handle,
+      attribute_map,
     }
+  }
+
+  #[napi]
+  pub fn get_attribute(&self, key: String) -> Option<String> {
+    self.attribute_map.get(&key).map(|value| value.to_owned())
+  }
+
+  #[napi(getter)]
+  pub fn node_name(&self) -> String {
+    get_node_name(&self.handle.data)
+  }
+
+  #[napi(getter)]
+  pub fn tag_name(&self) -> String {
+    self.node_name()
+  }
+
+  #[napi(getter)]
+  pub fn child_nodes(&self) -> Vec<Element> {
+    get_child_nodes(self.handle.clone())
+  }
+
+  #[napi(getter)]
+  pub fn outer_html(&self) -> String {
+    serialize_handle(self.handle.clone())
   }
 }
 
-fn get_node_name(data: &NodeData) -> String {
-  match data {
+fn get_child_nodes(handle: Handle) -> Vec<Element> {
+  let foo = handle.children.borrow();
+  let foo2 = foo.iter().filter_map(|child| {
+    let x: Handle = child.clone();
+    let bar: Option<Element> = x.try_into().ok();
+    bar
+  });
+  foo2.collect()
+}
+
+fn get_node_name(node_data: &NodeData) -> String {
+  match node_data {
     NodeData::Document => "#document".to_string(),
     NodeData::Doctype { name, .. } => name.to_string(),
     NodeData::Text { contents } => todo!(),
     NodeData::Comment { contents } => todo!(),
-    NodeData::Element {
-      name,
-      attrs,
-      template_contents,
-      mathml_annotation_xml_integration_point,
-    } => todo!(),
+    NodeData::Element { name, .. } => name.local.to_string().to_uppercase(),
     NodeData::ProcessingInstruction { target, contents } => todo!(),
   }
 }
 
-impl From<Rc<Node>> for Document {
-  fn from(handle: Rc<Node>) -> Self {
-    Self { handle }
+impl From<Handle> for Document {
+  fn from(handle: Handle) -> Self {
+    Document::new(handle)
   }
 }
 
 #[napi]
 impl Document {
-  pub fn new(handle: Rc<Node>) -> Self {
+  pub fn new(handle: Handle) -> Self {
     Self { handle }
   }
 
   #[napi(getter)]
   pub fn doc_type(&self) -> Option<DocType> {
-    let children: &RefCell<Vec<Rc<Node>>> = &self.handle.children;
+    let children = self.handle.children.borrow();
 
-    if let Some(first) = children.borrow().get(0) {
+    if let Some(first) = children.get(0) {
       if let NodeData::Doctype {
         name,
         public_id,
@@ -123,19 +167,49 @@ impl Document {
   }
 
   #[napi(getter)]
-  pub fn node_name(&self) -> String {
-    get_node_name(&self.handle.data)
+  pub fn document_element(&self) -> Element {
+    let children = self.handle.children.borrow();
+    match children.len() {
+      2 => children.get(1),
+      _ => children.get(0),
+    }
+    .unwrap()
+    .clone()
+    .try_into()
+    .unwrap()
   }
 
   #[napi(getter)]
-  pub fn child_nodes(&self, env: Env) -> Vec<Element> {
-    let foo = self.handle.children.borrow();
-    let foo2 = foo.iter().filter_map(|child| {
-      let x: Handle = child.clone();
-      let bar: Option<Element> = x.try_into().ok();
-      bar
-    });
-    foo2.collect()
+  pub fn head(&self) -> Element {
+    self
+      .document_element()
+      .handle
+      .children
+      .borrow()
+      .get(0)
+      .unwrap()
+      .clone()
+      .try_into()
+      .unwrap()
+  }
+
+  #[napi(getter)]
+  pub fn body(&self) -> Element {
+    self
+      .document_element()
+      .handle
+      .children
+      .borrow()
+      .get(1)
+      .unwrap()
+      .clone()
+      .try_into()
+      .unwrap()
+  }
+
+  #[napi(getter)]
+  pub fn node_name(&self) -> String {
+    get_node_name(&self.handle.data)
   }
 }
 
@@ -320,12 +394,16 @@ impl Html5everDom {
 
   #[napi]
   pub fn serialize(&self) -> String {
-    let mut serialized = Vec::new();
-    let document: SerializableHandle = self.document_handle.clone().into();
-    serialize::serialize(&mut serialized, &document, Default::default()).unwrap();
-
-    String::from_utf8(serialized).unwrap()
+    serialize_handle(self.document_handle.clone())
   }
+}
+
+fn serialize_handle(handle: Handle) -> String {
+  let serializable_handle: SerializableHandle = handle.into();
+  let mut serialized = Vec::new();
+  serialize::serialize(&mut serialized, &serializable_handle, Default::default()).unwrap();
+
+  String::from_utf8(serialized).unwrap()
 }
 
 #[napi]

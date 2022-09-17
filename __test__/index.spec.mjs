@@ -42,8 +42,23 @@ test.skip(".document is initiated once", (t) => {
   t.is(document1, document2);
 });
 
-test('element', (t) => {
-  let dom = parseDocument("")
+test("element", (t) => {
+  let dom = parseDocument(
+    `<!DOCTYPE html>
+    <html id="main">
+      <body class="foo">Body content</body>
+    </html>`
+  );
+  let document = dom.document;
 
-  t.is(dom.document.childNodes[0].tagName, "html");
-})
+  let {documentElement: html, body} = document;
+
+  t.is(html.tagName, "HTML");
+  t.is(html.getAttribute("id"), "main");
+  t.is(body.tagName, "BODY");
+  t.is(body.nodeName, "BODY");
+  t.is(body.getAttribute("class"), "foo");
+
+  t.snapshot(html.outerHtml);
+  t.snapshot(body.outerHtml);
+});
