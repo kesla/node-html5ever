@@ -1,6 +1,6 @@
 #![deny(clippy::all)]
 
-use std::{borrow::Borrow, rc::Rc};
+use std::{borrow::Borrow, cell::RefCell, rc::Rc};
 
 use html5ever::{serialize, tendril::TendrilSink};
 use markup5ever_rcdom::{Node, NodeData, RcDom, SerializableHandle};
@@ -27,23 +27,20 @@ fn get_node_name(data: &NodeData) -> String {
 
 #[napi]
 pub struct Document {
-  handle: Rc<Node>,
-  #[napi(writable = false)]
-  pub node_name: String,
+  handle: SharedReference<Html5everDom, &'static Rc<Node>>,
 }
 
 #[napi]
 impl Document {
-  pub fn new(handle: &Rc<Node>) -> Self {
-    Self {
-      handle: handle.clone(),
-      node_name: get_node_name(handle.data.borrow()),
-    }
+  pub fn new(handle: SharedReference<Html5everDom, &Rc<Node>>) -> Self {
+    Self { handle }
   }
 
   #[napi(getter)]
   pub fn doc_type(&self) -> Option<DocType> {
-    if let Some(first) = self.handle.children.borrow().get(0) {
+    let children: &RefCell<Vec<Rc<Node>>> = &self.handle.children;
+
+    if let Some(first) = children.borrow().get(0) {
       if let NodeData::Doctype {
         name,
         public_id,
@@ -58,6 +55,11 @@ impl Document {
       }
     }
     None
+  }
+
+  #[napi(getter)]
+  pub fn node_name(&self) -> String {
+    get_node_name(&self.handle.data)
   }
 }
 
@@ -106,10 +108,14 @@ impl Html5everDom {
   }
 
   #[napi(getter)]
-  pub fn document(&self) -> Document {
-    let handle = self.rc_dom.document.clone();
+  pub fn document(&self, reference: Reference<Html5everDom>, env: Env) -> Result<Document> {
+    let shared = reference.share_with(env, |dom| {
+      let handle = &dom.rc_dom.document;
 
-    Document::new(&handle)
+      Ok(handle)
+    })?;
+
+    Ok(Document::new(shared))
   }
 }
 
