@@ -41,3 +41,9 @@ test.skip(".document is initiated once", (t) => {
   let document2 = dom.document;
   t.is(document1, document2);
 });
+
+test('element', (t) => {
+  let dom = parseDocument("")
+
+  t.is(dom.document.childNodes[0].tagName, "html");
+})

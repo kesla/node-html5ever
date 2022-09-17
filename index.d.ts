@@ -12,6 +12,10 @@ export function parseDocument(html: string): Html5EverDom
 export class Document {
   get docType(): DocType | null
   get nodeName(): string
+  get childNodes(): Array<Element>
+}
+export class Element {
+  tagName: string
 }
 export class DocType {
   name: string
@@ -20,7 +24,8 @@ export class DocType {
 }
 export type Html5everDom = Html5EverDom
 export class Html5EverDom {
-  serialize(): string
-  get quirksMode(): QuirksMode
+  quirksMode: QuirksMode
+  errors: Array<string>
   get document(): Document
+  serialize(): string
 }
