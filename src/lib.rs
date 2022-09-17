@@ -3,9 +3,7 @@
 use std::{
   borrow::Borrow,
   cell::RefCell,
-  collections::HashMap,
   convert::{TryFrom, TryInto},
-  iter::FromIterator,
   rc::Rc,
 };
 
@@ -13,7 +11,7 @@ use html5ever::{
   serialize,
   tendril::TendrilSink,
   tree_builder::{NodeOrText, TreeSink},
-  LocalName, QualName,
+   Attribute,
 };
 use markup5ever_rcdom::{Node, NodeData, SerializableHandle};
 use napi::{bindgen_prelude::*, Result};
@@ -37,7 +35,7 @@ pub struct Document {
 
 #[napi]
 pub struct Element {
-  attribute_map: HashMap<String, String>,
+  attrs: RefCell<Vec<Attribute>>,
   handle: Handle,
 }
 
@@ -45,50 +43,41 @@ impl TryFrom<Handle> for Element {
   type Error = Error;
 
   fn try_from(handle: Handle) -> Result<Self> {
+    Element::new(handle)
+  }
+}
+
+#[napi]
+impl Element {
+  pub fn new(handle: Handle) -> Result<Self> {
     match handle.data.borrow() {
       NodeData::Element {
         name,
         attrs,
         template_contents,
         mathml_annotation_xml_integration_point,
-      } => Ok(Element::new(
-        handle.clone(),
-        name,
-        attrs,
-        template_contents,
-        mathml_annotation_xml_integration_point,
-      )),
+      } => {
+
+        Ok(Element {
+          handle: handle.clone(),
+          attrs: attrs.clone()
+        })
+      }
       _ => Err(Error::from_reason("Handle not an element!")),
-    }
-  }
-}
-
-#[napi]
-impl Element {
-  pub fn new(
-    handle: Handle,
-    name: &QualName,
-    attrs: &RefCell<Vec<html5ever::Attribute>>,
-    template_contents: &RefCell<Option<Handle>>,
-    mathml_annotation_xml_integration_point: &bool,
-  ) -> Self {
-    let vec = attrs.borrow();
-    let attribute_map = HashMap::from_iter(vec.iter().map(|attribute| {
-      (
-        attribute.name.local.to_string(),
-        attribute.value.to_string(),
-      )
-    }));
-
-    Element {
-      handle,
-      attribute_map,
     }
   }
 
   #[napi]
   pub fn get_attribute(&self, key: String) -> Option<String> {
-    self.attribute_map.get(&key).map(|value| value.to_owned())
+    let b = self.attrs.borrow();
+    let mut iter = b.iter();
+    while let Some(attr) = iter.next() {
+        if attr.name.local == key {
+            return Some(attr.value.to_string());
+        }
+    }
+
+    None
   }
 
   #[napi(getter)]
