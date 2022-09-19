@@ -1,10 +1,6 @@
 #![deny(clippy::all)]
 
-use std::{
-  borrow::Borrow,
-  cell::{RefCell},
-  convert::{TryFrom, TryInto},
-};
+use std::{borrow::Borrow, cell::RefCell, convert::TryFrom};
 
 use html5ever::{serialize, tendril::TendrilSink, tree_builder::TreeSink, Attribute};
 use markup5ever_rcdom::{Handle, NodeData, RcDom, SerializableHandle};
@@ -39,10 +35,7 @@ impl TryFrom<Handle> for Element {
 
   fn try_from(handle: Handle) -> Result<Self> {
     match handle.data.borrow() {
-      NodeData::Element {
-        attrs,
-        ..
-      } => Ok(Element {
+      NodeData::Element { attrs, .. } => Ok(Element {
         handle: handle.clone(),
         attrs: attrs.clone(),
       }),
@@ -85,7 +78,7 @@ impl Element {
   }
 
   #[napi(getter)]
-  pub fn child_nodes(&self) -> Vec<Element> {
+  pub fn get_child_nodes(&self) -> Vec<Element> {
     get_child_nodes(self.handle.clone())
   }
 
@@ -156,81 +149,78 @@ impl Document {
 
   #[napi(getter)]
   pub fn get_document_element(&mut self, env: Env) -> Result<Reference<Element>> {
-    match &self.document_element {
-      Some(document_element) => document_element.clone(env),
-      None => {
-        let document_element = {
-          let children = self.handle.children.borrow();
-          let element: Element = match children.len() {
-            2 => children.get(1),
-            _ => children.get(0),
-          }
-          .unwrap()
-          .clone()
-          .try_into()
-          .unwrap();
-          Element::into_reference(element, env)?
-        };
-        self.document_element = Some(document_element.clone(env)?);
-
-        Ok(document_element)
+    lazy(&mut self.document_element, env, || {
+      let children = self.handle.children.borrow();
+      let element: Element = match children.len() {
+        2 => children.get(1),
+        _ => children.get(0),
       }
-    }
-
-    // self.document_element.clone(env)
+      .unwrap()
+      .clone()
+      .try_into()
+      .unwrap();
+      Element::into_reference(element, env)
+    })
   }
 
   #[napi(getter)]
   pub fn get_head(&mut self, env: Env) -> Result<Reference<Element>> {
-    match &self.head {
-      Some(head) => head.clone(env),
-      None => {
-        let head = self
-          .get_document_element(env)?
-          .handle
-          .children
-          .borrow()
-          .get(0)
-          .unwrap()
-          .clone()
-          .try_into()
-          .unwrap();
-        let head_reference = Element::into_reference(head, env)?;
+    let document_element = self.get_document_element(env)?;
 
-        self.head = Some(head_reference.clone(env)?);
+    lazy(&mut self.head, env, || {
+      let head = document_element
+        .handle
+        .children
+        .borrow()
+        .get(0)
+        .unwrap()
+        .clone()
+        .try_into()
+        .unwrap();
 
-        Ok(head_reference)
-      }
-    }
+      Element::into_reference(head, env)
+    })
   }
 
   #[napi(getter)]
   pub fn get_body(&mut self, env: Env) -> Result<Reference<Element>> {
-    match &self.body {
-      Some(body) => body.clone(env),
-      None => {
-        let body = self
-          .get_document_element(env)?
-          .handle
-          .children
-          .borrow()
-          .get(1)
-          .unwrap()
-          .clone()
-          .try_into()
-          .unwrap();
-        let body_reference = Element::into_reference(body, env)?;
+    let document_element = self.get_document_element(env)?;
 
-        self.body = Some(body_reference.clone(env)?);
+    lazy(&mut self.body, env, || {
+      let body = document_element
+        .handle
+        .children
+        .borrow()
+        .get(1)
+        .unwrap()
+        .clone()
+        .try_into()
+        .unwrap();
 
-        Ok(body_reference)
-      }
-    }
+      Element::into_reference(body, env)
+    })
   }
 
   #[napi(getter)]
   pub fn node_name(&self) -> String {
     get_node_name(&self.handle.data)
+  }
+}
+
+#[inline]
+fn lazy<T, F: FnOnce() -> Result<Reference<T>>>(
+  option: &mut Option<Reference<T>>,
+  env: Env,
+  create: F,
+) -> Result<Reference<T>> {
+  match option {
+    Some(value) => value.clone(env),
+    None => {
+      let r = create()?;
+      *option = Some(r.clone(env)?);
+
+      r.clone(env)
+    }
   }
 }
 
