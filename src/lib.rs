@@ -2,9 +2,8 @@
 
 use std::{
   borrow::Borrow,
-  cell::{Ref, RefCell},
+  cell::{RefCell},
   convert::{TryFrom, TryInto},
-  rc::Rc,
 };
 
 use html5ever::{serialize, tendril::TendrilSink, tree_builder::TreeSink, Attribute};
@@ -41,10 +40,8 @@ impl TryFrom<Handle> for Element {
   fn try_from(handle: Handle) -> Result<Self> {
     match handle.data.borrow() {
       NodeData::Element {
-        name,
         attrs,
-        template_contents,
-        mathml_annotation_xml_integration_point,
+        ..
       } => Ok(Element {
         handle: handle.clone(),
         attrs: attrs.clone(),
@@ -114,10 +111,10 @@ fn get_node_name(node_data: &NodeData) -> String {
   match node_data {
     NodeData::Document => "#document".to_string(),
     NodeData::Doctype { name, .. } => name.to_string(),
-    NodeData::Text { contents } => todo!(),
-    NodeData::Comment { contents } => todo!(),
+    NodeData::Text { .. } => todo!(),
+    NodeData::Comment { .. } => todo!(),
     NodeData::Element { name, .. } => name.local.to_string().to_uppercase(),
-    NodeData::ProcessingInstruction { target, contents } => todo!(),
+    NodeData::ProcessingInstruction { .. } => todo!(),
   }
 }
 
