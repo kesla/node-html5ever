@@ -1,6 +1,6 @@
 import test from "ava";
 
-import { parseDocument, QuirksMode } from "../index.js";
+import { parseDocument, QuirksMode, Element, Document } from "../index.js";
 
 test("parseDocument works", (t) => {
   let dom = parseDocument("<html></html>");
@@ -11,6 +11,8 @@ test("parseDocument works", (t) => {
   t.is(dom.document.nodeName, "#document");
   t.is(dom.quirksMode, QuirksMode.Quirks, "Correct quirks mode");
   t.is(dom.document.docType, null, ".document.docType is not set");
+
+  t.true(dom.document instanceof Document)
 });
 
 test("doc type / Quirks mode", (t) => {
@@ -58,6 +60,9 @@ test("element", (t) => {
   t.is(body.tagName, "BODY");
   t.is(body.nodeName, "BODY");
   t.is(body.getAttribute("class"), "foo");
+
+  t.true(html instanceof Element);
+  t.true(body instanceof Element);
 
   t.snapshot(html.outerHtml);
   t.snapshot(body.outerHtml);

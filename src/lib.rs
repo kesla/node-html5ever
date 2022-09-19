@@ -3,6 +3,7 @@
 use std::{
   borrow::Borrow,
   cell::RefCell,
+  collections::HashSet,
   convert::{TryFrom, TryInto},
   rc::Rc,
 };
@@ -11,7 +12,7 @@ use html5ever::{
   serialize,
   tendril::TendrilSink,
   tree_builder::{NodeOrText, TreeSink},
-   Attribute,
+  Attribute,
 };
 use markup5ever_rcdom::{Node, NodeData, SerializableHandle};
 use napi::{bindgen_prelude::*, Result};
@@ -43,38 +44,39 @@ impl TryFrom<Handle> for Element {
   type Error = Error;
 
   fn try_from(handle: Handle) -> Result<Self> {
-    Element::new(handle)
-  }
-}
-
-#[napi]
-impl Element {
-  pub fn new(handle: Handle) -> Result<Self> {
     match handle.data.borrow() {
       NodeData::Element {
         name,
         attrs,
         template_contents,
         mathml_annotation_xml_integration_point,
-      } => {
-
-        Ok(Element {
-          handle: handle.clone(),
-          attrs: attrs.clone()
-        })
-      }
+      } => Ok(Element {
+        handle: handle.clone(),
+        attrs: attrs.clone(),
+      }),
       _ => Err(Error::from_reason("Handle not an element!")),
     }
   }
+}
 
+impl TryFrom<&Handle> for Element {
+  type Error = Error;
+
+  fn try_from(handle: &Handle) -> Result<Self> {
+    handle.clone().try_into()
+  }
+}
+
+#[napi]
+impl Element {
   #[napi]
   pub fn get_attribute(&self, key: String) -> Option<String> {
     let b = self.attrs.borrow();
     let mut iter = b.iter();
     while let Some(attr) = iter.next() {
-        if attr.name.local == key {
-            return Some(attr.value.to_string());
-        }
+      if attr.name.local == key {
+        return Some(attr.value.to_string());
+      }
     }
 
     None
@@ -362,7 +364,15 @@ impl TreeSink for Html5everDom {
   }
 
   fn add_attrs_if_missing(&mut self, target: &Self::Handle, attrs: Vec<html5ever::Attribute>) {
-    todo!()
+    let element: Element = target.try_into().unwrap();
+    let mut existing = element.attrs.borrow_mut();
+    let existing_names: HashSet<_> = existing.iter().map(|attr| attr.name.clone()).collect();
+
+    existing.extend(
+      attrs
+        .into_iter()
+        .filter(|attr| !existing_names.contains(&attr.name)),
+    );
   }
 
   fn remove_from_parent(&mut self, target: &Self::Handle) {
