@@ -30,7 +30,7 @@ pub struct Document {
 pub struct Element {
   attrs: RefCell<Vec<Attribute>>,
   handle: Handle,
-  child_nodes: Option<Reference<NodeList>>,
+  children: Option<Reference<NodeList>>,
 }
 
 impl TryFrom<Handle> for Element {
@@ -41,7 +41,7 @@ impl TryFrom<Handle> for Element {
       NodeData::Element { attrs, .. } => Ok(Element {
         handle: handle.clone(),
         attrs: attrs.clone(),
-        child_nodes: None,
+        children: None,
       }),
       _ => Err(Error::from_reason("Handle not an element!")),
     }
@@ -82,9 +82,8 @@ impl Element {
   }
 
   #[napi(getter)]
-  pub fn get_child_nodes(&mut self, env: Env) -> Result<Reference<NodeList>> {
-    // get_child_nodes(self.handle.clone())
-    lazy(&mut self.child_nodes, env, || {
+  pub fn get_children(&mut self, env: Env) -> Result<Reference<NodeList>> {
+    lazy(&mut self.children, env, || {
       let c = self.handle.children.borrow();
       let mut children: Vec<Reference<Element>> = vec![];
       let mut iter = c.iter();
@@ -103,18 +102,6 @@ impl Element {
   pub fn outer_html(&self) -> String {
     serialize_handle(self.handle.clone())
   }
-}
-
-fn get_child_nodes(handle: Handle) -> Vec<Element> {
-  let children = handle.children.borrow();
-  children
-    .iter()
-    .filter_map(|child| {
-      let x: Handle = child.clone();
-      let bar: Option<Element> = x.try_into().ok();
-      bar
-    })
-    .collect()
 }
 
 fn get_node_name(node_data: &NodeData) -> String {
@@ -183,7 +170,7 @@ impl Document {
     let mut document_element = self.get_document_element(env)?;
 
     document_element
-      .get_child_nodes(env)?
+      .get_children(env)?
       .get(0, env)?
       .ok_or_else(|| Error::from_reason("head element should exists"))
   }
@@ -193,7 +180,7 @@ impl Document {
     let mut document_element = self.get_document_element(env)?;
 
     document_element
-      .get_child_nodes(env)?
+      .get_children(env)?
       .get(1, env)?
       .ok_or_else(|| Error::from_reason("body element should exists"))
   }

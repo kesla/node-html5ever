@@ -72,6 +72,6 @@ test("element", (t) => {
   t.is(body, body2)
   t.is(head, head2)
 
-  t.is(html.childNodes.get(0), head)
-  t.is(html.childNodes.get(1), body)
+  t.is(html.children.get(0), head)
+  t.is(html.children.get(1), body)
 });

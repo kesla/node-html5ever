@@ -23,7 +23,7 @@ export class Element {
   getAttribute(key: string): string | null
   get nodeName(): string
   get tagName(): string
-  get childNodes(): NodeList
+  get children(): NodeList
   get outerHtml(): string
 }
 export class DocType {

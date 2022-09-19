@@ -1,4 +1,4 @@
-use napi::{bindgen_prelude::Reference, Env, Error, Result, Either};
+use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
 use crate::Element;
 
