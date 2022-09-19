@@ -9,6 +9,9 @@ export const enum QuirksMode {
   NoQuirks = 2
 }
 export function parseDocument(html: string): Html5EverDom
+export class NodeList {
+  get(index: number): Element | null
+}
 export class Document {
   get docType(): DocType | null
   get documentElement(): Element
@@ -20,7 +23,7 @@ export class Element {
   getAttribute(key: string): string | null
   get nodeName(): string
   get tagName(): string
-  get childNodes(): Array<Element>
+  get childNodes(): NodeList
   get outerHtml(): string
 }
 export class DocType {

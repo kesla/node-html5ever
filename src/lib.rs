@@ -1,10 +1,14 @@
 #![deny(clippy::all)]
 
+mod node_list;
+
 use std::{borrow::Borrow, cell::RefCell, convert::TryFrom};
 
 use html5ever::{serialize, tendril::TendrilSink, tree_builder::TreeSink, Attribute};
 use markup5ever_rcdom::{Handle, NodeData, RcDom, SerializableHandle};
 use napi::{bindgen_prelude::*, Result};
+
+use node_list::NodeList;
 
 #[macro_use]
 extern crate napi_derive;
@@ -20,14 +24,13 @@ pub enum QuirksMode {
 pub struct Document {
   handle: Handle,
   document_element: Option<Reference<Element>>,
-  head: Option<Reference<Element>>,
-  body: Option<Reference<Element>>,
 }
 
 #[napi]
 pub struct Element {
   attrs: RefCell<Vec<Attribute>>,
   handle: Handle,
+  child_nodes: Option<Reference<NodeList>>,
 }
 
 impl TryFrom<Handle> for Element {
@@ -38,6 +41,7 @@ impl TryFrom<Handle> for Element {
       NodeData::Element { attrs, .. } => Ok(Element {
         handle: handle.clone(),
         attrs: attrs.clone(),
+        child_nodes: None,
       }),
       _ => Err(Error::from_reason("Handle not an element!")),
     }
@@ -78,8 +82,21 @@ impl Element {
   }
 
   #[napi(getter)]
-  pub fn get_child_nodes(&self) -> Vec<Element> {
-    get_child_nodes(self.handle.clone())
+  pub fn get_child_nodes(&mut self, env: Env) -> Result<Reference<NodeList>> {
+    // get_child_nodes(self.handle.clone())
+    lazy(&mut self.child_nodes, env, || {
+      let c = self.handle.children.borrow();
+      let mut children: Vec<Reference<Element>> = vec![];
+      let mut iter = c.iter();
+
+      while let Some(child) = iter.next() {
+        if let Some(element) = child.try_into().ok() {
+          children.push(Element::into_reference(element, env)?)
+        }
+      }
+
+      NodeList::new(env, children)
+    })
   }
 
   #[napi(getter)]
@@ -119,8 +136,6 @@ impl Document {
     let document = Self {
       handle,
       document_element: None,
-      head: None,
-      body: None,
     };
 
     return Document::into_reference(document, env);
@@ -165,40 +180,22 @@ impl Document {
 
   #[napi(getter)]
   pub fn get_head(&mut self, env: Env) -> Result<Reference<Element>> {
-    let document_element = self.get_document_element(env)?;
+    let mut document_element = self.get_document_element(env)?;
 
-    lazy(&mut self.head, env, || {
-      let head = document_element
-        .handle
-        .children
-        .borrow()
-        .get(0)
-        .unwrap()
-        .clone()
-        .try_into()
-        .unwrap();
-
-      Element::into_reference(head, env)
-    })
+    document_element
+      .get_child_nodes(env)?
+      .get(0, env)?
+      .ok_or_else(|| Error::from_reason("head element should exists"))
   }
 
   #[napi(getter)]
   pub fn get_body(&mut self, env: Env) -> Result<Reference<Element>> {
-    let document_element = self.get_document_element(env)?;
+    let mut document_element = self.get_document_element(env)?;
 
-    lazy(&mut self.body, env, || {
-      let body = document_element
-        .handle
-        .children
-        .borrow()
-        .get(1)
-        .unwrap()
-        .clone()
-        .try_into()
-        .unwrap();
-
-      Element::into_reference(body, env)
-    })
+    document_element
+      .get_child_nodes(env)?
+      .get(1, env)?
+      .ok_or_else(|| Error::from_reason("body element should exists"))
   }
 
   #[napi(getter)]

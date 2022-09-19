@@ -53,8 +53,8 @@ test("element", (t) => {
   );
   let document = dom.document;
 
-  let {documentElement: html, body} = document;
-  let {documentElement: html2, body: body2} = document;
+  let {documentElement: html, head, body} = document;
+  let {documentElement: html2, head: head2, body: body2} = document;
 
   t.is(html.tagName, "HTML");
   t.is(html.getAttribute("id"), "main");
@@ -70,4 +70,8 @@ test("element", (t) => {
 
   t.is(html, html2)
   t.is(body, body2)
+  t.is(head, head2)
+
+  t.is(html.childNodes.get(0), head)
+  t.is(html.childNodes.get(1), body)
 });

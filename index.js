@@ -236,8 +236,9 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { QuirksMode, Document, Element, DocType, Html5EverDom, parseDocument } = nativeBinding
+const { NodeList, QuirksMode, Document, Element, DocType, Html5EverDom, parseDocument } = nativeBinding
 
+module.exports.NodeList = NodeList
 module.exports.QuirksMode = QuirksMode
 module.exports.Document = Document
 module.exports.Element = Element
