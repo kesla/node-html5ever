@@ -37,7 +37,7 @@ test("doc type / Quirks mode", (t) => {
   t.is(dom2.document.docType.systemId, "http://www.w3.org/TR/html4/loose.dtd");
 });
 
-test.skip(".document is initiated once", (t) => {
+test(".document is initiated once", (t) => {
   let dom = parseDocument("");
   let document1 = dom.document;
   let document2 = dom.document;
@@ -54,6 +54,7 @@ test("element", (t) => {
   let document = dom.document;
 
   let {documentElement: html, body} = document;
+  let {documentElement: html2, body: body2} = document;
 
   t.is(html.tagName, "HTML");
   t.is(html.getAttribute("id"), "main");
@@ -66,4 +67,7 @@ test("element", (t) => {
 
   t.snapshot(html.outerHtml);
   t.snapshot(body.outerHtml);
+
+  t.is(html, html2)
+  t.is(body, body2)
 });
