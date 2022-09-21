@@ -20,21 +20,21 @@ test("doc type / Quirks mode", (t) => {
   t.truthy(dom);
   t.is(dom.quirksMode, QuirksMode.NoQuirks, "Correct quircks mode");
   t.truthy(dom.document.docType, ".document.docType is truthy");
-  t.is(dom.document.docType.name, "html");
-  t.is(dom.document.docType.publicId, "");
-  t.is(dom.document.docType.systemId, "");
+  t.is(dom.document.docType?.name, "html");
+  t.is(dom.document.docType?.publicId, "");
+  t.is(dom.document.docType?.systemId, "");
   t.snapshot(dom.serialize(), ".serialize()");
 
   let dom2 = parseDocument(`
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   `);
   t.truthy(dom2.document.docType, ".document.docType is truthy");
-  t.is(dom2.document.docType.name, "html");
+  t.is(dom2.document.docType?.name, "html");
   t.is(
-    dom2.document.docType.publicId,
+    dom2.document.docType?.publicId,
     "-//W3C//DTD HTML 4.01 Transitional//EN"
   );
-  t.is(dom2.document.docType.systemId, "http://www.w3.org/TR/html4/loose.dtd");
+  t.is(dom2.document.docType?.systemId, "http://www.w3.org/TR/html4/loose.dtd");
 });
 
 test(".document is initiated once", (t) => {
@@ -55,6 +55,12 @@ test("element", (t) => {
 
   let {documentElement: html, head, body} = document;
   let {documentElement: html2, head: head2, body: body2} = document;
+
+  console.log(document.foo)
+
+  if (document.foo instanceof Element) {
+    console.log(document.foo.nodeName)
+  }
 
   t.is(html.tagName, "HTML");
   t.is(html.getAttribute("id"), "main");

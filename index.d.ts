@@ -13,6 +13,7 @@ export class NodeList {
   get(index: number): Element | null
 }
 export class Document {
+  get foo(): Element | DocType
   get docType(): DocType | null
   get documentElement(): Element
   get head(): Element
