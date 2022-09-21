@@ -13,6 +13,7 @@ export class DocType {
   name: string
   publicId: string
   systemId: string
+  get parentNode(): Element | Document | null
 }
 export class Document {
   get docType(): DocType | null
@@ -34,8 +35,11 @@ export class Element {
   get tagName(): string
   get children(): Array<Element>
   get outerHtml(): string
+  get parentNode(): Element | Document | null
 }
 export class NodeList {
   get(index: number): Node
 }
-export class Text { }
+export class Text {
+  get parentNode(): Element | Document | null
+}

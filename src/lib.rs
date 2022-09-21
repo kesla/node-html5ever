@@ -7,6 +7,7 @@ mod dom;
 mod element;
 mod node;
 mod node_list;
+mod parent;
 mod quirks_mode;
 mod serialize;
 mod text;

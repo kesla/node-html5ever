@@ -1,7 +1,10 @@
 use html5ever::{Attribute, QualName};
-use napi::{bindgen_prelude::Reference, Env, Result};
+use napi::{
+  bindgen_prelude::{Reference, WeakReference},
+  Either, Env, Result,
+};
 
-use crate::{node::Node, node_list::NodeList, serialize::serialize};
+use crate::{document::Document, node::Node, node_list::NodeList, serialize::serialize, parent::clone_parent_node};
 
 #[napi]
 pub struct Element {
@@ -9,16 +12,22 @@ pub struct Element {
   pub(crate) list: Reference<NodeList>,
   pub(crate) name: QualName,
   pub(crate) env: Env,
+  pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>,
 }
 
 #[napi]
 impl Element {
-  pub(crate) fn new(attrs: Vec<Attribute>, name: QualName, env: Env) -> Result<Reference<Self>> {
+  pub(crate) fn new(
+    env: Env,
+    attrs: Vec<Attribute>,
+    name: QualName,
+  ) -> Result<Reference<Self>> {
     let r = Self {
+      env,
       attrs,
       list: NodeList::new(env)?,
       name,
-      env,
+      parent: None,
     };
 
     Self::into_reference(r, env)
@@ -62,5 +71,10 @@ impl Element {
   pub fn outer_html(&self, reference: Reference<Element>) -> String {
     let node: Node = reference.into();
     serialize(&node)
+  }
+
+  #[napi(getter)]
+  pub fn get_parent_node(&self) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
+    clone_parent_node(self.parent.as_ref())
   }
 }

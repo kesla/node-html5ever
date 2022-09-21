@@ -6,6 +6,7 @@ use crate::quirks_mode::QuirksMode;
 use crate::serialize::serialize;
 use crate::text::Text;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
+use napi::Either;
 use napi::{bindgen_prelude::Reference, Env, Result};
 
 #[napi]
@@ -75,7 +76,7 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
-    let element = Element::new(attrs, name, self.env).unwrap();
+    let element = Element::new(self.env, attrs, name).unwrap();
     element.into()
   }
 
@@ -93,16 +94,29 @@ impl TreeSink for Html5everDom {
 
   fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
     // TODO: concatenate already existing text node
-    let mut list = match &parent.inner {
-      Inner::Element(r) => r.list.clone(self.env).unwrap(),
-      Inner::Document(r) => r.list.clone(self.env).unwrap(),
+    let (mut list, parent_reference) = match &parent.inner {
+      Inner::Element(r) => (
+        r.list.clone(self.env).unwrap(),
+        Some(Either::A(r.downgrade())),
+      ),
+      Inner::Document(r) => (
+        r.list.clone(self.env).unwrap(),
+        Some(Either::B(r.downgrade())),
+      ),
       _ => panic!("Node does not have children"),
     };
 
-    let node = match child {
+    let mut node = match child {
       NodeOrText::AppendNode(node) => node,
       NodeOrText::AppendText(content) => Text::new(content.to_string(), self.env).unwrap().into(),
     };
+
+    match &mut node.inner {
+        Inner::DocType(doc_type) => doc_type.parent = parent_reference,
+        Inner::Document(document) => (),
+        Inner::Element(element) => element.parent = parent_reference,
+        Inner::Text(text) => text.parent = parent_reference,
+    }
 
     list.push(node);
   }

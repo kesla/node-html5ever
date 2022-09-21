@@ -74,4 +74,7 @@ test("element", (t) => {
 
   t.is(html.children[0], head)
   t.is(html.children[1], body)
+
+  t.is(head.parentNode, html)
+  t.is(body.parentNode, html)
 });
