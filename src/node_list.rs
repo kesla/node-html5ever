@@ -31,7 +31,11 @@ impl NodeList {
     }
   }
 
-  pub fn len(&self) -> usize {
+  pub(crate) fn push(&mut self, node: Node) {
+    self.children.push(node)
+  }
+
+  pub(crate) fn len(&self) -> usize {
     self.children.len()
   }
 }

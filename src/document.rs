@@ -4,14 +4,16 @@ use crate::{doc_type::DocType, element::Element, node_list::NodeList};
 
 #[napi]
 pub struct Document {
-  list: Reference<NodeList>,
+  pub (crate) list: Reference<NodeList>,
+  pub (crate) env: Env,
 }
 
 #[napi]
 impl Document {
-  fn new(env: Env) -> Result<Reference<Self>> {
+  pub(crate) fn new(env: Env) -> Result<Reference<Self>> {
     let document = Self {
       list: NodeList::new(env)?,
+      env,
     };
 
     return Self::into_reference(document, env);
