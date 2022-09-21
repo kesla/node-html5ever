@@ -1,10 +1,6 @@
-use napi::{bindgen_prelude::Reference, Env, Error, Result};
+use napi::{bindgen_prelude::Reference, Env, Result};
 
-use crate::{
-  doc_type::{self, DocType},
-  element::Element,
-  node_list::NodeList,
-};
+use crate::{doc_type::DocType, element::Element, node_list::NodeList};
 
 #[napi]
 pub struct Document {
