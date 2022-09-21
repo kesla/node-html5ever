@@ -65,8 +65,11 @@ test("element", (t) => {
   t.true(html instanceof Element);
   t.true(body instanceof Element);
 
-  t.snapshot(html.outerHtml);
-  t.snapshot(body.outerHtml);
+  t.snapshot(html.outerHtml, "html.outerHtml");
+  t.snapshot(html.innerHtml, "html.innerHtml");
+  t.snapshot(body.outerHtml, "body.outerHtml");
+  t.snapshot(body.innerHtml, "body.innerHtml");
+
 
   t.is(html, html2)
   t.is(body, body2)

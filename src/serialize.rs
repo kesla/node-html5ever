@@ -1,6 +1,9 @@
 use std::collections::VecDeque;
 
-use html5ever::QualName;
+use html5ever::{
+  serialize::{SerializeOpts, TraversalScope},
+  QualName,
+};
 
 use crate::node::{self, Node};
 
@@ -72,10 +75,18 @@ impl html5ever::serialize::Serialize for SerializableNode {
   }
 }
 
-pub fn serialize(node: &Node) -> String {
+pub fn serialize(node: &Node, traversal_scope: TraversalScope) -> String {
   let serializable_node: SerializableNode = SerializableNode(node.clone());
   let mut serialized = Vec::new();
-  html5ever::serialize::serialize(&mut serialized, &serializable_node, Default::default()).unwrap();
+  html5ever::serialize::serialize(
+    &mut serialized,
+    &serializable_node,
+    SerializeOpts {
+      traversal_scope,
+      ..Default::default()
+    },
+  )
+  .unwrap();
 
   String::from_utf8(serialized).unwrap()
 }

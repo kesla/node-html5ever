@@ -68,9 +68,15 @@ impl Element {
   }
 
   #[napi(getter)]
+  pub fn inner_html(&self, reference: Reference<Element>) -> String {
+    let node: Node = reference.into();
+    serialize(&node, html5ever::serialize::TraversalScope::ChildrenOnly(None))
+  }
+
+  #[napi(getter)]
   pub fn outer_html(&self, reference: Reference<Element>) -> String {
     let node: Node = reference.into();
-    serialize(&node)
+    serialize(&node, html5ever::serialize::TraversalScope::IncludeNode)
   }
 
   #[napi(getter)]

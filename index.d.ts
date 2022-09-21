@@ -34,6 +34,7 @@ export class Element {
   get nodeName(): string
   get tagName(): string
   get children(): Array<Element>
+  get innerHtml(): string
   get outerHtml(): string
   get parentNode(): Element | Document | null
 }
