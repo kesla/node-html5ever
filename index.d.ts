@@ -15,7 +15,15 @@ export class DocType {
   systemId: string
 }
 export class Document {
+  get docType(): DocType | null
+  get documentElement(): Element
   get nodeName(): string
+}
+export type Html5everDom = Html5EverDom
+export class Html5EverDom {
+  quirksMode: QuirksMode
+  errors: Array<string>
+  get document(): Document
 }
 export class Element {
   getAttribute(key: string): string | null
@@ -26,8 +34,3 @@ export class NodeList {
   get(index: number): Node
 }
 export class Text { }
-export type Html5everDom = Html5EverDom
-export class Html5EverDom {
-  quirksMode: QuirksMode
-  errors: Array<string>
-}

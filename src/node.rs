@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use napi::{
   bindgen_prelude::{Either4, Reference, ToNapiValue},
   Either, Env, Error, Result, Status,
