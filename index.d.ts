@@ -24,6 +24,7 @@ export class Html5EverDom {
   quirksMode: QuirksMode
   errors: Array<string>
   get document(): Document
+  serialize(): string
 }
 export class Element {
   getAttribute(key: string): string | null

@@ -1,3 +1,5 @@
+use std::slice::Iter;
+
 use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
 use crate::node::Node;
@@ -37,5 +39,9 @@ impl NodeList {
 
   pub(crate) fn len(&self) -> usize {
     self.children.len()
+  }
+
+  pub(crate) fn iter(&self) -> Iter<Node> {
+    self.children.iter()
   }
 }

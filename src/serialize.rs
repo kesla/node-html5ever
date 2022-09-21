@@ -1,11 +1,10 @@
-use std::{borrow::Borrow, collections::VecDeque};
+use std::collections::VecDeque;
 
 use html5ever::QualName;
-// use markup5ever_rcdom::SerializabeHandle;
 
-use crate::{node::Node, element::Element};
+use crate::node::{self, Node};
 
-struct SerializableNode(Element);
+struct SerializableNode(Node);
 
 enum SerializeOp {
   Open(Node),
@@ -21,42 +20,49 @@ impl html5ever::serialize::Serialize for SerializableNode {
   where
     S: html5ever::serialize::Serializer,
   {
+    let env = self.0.env;
+
     let mut ops = VecDeque::new();
     match traversal_scope {
       html5ever::serialize::TraversalScope::IncludeNode => {
         ops.push_back(SerializeOp::Open(self.0.clone()))
       }
-      html5ever::serialize::TraversalScope::ChildrenOnly(_) => ops.extend(
-        self
-          .0
-          .children()
-          .unwrap()
-          .child_nodes
-          .iter()
-          .map(|child| SerializeOp::Open(child.clone())),
-      ),
+      html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
+        let maybe_children = match &self.0.inner {
+          node::Inner::Document(r) => Some(r.list.clone(env).unwrap()),
+          node::Inner::Element(r) => Some(r.list.clone(env).unwrap()),
+          _ => None,
+        };
+
+        if let Some(children) = maybe_children {
+          ops.extend(
+            children
+              .iter()
+              .map(|child| SerializeOp::Open(child.clone())),
+          );
+        }
+      }
     };
 
     while let Some(op) = ops.pop_front() {
       match op {
         SerializeOp::Open(node) => match node.inner {
-          napi::Either::A(doc_type) => serializer.write_doctype(&doc_type.name)?,
-          napi::Either::B(element) => {
+          node::Inner::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+          node::Inner::Element(element) => {
             serializer.start_elem(
-              element.name,
-              element
-                .attrs
-                .borrow()
-                .iter()
-                .map(|at| (&at.name, &at.value[..])),
+              // TODO: Is this actually copying the data? Need to figure that out
+              element.name.clone(),
+              element.attrs.iter().map(|at| (&at.name, &at.value[..])),
             )?;
-            ops.reserve(1 + element.children.child_nodes.len());
-            ops.push_back(SerializeOp::Close(element.name));
+            ops.reserve(1 + element.list.len());
+            ops.push_front(SerializeOp::Close(element.name.clone()));
 
-            for child in element.children.child_nodes.iter().rev() {
+            for child in element.list.iter().rev() {
               ops.push_front(SerializeOp::Open(child.clone()));
             }
           }
+          node::Inner::Document(_) => panic!("Can't serialize Document node itself"),
+          node::Inner::Text(text) => serializer.write_text(&text.content)?,
         },
         SerializeOp::Close(name) => serializer.end_elem(name)?,
       }
@@ -66,8 +72,8 @@ impl html5ever::serialize::Serialize for SerializableNode {
   }
 }
 
-pub fn serialize(element: &Element) -> String {
-  let serializable_node: SerializableNode = SerializableNode(element);
+pub fn serialize(node: &Node) -> String {
+  let serializable_node: SerializableNode = SerializableNode(node.clone());
   let mut serialized = Vec::new();
   html5ever::serialize::serialize(&mut serialized, &serializable_node, Default::default()).unwrap();
 

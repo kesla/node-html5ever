@@ -7,7 +7,7 @@ use crate::{node_list::NodeList};
 
 #[napi]
 pub struct Element {
-  attrs: Vec<Attribute>,
+  pub(crate) attrs: Vec<Attribute>,
   pub(crate) list: Reference<NodeList>,
   pub(crate) name: QualName,
   pub(crate) env: Env,

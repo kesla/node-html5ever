@@ -2,7 +2,7 @@ use napi::{Env, bindgen_prelude::Reference, Result};
 
 #[napi]
 pub struct Text {
-  content: String,
+  pub(crate) content: String,
   pub(crate) env: Env
 }
 

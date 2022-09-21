@@ -30,7 +30,7 @@ impl Into<EitherType> for Inner {
 
 pub struct Node {
   pub(crate) inner: Inner,
-  env: Env,
+  pub(crate) env: Env,
 }
 
 impl ToNapiValue for Node {
@@ -89,21 +89,21 @@ impl From<Reference<Text>> for Node {
 }
 
 impl Node {
-  pub fn into_element(&self) -> Result<&Reference<Element>> {
+  pub(crate) fn into_element(&self) -> Result<&Reference<Element>> {
     match &self.inner {
       Inner::Element(r) => Ok(r),
       _ => Err(Error::new(Status::InvalidArg, "not an Element".to_string())),
     }
   }
 
-  pub fn into_doc_type(&self) -> Result<&Reference<DocType>> {
+  pub(crate) fn into_doc_type(&self) -> Result<&Reference<DocType>> {
     match &self.inner {
       Inner::DocType(r) => Ok(r),
       _ => Err(Error::new(Status::InvalidArg, "not a DocType".to_string())),
     }
   }
 
-  pub fn into_document(&self) -> Result<&Reference<Document>> {
+  pub(crate) fn into_document(&self) -> Result<&Reference<Document>> {
     match &self.inner {
       Inner::Document(r) => Ok(r),
       _ => Err(Error::new(Status::InvalidArg, "not a Document".to_string())),

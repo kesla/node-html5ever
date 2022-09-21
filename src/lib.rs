@@ -8,7 +8,7 @@ mod element;
 mod node;
 mod node_list;
 mod quirks_mode;
-// mod serialize
+mod serialize;
 mod text;
 
 use dom::Html5everDom;

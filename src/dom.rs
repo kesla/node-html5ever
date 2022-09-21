@@ -3,6 +3,7 @@ use crate::document::Document;
 use crate::element::Element;
 use crate::node::{Inner, Node};
 use crate::quirks_mode::QuirksMode;
+use crate::serialize::serialize;
 use crate::text::Text;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
 use napi::{bindgen_prelude::Reference, Env, Result};
@@ -37,6 +38,11 @@ impl Html5everDom {
   pub fn document(&mut self, env: Env) -> Result<Reference<Document>> {
     let r = self.document.into_document()?;
     r.clone(env)
+  }
+
+  #[napi]
+  pub fn serialize(&self) -> String {
+    serialize(&self.document)
   }
 }
 
