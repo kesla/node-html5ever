@@ -45,25 +45,19 @@ impl Document {
     return element.clone(self.env);
   }
 
-  // #[napi(getter)]
-  // pub fn get_head(&mut self, env: Env) -> Result<Reference<Element>> {
-  //   let document_element = self.get_document_element(env)?;
+  #[napi(getter)]
+  pub fn get_head(&mut self, env: Env) -> Result<Reference<Element>> {
+    let document_element = self.get_document_element()?;
 
-  //   document_element
-  //     .get_children(env)?
-  //     .get(0, env)?
-  //     .ok_or_else(|| Error::from_reason("head element should exists"))
-  // }
+    document_element.list.get(0)?.into_element()?.clone(env)
+  }
 
-  // #[napi(getter)]
-  // pub fn get_body(&mut self, env: Env) -> Result<Reference<Element>> {
-  //   let document_element = self.get_document_element(env)?;
+  #[napi(getter)]
+  pub fn get_body(&mut self, env: Env) -> Result<Reference<Element>> {
+    let document_element = self.get_document_element()?;
 
-  //   document_element
-  //     .get_children(env)?
-  //     .get(1, env)?
-  //     .ok_or_else(|| Error::from_reason("body element should exists"))
-  // }
+    document_element.list.get(1)?.into_element()?.clone(env)
+  }
 
   #[napi(getter)]
   pub fn node_name(&self) -> String {

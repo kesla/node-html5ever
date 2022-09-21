@@ -7,7 +7,6 @@ use crate::node::Node;
 #[napi]
 pub struct NodeList {
   children: Vec<Node>,
-  env: Env,
 }
 
 #[napi]
@@ -16,7 +15,6 @@ impl NodeList {
     NodeList::into_reference(
       Self {
         children: vec![],
-        env,
       },
       env,
     )

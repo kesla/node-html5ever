@@ -1,9 +1,7 @@
-use std::cell::RefCell;
-
 use html5ever::{Attribute, QualName};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
-use crate::{node_list::NodeList};
+use crate::{node::Node, node_list::NodeList, serialize::serialize};
 
 #[napi]
 pub struct Element {
@@ -20,7 +18,7 @@ impl Element {
       attrs,
       list: NodeList::new(env)?,
       name,
-      env
+      env,
     };
 
     Self::into_reference(r, env)
@@ -49,13 +47,20 @@ impl Element {
     self.node_name()
   }
 
-  // #[napi(getter)]
-  // pub fn get_children(&self) -> Result<Reference<NodeList>> {
-  //   self.children.clone(self.env)
-  // }
+  // TODO: cache this & perhaps return something nicer
+  // remove .unwrap
+  #[napi(getter)]
+  pub fn get_children(&self) -> Vec<Reference<Element>> {
+    self
+      .list
+      .iter()
+      .filter_map(|node| node.into_element().ok().map(|r| r.clone(self.env).unwrap()))
+      .collect()
+  }
 
-  // #[napi(getter)]
-  // pub fn outer_html(&self) -> String {
-  //   serialize(self)
-  // }
+  #[napi(getter)]
+  pub fn outer_html(&self, reference: Reference<Element>) -> String {
+    let node: Node = reference.into();
+    serialize(&node)
+  }
 }

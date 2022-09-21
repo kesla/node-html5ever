@@ -17,6 +17,8 @@ export class DocType {
 export class Document {
   get docType(): DocType | null
   get documentElement(): Element
+  get head(): Element
+  get body(): Element
   get nodeName(): string
 }
 export type Html5everDom = Html5EverDom
@@ -30,6 +32,8 @@ export class Element {
   getAttribute(key: string): string | null
   get nodeName(): string
   get tagName(): string
+  get children(): Array<Element>
+  get outerHtml(): string
 }
 export class NodeList {
   get(index: number): Node

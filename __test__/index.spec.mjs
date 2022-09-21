@@ -56,12 +56,6 @@ test("element", (t) => {
   let {documentElement: html, head, body} = document;
   let {documentElement: html2, head: head2, body: body2} = document;
 
-  console.log(document.foo)
-
-  if (document.foo instanceof Element) {
-    console.log(document.foo.nodeName)
-  }
-
   t.is(html.tagName, "HTML");
   t.is(html.getAttribute("id"), "main");
   t.is(body.tagName, "BODY");
@@ -78,6 +72,6 @@ test("element", (t) => {
   t.is(body, body2)
   t.is(head, head2)
 
-  t.is(html.children.get(0), head)
-  t.is(html.children.get(1), body)
+  t.is(html.children[0], head)
+  t.is(html.children[1], body)
 });

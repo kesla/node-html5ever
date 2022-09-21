@@ -1,8 +1,6 @@
-use std::convert::TryInto;
-
 use napi::{
   bindgen_prelude::{Either4, Reference, ToNapiValue},
-  Either, Env, Error, Result, Status,
+  Env, Error, Result, Status,
 };
 
 use crate::{doc_type::DocType, document::Document, element::Element, text::Text};
