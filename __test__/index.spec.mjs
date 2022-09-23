@@ -96,12 +96,25 @@ test('comment', (t) => {
   t.snapshot(dom.serialize(), "Comment dom");
 })
 
-test('createElement', (t) => {
+test('createElement + set attributes', (t) => {
   let dom = parse("");
 
   let element = dom.document.createElement('div');
 
-  t.snapshot(element.outerHtml);
+  t.snapshot(element.outerHtml, 'empty div');
   t.is(element.parentElement, null)
   t.is(element.parentNode, null)
+
+  t.false(element.hasAttribute('foo'));
+  t.is(element.getAttribute('foo'), null)
+
+  element.setAttribute('foo', 'bar');
+  t.true(element.hasAttribute('foo'))
+  t.is(element.getAttribute('foo'), 'bar')
+  t.snapshot(element.outerHtml, 'foo="bar"');
+
+  element.setAttribute('foo', 'baz');
+  t.true(element.hasAttribute('foo'))
+  t.is(element.getAttribute('foo'), 'baz');
+  t.snapshot(element.outerHtml, 'foo="baz"');
 })

@@ -1,4 +1,4 @@
-use html5ever::{Attribute, QualName};
+use html5ever::{namespace_url, ns, Attribute, QualName};
 use napi::bindgen_prelude::Reference;
 
 use crate::{handle::Handle, node_list::NodeList, serialize::serialize};
@@ -18,16 +18,39 @@ pub struct Element {
 #[napi]
 impl Element {
   #[napi]
-  pub fn get_attribute(&self, key: String) -> Option<String> {
+  pub fn get_attribute(&self, name: String) -> Option<String> {
     let b = &self.attrs;
     let mut iter = b.iter();
     while let Some(attr) = iter.next() {
-      if attr.name.local == key {
+      if attr.name.local == name {
         return Some(attr.value.to_string());
       }
     }
 
     None
+  }
+
+  #[napi]
+  pub fn set_attribute(&mut self, name: String, value: String) {
+    let maybe_existing_attribute = self.attrs.iter_mut().find(|attr| attr.name.local == name);
+
+    match maybe_existing_attribute {
+      Some(existing_attribute) => {
+        existing_attribute.value = value.into();
+      }
+      None => {
+        let new_attribute = Attribute {
+          name: QualName::new(None, ns!(), name.into()),
+          value: value.into(),
+        };
+        self.attrs.push(new_attribute);
+      }
+    }
+  }
+
+  #[napi]
+  pub fn has_attribute(&self, name: String) -> bool {
+    self.get_attribute(name).is_some()
   }
 
   #[napi(getter)]

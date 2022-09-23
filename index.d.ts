@@ -38,7 +38,9 @@ export class Html5EverDom {
 export class Element {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
-  getAttribute(key: string): string | null
+  getAttribute(name: string): string | null
+  setAttribute(name: string, value: string): void
+  hasAttribute(name: string): boolean
   get nodeName(): string
   get tagName(): string
   get children(): Array<Element>
