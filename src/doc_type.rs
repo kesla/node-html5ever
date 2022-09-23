@@ -4,6 +4,7 @@ use crate::{element::Element, document::Document};
 
 #[napi]
 #[derive(Node)]
+#[add_node_fields]
 pub struct DocType {
   #[napi(writable = false)]
   pub name: String,
@@ -15,9 +16,6 @@ pub struct DocType {
   pub system_id: String,
 
   pub(crate) env: Env,
-
-  pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>,
-
 }
 
 #[napi]

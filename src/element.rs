@@ -9,12 +9,12 @@ use crate::{document::Document, handle::Handle, node_list::NodeList, serialize::
 
 #[napi]
 #[derive(Node)]
+#[add_node_fields]
 pub struct Element {
   pub(crate) attrs: Vec<Attribute>,
   pub(crate) list: Reference<NodeList>,
   pub(crate) name: QualName,
   pub(crate) env: Env,
-  pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>,
 }
 
 #[napi]

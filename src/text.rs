@@ -4,10 +4,10 @@ use crate::{element::Element, document::Document};
 
 #[napi]
 #[derive(Node)]
+#[add_node_fields]
 pub struct Text {
   pub(crate) content: String,
   pub(crate) env: Env,
-  pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>,
 }
 
 #[napi]
