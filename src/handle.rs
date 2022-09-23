@@ -26,18 +26,18 @@ impl Into<EitherType> for Inner {
   }
 }
 
-pub struct Node {
+pub struct Handle {
   pub(crate) inner: Inner,
   pub(crate) env: Env,
 }
 
-impl ToNapiValue for Node {
+impl ToNapiValue for Handle {
   unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
     Either4::to_napi_value(env, val.inner.into())
   }
 }
 
-impl Clone for Node {
+impl Clone for Handle {
   fn clone(&self) -> Self {
     // Self { inner: self.inner.clone(), env: self.env.clone() }
     let cloned_inner = match &self.inner {
@@ -54,7 +54,7 @@ impl Clone for Node {
   }
 }
 
-impl From<Reference<Element>> for Node {
+impl From<Reference<Element>> for Handle {
   fn from(r: Reference<Element>) -> Self {
     let env = r.env;
     let inner = Inner::Element(r);
@@ -62,7 +62,7 @@ impl From<Reference<Element>> for Node {
   }
 }
 
-impl From<Reference<Document>> for Node {
+impl From<Reference<Document>> for Handle {
   fn from(r: Reference<Document>) -> Self {
     let env = r.env;
     let inner = Inner::Document(r);
@@ -70,7 +70,7 @@ impl From<Reference<Document>> for Node {
   }
 }
 
-impl From<Reference<DocType>> for Node {
+impl From<Reference<DocType>> for Handle {
   fn from(r: Reference<DocType>) -> Self {
     let env = r.env;
     let inner = Inner::DocType(r);
@@ -78,7 +78,7 @@ impl From<Reference<DocType>> for Node {
   }
 }
 
-impl From<Reference<Text>> for Node {
+impl From<Reference<Text>> for Handle {
   fn from(r: Reference<Text>) -> Self {
     let env = r.env;
     let inner = Inner::Text(r);
@@ -86,7 +86,7 @@ impl From<Reference<Text>> for Node {
   }
 }
 
-impl Node {
+impl Handle {
   pub(crate) fn into_element(&self) -> Result<&Reference<Element>> {
     match &self.inner {
       Inner::Element(r) => Ok(r),

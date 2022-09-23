@@ -39,7 +39,7 @@ export class Element {
   get parentNode(): Element | Document | null
 }
 export class NodeList {
-  get(index: number): Node
+  get(index: number): Handle
 }
 export class Text {
   get parentNode(): Element | Document | null

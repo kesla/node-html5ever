@@ -5,12 +5,12 @@ use html5ever::{
   QualName,
 };
 
-use crate::node::{self, Node};
+use crate::handle::{self, Handle};
 
-struct SerializableNode(Node);
+struct SerializableNode(Handle);
 
 enum SerializeOp {
-  Open(Node),
+  Open(Handle),
   Close(QualName),
 }
 
@@ -32,8 +32,8 @@ impl html5ever::serialize::Serialize for SerializableNode {
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
         let maybe_children = match &self.0.inner {
-          node::Inner::Document(r) => Some(r.list.clone(env).unwrap()),
-          node::Inner::Element(r) => Some(r.list.clone(env).unwrap()),
+          handle::Inner::Document(r) => Some(r.list.clone(env).unwrap()),
+          handle::Inner::Element(r) => Some(r.list.clone(env).unwrap()),
           _ => None,
         };
 
@@ -49,9 +49,9 @@ impl html5ever::serialize::Serialize for SerializableNode {
 
     while let Some(op) = ops.pop_front() {
       match op {
-        SerializeOp::Open(node) => match node.inner {
-          node::Inner::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
-          node::Inner::Element(element) => {
+        SerializeOp::Open(handle) => match handle.inner {
+          handle::Inner::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+          handle::Inner::Element(element) => {
             serializer.start_elem(
               // TODO: Is this actually copying the data? Need to figure that out
               element.name.clone(),
@@ -64,8 +64,8 @@ impl html5ever::serialize::Serialize for SerializableNode {
               ops.push_front(SerializeOp::Open(child.clone()));
             }
           }
-          node::Inner::Document(_) => panic!("Can't serialize Document node itself"),
-          node::Inner::Text(text) => serializer.write_text(&text.content)?,
+          handle::Inner::Document(_) => panic!("Can't serialize Document node itself"),
+          handle::Inner::Text(text) => serializer.write_text(&text.content)?,
         },
         SerializeOp::Close(name) => serializer.end_elem(name)?,
       }
@@ -75,8 +75,8 @@ impl html5ever::serialize::Serialize for SerializableNode {
   }
 }
 
-pub fn serialize(node: &Node, traversal_scope: TraversalScope) -> String {
-  let serializable_node: SerializableNode = SerializableNode(node.clone());
+pub fn serialize(handle: &Handle, traversal_scope: TraversalScope) -> String {
+  let serializable_node: SerializableNode = SerializableNode(handle.clone());
   let mut serialized = Vec::new();
   html5ever::serialize::serialize(
     &mut serialized,

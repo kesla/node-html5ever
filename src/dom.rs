@@ -1,7 +1,7 @@
 use crate::doc_type::DocType;
 use crate::document::Document;
 use crate::element::Element;
-use crate::node::{Inner, Node};
+use crate::handle::{Inner, Handle};
 use crate::quirks_mode::QuirksMode;
 use crate::serialize::serialize;
 use crate::text::Text;
@@ -11,7 +11,7 @@ use napi::{bindgen_prelude::Reference, Env, Result};
 
 #[napi]
 pub struct Html5everDom {
-  document: Node,
+  document: Handle,
 
   #[napi(writable = false)]
   pub quirks_mode: QuirksMode,
@@ -25,7 +25,7 @@ pub struct Html5everDom {
 #[napi]
 impl Html5everDom {
   pub(crate) fn new(env: Env) -> Result<Html5everDom> {
-    let document: Node = Document::new(env)?.into();
+    let document: Handle = Document::new(env)?.into();
 
     Ok(Html5everDom {
       document,
@@ -48,7 +48,7 @@ impl Html5everDom {
 }
 
 impl TreeSink for Html5everDom {
-  type Handle = Node;
+  type Handle = Handle;
 
   type Output = Self;
 
@@ -106,19 +106,19 @@ impl TreeSink for Html5everDom {
       _ => panic!("Node does not have children"),
     };
 
-    let mut node = match child {
-      NodeOrText::AppendNode(node) => node,
+    let mut handle = match child {
+      NodeOrText::AppendNode(handle) => handle,
       NodeOrText::AppendText(content) => Text::new(content.to_string(), self.env).unwrap().into(),
     };
 
-    match &mut node.inner {
+    match &mut handle.inner {
         Inner::DocType(doc_type) => doc_type.parent = parent_reference,
         Inner::Document(document) => (),
         Inner::Element(element) => element.parent = parent_reference,
         Inner::Text(text) => text.parent = parent_reference,
     }
 
-    list.push(node);
+    list.push(handle);
   }
 
   fn append_based_on_parent_node(
@@ -143,8 +143,8 @@ impl TreeSink for Html5everDom {
       self.env,
     )
     .unwrap();
-    let node: Node = doc_type.into();
-    let child = NodeOrText::AppendNode(node);
+    let handle: Handle = doc_type.into();
+    let child = NodeOrText::AppendNode(handle);
     self.append(&self.document.clone(), child);
   }
 

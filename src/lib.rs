@@ -5,7 +5,7 @@ mod doc_type;
 mod document;
 mod dom;
 mod element;
-mod node;
+mod handle;
 mod node_list;
 mod parent;
 mod quirks_mode;

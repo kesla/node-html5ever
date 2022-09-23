@@ -4,7 +4,7 @@ use napi::{
   Either, Env, Result,
 };
 
-use crate::{document::Document, node::Node, node_list::NodeList, serialize::serialize, parent::clone_parent_node};
+use crate::{document::Document, handle::Handle, node_list::NodeList, serialize::serialize, parent::clone_parent_node};
 
 #[napi]
 pub struct Element {
@@ -63,20 +63,20 @@ impl Element {
     self
       .list
       .iter()
-      .filter_map(|node| node.into_element().ok().map(|r| r.clone(self.env).unwrap()))
+      .filter_map(|handle| handle.into_element().ok().map(|r| r.clone(self.env).unwrap()))
       .collect()
   }
 
   #[napi(getter)]
   pub fn inner_html(&self, reference: Reference<Element>) -> String {
-    let node: Node = reference.into();
-    serialize(&node, html5ever::serialize::TraversalScope::ChildrenOnly(None))
+    let handle: Handle = reference.into();
+    serialize(&handle, html5ever::serialize::TraversalScope::ChildrenOnly(None))
   }
 
   #[napi(getter)]
   pub fn outer_html(&self, reference: Reference<Element>) -> String {
-    let node: Node = reference.into();
-    serialize(&node, html5ever::serialize::TraversalScope::IncludeNode)
+    let handle: Handle = reference.into();
+    serialize(&handle, html5ever::serialize::TraversalScope::IncludeNode)
   }
 
   #[napi(getter)]
