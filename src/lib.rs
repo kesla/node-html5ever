@@ -21,7 +21,7 @@ use html5ever::{
 use napi::{Env, Result};
 
 #[napi]
-pub fn parse_document(html: String, env: Env) -> Result<Html5everDom> {
+pub fn parse(html: String, env: Env) -> Result<Html5everDom> {
   let sink = Html5everDom::new(env)?;
   let dom: Html5everDom = html5ever::parse_document(sink, Default::default()).one(html);
 

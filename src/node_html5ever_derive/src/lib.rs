@@ -10,6 +10,21 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
     #[napi]
     impl #name {
       #[napi(getter)]
+      pub fn get_parent_element(&self) -> Option<WeakReference<Element>> {
+        let parent_node = self.get_parent_node();
+
+        match parent_node {
+          Some(element_or_document) => {
+            match (element_or_document) {
+              Either::A(element) => Some(element),
+              Either::B(_) => None,
+            }
+          },
+          None => None
+        }
+      }
+
+      #[napi(getter)]
       pub fn get_parent_node(&self) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
         let maybe_reference = self.parent.as_ref();
 

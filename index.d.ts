@@ -8,11 +8,12 @@ export const enum QuirksMode {
   LimitedQuirks = 1,
   NoQuirks = 2
 }
-export function parseDocument(html: string): Html5EverDom
+export function parse(html: string): Html5EverDom
 export class DocType {
   name: string
   publicId: string
   systemId: string
+  get parentElement(): Element | null
   get parentNode(): Element | Document | null
   
 }
@@ -31,6 +32,7 @@ export class Html5EverDom {
   serialize(): string
 }
 export class Element {
+  get parentElement(): Element | null
   get parentNode(): Element | Document | null
   getAttribute(key: string): string | null
   get nodeName(): string
@@ -43,6 +45,7 @@ export class NodeList {
   get(index: number): Handle
 }
 export class Text {
+  get parentElement(): Element | null
   get parentNode(): Element | Document | null
   
 }
