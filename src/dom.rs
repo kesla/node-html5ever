@@ -76,7 +76,7 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
-    let element = Element::new(self.env, attrs, name).unwrap();
+    let element = Element::new_reference(self.env, attrs, name).unwrap();
     element.into()
   }
 
@@ -108,7 +108,7 @@ impl TreeSink for Html5everDom {
 
     let mut handle = match child {
       NodeOrText::AppendNode(handle) => handle,
-      NodeOrText::AppendText(content) => Text::new(self.env, content.to_string()).unwrap().into(),
+      NodeOrText::AppendText(content) => Text::new_reference(self.env, content.to_string()).unwrap().into(),
     };
 
     match &mut handle.inner {
@@ -136,7 +136,7 @@ impl TreeSink for Html5everDom {
     public_id: html5ever::tendril::StrTendril,
     system_id: html5ever::tendril::StrTendril,
   ) {
-    let doc_type = DocType::new(
+    let doc_type = DocType::new_reference(
       self.env,
       name.to_string(),
       public_id.to_string(),

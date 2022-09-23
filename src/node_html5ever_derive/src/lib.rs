@@ -14,14 +14,14 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
               .parse2(quote! {
                 pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>
               })
-              .unwrap()
+              .unwrap(),
           );
           fields.named.push(
             syn::Field::parse_named
               .parse2(quote! {
                 pub(crate) env: Env
               })
-              .unwrap()
+              .unwrap(),
           );
         }
         _ => (),
@@ -36,7 +36,7 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
   }
 }
 
-#[proc_macro_derive(Node)]
+#[proc_macro_derive(Node, attributes(default))]
 pub fn node_macro_derive(input: TokenStream) -> TokenStream {
   let ast: &syn::DeriveInput = &syn::parse(input).unwrap();
   let name = &ast.ident;
@@ -47,23 +47,52 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
       ..
     }) => &fields.named,
     _ => panic!("this derive macro only works on structs with named fields"),
-  };
-  let arguments = struct_properties.into_iter().map(|field| {
-    let ident = &field.ident;
-    let ty = &field.ty;
-    quote!(#ident: #ty,)
+  }
+  .into_iter()
+  .map(|field| {
+    let default_attribute = field
+      .attrs
+      .iter()
+      .find(|attr| attr.path.is_ident("default"));
+
+    (field, default_attribute)
   });
-  let fields = struct_properties.into_iter().map(|field| {
-    let ident = &field.ident;
-    quote!(#ident,)
-  });
+
+  let arguments = struct_properties
+    .clone()
+    .filter_map(|(field, default_attribute)| {
+      let ident = &field.ident;
+      let ty = &field.ty;
+
+      default_attribute.map_or_else(|| Some(quote!(#ident: #ty,)), |_default| None)
+    });
+
+  let argument_fields = struct_properties
+    .clone()
+    .filter_map(|(field, default_attribute)| {
+      let ident = &field.ident;
+
+      default_attribute.map_or_else(|| Some(quote!(#ident,)), |_default| None)
+    });
+
+  let default_fields = struct_properties
+    .into_iter()
+    .filter_map(|(field, default_attribute)| {
+      default_attribute.map(|attr| {
+        let ident = &field.ident;
+        let default_value = &attr.tokens;
+        quote!(#ident: #default_value,)
+      })
+    });
 
   let gen = quote!(
     #[napi]
+    #[automatically_derived]
     impl #name {
       pub(crate) fn new_reference(env: Env, #(#arguments)*) -> Result<Reference<Self>> {
         let inner = Self {
-          #(#fields)*
+          #(#default_fields)*
+          #(#argument_fields)*
           parent: None,
           env,
         };

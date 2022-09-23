@@ -12,25 +12,15 @@ use crate::{document::Document, handle::Handle, node_list::NodeList, serialize::
 #[add_node_fields]
 pub struct Element {
   pub(crate) attrs: Vec<Attribute>,
+
+  #[default(NodeList::new(env)?)]
   pub(crate) list: Reference<NodeList>,
+
   pub(crate) name: QualName,
 }
 
 #[napi]
 impl Element {
-  pub(crate) fn new(
-    env: Env,
-    attrs: Vec<Attribute>,
-    name: QualName,
-  ) -> Result<Reference<Self>> {
-    Self::new_reference(
-      env,
-      attrs,
-      NodeList::new(env)?,
-      name,
-    )
-  }
-
   #[napi]
   pub fn get_attribute(&self, key: String) -> Option<String> {
     let b = &self.attrs;

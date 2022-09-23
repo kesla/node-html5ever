@@ -15,7 +15,6 @@ export class DocType {
   systemId: string
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
-  
 }
 export class Document {
   get docType(): DocType | null
@@ -47,5 +46,4 @@ export class NodeList {
 export class Text {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
-  
 }
