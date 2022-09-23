@@ -108,7 +108,7 @@ impl TreeSink for Html5everDom {
 
     let mut handle = match child {
       NodeOrText::AppendNode(handle) => handle,
-      NodeOrText::AppendText(content) => Text::new(content.to_string(), self.env).unwrap().into(),
+      NodeOrText::AppendText(content) => Text::new(self.env, content.to_string()).unwrap().into(),
     };
 
     match &mut handle.inner {
@@ -137,10 +137,10 @@ impl TreeSink for Html5everDom {
     system_id: html5ever::tendril::StrTendril,
   ) {
     let doc_type = DocType::new(
+      self.env,
       name.to_string(),
       public_id.to_string(),
       system_id.to_string(),
-      self.env,
     )
     .unwrap();
     let handle: Handle = doc_type.into();

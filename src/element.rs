@@ -14,7 +14,6 @@ pub struct Element {
   pub(crate) attrs: Vec<Attribute>,
   pub(crate) list: Reference<NodeList>,
   pub(crate) name: QualName,
-  pub(crate) env: Env,
 }
 
 #[napi]
@@ -24,17 +23,12 @@ impl Element {
     attrs: Vec<Attribute>,
     name: QualName,
   ) -> Result<Reference<Self>> {
-    let r = Self {
+    Self::new_reference(
       env,
       attrs,
-      list: NodeList::new(env)?,
+      NodeList::new(env)?,
       name,
-      parent: None,
-    };
-    
-    r.get_parent_node();
-
-    Self::into_reference(r, env)
+    )
   }
 
   #[napi]

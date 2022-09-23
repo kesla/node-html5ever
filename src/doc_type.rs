@@ -1,6 +1,9 @@
-use napi::{Env, bindgen_prelude::{Reference, WeakReference}, Result, Either};
+use napi::{
+  bindgen_prelude::{Reference, WeakReference},
+  Either, Env, Result,
+};
 
-use crate::{element::Element, document::Document};
+use crate::{document::Document, element::Element};
 
 #[napi]
 #[derive(Node)]
@@ -14,16 +17,16 @@ pub struct DocType {
 
   #[napi(writable = false)]
   pub system_id: String,
-
-  pub(crate) env: Env,
 }
 
 #[napi]
 impl DocType {
-  pub(crate) fn new(name: String, public_id: String, system_id: String, env: Env) -> Result<Reference<Self>> {
-    let s = Self {
-      name, public_id, system_id, env, parent: None
-    };
-    Self::into_reference(s, env)
+  pub(crate) fn new(
+    env: Env,
+    name: String,
+    public_id: String,
+    system_id: String,
+  ) -> Result<Reference<Self>> {
+    Self::new_reference(env, name, public_id, system_id)
   }
 }

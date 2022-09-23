@@ -7,12 +7,11 @@ use crate::{element::Element, document::Document};
 #[add_node_fields]
 pub struct Text {
   pub(crate) content: String,
-  pub(crate) env: Env,
 }
 
 #[napi]
 impl Text {
-  pub(crate) fn new(content: String, env: Env) -> Result<Reference<Self>> {
-    Self::into_reference(Self {content, env, parent: None}, env)
+  pub(crate) fn new(env: Env, content: String) -> Result<Reference<Self>> {
+    Self::new_reference(env, content)
   }
 }

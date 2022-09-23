@@ -1,40 +1,75 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{self, parse_macro_input, DeriveInput, parse::Parser};
+use syn::{self, parse::Parser, parse_macro_input, DeriveInput};
 
 #[proc_macro_attribute]
-pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream  {
-    let mut ast = parse_macro_input!(input as DeriveInput);
-    match &mut ast.data {
-        syn::Data::Struct(ref mut struct_data) => {           
-            match &mut struct_data.fields {
-                syn::Fields::Named(fields) => {
-                    fields
-                        .named
-                        .push(syn::Field::parse_named.parse2(quote! {
-                          pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>
-                        }).unwrap());
-                }   
-                _ => {
-                    ()
-                }
-            }              
-            
-            return quote! {
-                #ast
-            }.into();
+pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
+  let mut ast = parse_macro_input!(input as DeriveInput);
+  match &mut ast.data {
+    syn::Data::Struct(ref mut struct_data) => {
+      match &mut struct_data.fields {
+        syn::Fields::Named(fields) => {
+          fields.named.push(
+            syn::Field::parse_named
+              .parse2(quote! {
+                pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>
+              })
+              .unwrap()
+          );
+          fields.named.push(
+            syn::Field::parse_named
+              .parse2(quote! {
+                pub(crate) env: Env
+              })
+              .unwrap()
+          );
         }
-        _ => panic!("`add_field` has to be used with structs "),
+        _ => (),
+      }
+
+      return quote! {
+          #ast
+      }
+      .into();
     }
+    _ => panic!("`add_field` has to be used with structs "),
+  }
 }
 
 #[proc_macro_derive(Node)]
 pub fn node_macro_derive(input: TokenStream) -> TokenStream {
-  let ast: syn::DeriveInput = syn::parse(input).unwrap();
-  let name = ast.ident;
+  let ast: &syn::DeriveInput = &syn::parse(input).unwrap();
+  let name = &ast.ident;
+
+  let struct_properties = match &ast.data {
+    syn::Data::Struct(syn::DataStruct {
+      fields: syn::Fields::Named(fields),
+      ..
+    }) => &fields.named,
+    _ => panic!("this derive macro only works on structs with named fields"),
+  };
+  let arguments = struct_properties.into_iter().map(|field| {
+    let ident = &field.ident;
+    let ty = &field.ty;
+    quote!(#ident: #ty,)
+  });
+  let fields = struct_properties.into_iter().map(|field| {
+    let ident = &field.ident;
+    quote!(#ident,)
+  });
+
   let gen = quote!(
     #[napi]
     impl #name {
+      pub(crate) fn new_reference(env: Env, #(#arguments)*) -> Result<Reference<Self>> {
+        let inner = Self {
+          #(#fields)*
+          parent: None,
+          env,
+        };
+        Self::into_reference(inner, env)
+      }
+
       #[napi(getter)]
       pub fn get_parent_element(&self) -> Option<WeakReference<Element>> {
         let parent_node = self.get_parent_node();
