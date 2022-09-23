@@ -50,6 +50,7 @@ impl html5ever::serialize::Serialize for SerializableNode {
     while let Some(op) = ops.pop_front() {
       match op {
         SerializeOp::Open(handle) => match handle.inner {
+          handle::Inner::Comment(comment) => serializer.write_comment(&comment.content)?,
           handle::Inner::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
           handle::Inner::Element(element) => {
             serializer.start_elem(

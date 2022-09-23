@@ -1,10 +1,3 @@
-use napi::{
-  bindgen_prelude::{Reference, WeakReference},
-  Either, Env, Result,
-};
-
-use crate::{document::Document, element::Element};
-
 #[napi]
 #[derive(Node)]
 #[add_node_fields]

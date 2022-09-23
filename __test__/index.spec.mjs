@@ -89,3 +89,9 @@ test("element", (t) => {
   t.is(html.parentNode, document)
   t.is(html.parentElement, null)
 });
+
+test('comment', (t) => {
+  let dom = parse("<!-- Hello, world -->");
+
+  t.snapshot(dom.serialize(), "Comment dom");
+})

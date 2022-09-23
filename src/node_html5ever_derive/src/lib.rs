@@ -12,14 +12,14 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
           fields.named.push(
             syn::Field::parse_named
               .parse2(quote! {
-                pub(crate) parent: Option<Either<WeakReference<Element>, WeakReference<Document>>>
+                pub(crate) parent: Option<napi::Either<napi::bindgen_prelude::WeakReference<crate::element::Element>, napi::bindgen_prelude::WeakReference<crate::document::Document>>>
               })
               .unwrap(),
           );
           fields.named.push(
             syn::Field::parse_named
               .parse2(quote! {
-                pub(crate) env: Env
+                pub(crate) env: napi::Env
               })
               .unwrap(),
           );
@@ -89,7 +89,7 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
     #[napi]
     #[automatically_derived]
     impl #name {
-      pub(crate) fn new_reference(env: Env, #(#arguments)*) -> Result<Reference<Self>> {
+      pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) -> napi::Result<napi::bindgen_prelude::Reference<Self>> {
         let inner = Self {
           #(#default_fields)*
           #(#argument_fields)*
@@ -100,14 +100,14 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
       }
 
       #[napi(getter)]
-      pub fn get_parent_element(&self) -> Option<WeakReference<Element>> {
+      pub fn get_parent_element(&self) -> Option<napi::bindgen_prelude::WeakReference<crate::element::Element>> {
         let parent_node = self.get_parent_node();
 
         match parent_node {
           Some(element_or_document) => {
             match (element_or_document) {
-              Either::A(element) => Some(element),
-              Either::B(_) => None,
+              napi::Either::A(element) => Some(element),
+              napi::Either::B(_) => None,
             }
           },
           None => None
@@ -115,12 +115,12 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
       }
 
       #[napi(getter)]
-      pub fn get_parent_node(&self) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
+      pub fn get_parent_node(&self) -> Option<napi::Either<napi::bindgen_prelude::WeakReference<crate::element::Element>, napi::bindgen_prelude::WeakReference<crate::document::Document>>> {
         let maybe_reference = self.parent.as_ref();
 
         maybe_reference.map(|value| match value {
-          Either::A(element) => Either::A(element.clone()),
-          Either::B(document) => Either::B(document.clone()),
+          napi::Either::A(element) => napi::Either::A(element.clone()),
+          napi::Either::B(document) => napi::Either::B(document.clone()),
         })
       }
     }

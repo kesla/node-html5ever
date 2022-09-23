@@ -1,6 +1,6 @@
 #[napi]
 #[derive(Node)]
 #[add_node_fields]
-pub struct Text {
+pub struct Comment {
   pub(crate) content: String,
 }

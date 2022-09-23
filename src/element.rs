@@ -1,11 +1,7 @@
 use html5ever::{Attribute, QualName};
-use napi::{
-  bindgen_prelude::{Reference, WeakReference},
-  Either, Env, Result,
-};
+use napi::bindgen_prelude::Reference;
 
-use crate::{document::Document, handle::Handle, node_list::NodeList, serialize::serialize};
-// use crate::node::Node;
+use crate::{handle::Handle, node_list::NodeList, serialize::serialize};
 
 #[napi]
 #[derive(Node)]
@@ -51,14 +47,22 @@ impl Element {
     self
       .list
       .iter()
-      .filter_map(|handle| handle.into_element().ok().map(|r| r.clone(self.env).unwrap()))
+      .filter_map(|handle| {
+        handle
+          .into_element()
+          .ok()
+          .map(|r| r.clone(self.env).unwrap())
+      })
       .collect()
   }
 
   #[napi(getter)]
   pub fn inner_html(&self, reference: Reference<Element>) -> String {
     let handle: Handle = reference.into();
-    serialize(&handle, html5ever::serialize::TraversalScope::ChildrenOnly(None))
+    serialize(
+      &handle,
+      html5ever::serialize::TraversalScope::ChildrenOnly(None),
+    )
   }
 
   #[napi(getter)]

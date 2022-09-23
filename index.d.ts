@@ -9,6 +9,10 @@ export const enum QuirksMode {
   NoQuirks = 2
 }
 export function parse(html: string): Html5EverDom
+export class Comment {
+  get parentElement(): Element | null
+  get parentNode(): Element | Document | null
+}
 export class DocType {
   name: string
   publicId: string

@@ -1,11 +1,12 @@
 use napi::{
-  bindgen_prelude::{Either4, Reference, ToNapiValue},
+  bindgen_prelude::{Reference, ToNapiValue, Either5},
   Env, Error, Result, Status,
 };
 
-use crate::{doc_type::DocType, document::Document, element::Element, text::Text};
+use crate::{doc_type::DocType, document::Document, element::Element, text::Text, comment::Comment};
 
 pub(crate) enum Inner {
+  Comment(Reference<Comment>),
   DocType(Reference<DocType>),
   Document(Reference<Document>),
   Element(Reference<Element>),
@@ -13,15 +14,16 @@ pub(crate) enum Inner {
 }
 
 type EitherType =
-  Either4<Reference<DocType>, Reference<Document>, Reference<Element>, Reference<Text>>;
+  Either5<Reference<Comment>, Reference<DocType>, Reference<Document>, Reference<Element>, Reference<Text>>;
 
 impl Into<EitherType> for Inner {
   fn into(self) -> EitherType {
     match self {
-      Inner::DocType(i) => Either4::A(i),
-      Inner::Document(i) => Either4::B(i),
-      Inner::Element(i) => Either4::C(i),
-      Inner::Text(i) => Either4::D(i),
+      Inner::Comment(i) => Either5::A(i),
+      Inner::DocType(i) => Either5::B(i),
+      Inner::Document(i) => Either5::C(i),
+      Inner::Element(i) => Either5::D(i),
+      Inner::Text(i) => Either5::E(i),
     }
   }
 }
@@ -33,14 +35,14 @@ pub struct Handle {
 
 impl ToNapiValue for Handle {
   unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
-    Either4::to_napi_value(env, val.inner.into())
+    Either5::to_napi_value(env, val.inner.into())
   }
 }
 
 impl Clone for Handle {
   fn clone(&self) -> Self {
-    // Self { inner: self.inner.clone(), env: self.env.clone() }
     let cloned_inner = match &self.inner {
+      Inner::Comment(r) => Inner::Comment(r.clone(self.env).unwrap()),
       Inner::DocType(r) => Inner::DocType(r.clone(self.env).unwrap()),
       Inner::Document(r) => Inner::Document(r.clone(self.env).unwrap()),
       Inner::Element(r) => Inner::Element(r.clone(self.env).unwrap()),
@@ -51,6 +53,14 @@ impl Clone for Handle {
       inner: cloned_inner,
       env: self.env.clone(),
     }
+  }
+}
+
+impl From<Reference<Comment>> for Handle {
+  fn from(r: Reference<Comment>) -> Self {
+    let env = r.env;
+    let inner = Inner::Comment(r);
+    Self { inner, env }
   }
 }
 

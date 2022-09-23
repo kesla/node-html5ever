@@ -4,6 +4,7 @@ extern crate napi_derive;
 #[macro_use]
 extern crate node_html5ever_derive;
 
+mod comment;
 mod doc_type;
 mod document;
 mod dom;

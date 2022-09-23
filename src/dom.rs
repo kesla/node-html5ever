@@ -1,3 +1,4 @@
+use crate::comment::Comment;
 use crate::doc_type::DocType;
 use crate::document::Document;
 use crate::element::Element;
@@ -81,7 +82,7 @@ impl TreeSink for Html5everDom {
   }
 
   fn create_comment(&mut self, text: html5ever::tendril::StrTendril) -> Self::Handle {
-    todo!()
+    Comment::new_reference(self.env, text.to_string()).unwrap().into()
   }
 
   fn create_pi(
@@ -112,6 +113,7 @@ impl TreeSink for Html5everDom {
     };
 
     match &mut handle.inner {
+        Inner::Comment(comment) => comment.parent = parent_reference,
         Inner::DocType(doc_type) => doc_type.parent = parent_reference,
         Inner::Document(document) => (),
         Inner::Element(element) => element.parent = parent_reference,
