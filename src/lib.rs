@@ -1,13 +1,15 @@
 #[macro_use]
 extern crate napi_derive;
 
+#[macro_use]
+extern crate node_html5ever_derive;
+
 mod doc_type;
 mod document;
 mod dom;
 mod element;
 mod handle;
 mod node_list;
-mod parent;
 mod quirks_mode;
 mod serialize;
 mod text;

@@ -1,0 +1,13 @@
+[package]
+name = "node-html5ever-derive"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
+napi-derive = "2.7.0"

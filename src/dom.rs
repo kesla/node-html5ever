@@ -43,7 +43,7 @@ impl Html5everDom {
 
   #[napi]
   pub fn serialize(&self) -> String {
-    serialize(&self.document, html5ever::serialize::TraversalScope::ChildrenOnly((None)))
+    serialize(&self.document, html5ever::serialize::TraversalScope::ChildrenOnly(None))
   }
 }
 

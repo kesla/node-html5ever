@@ -1,7 +1,8 @@
 [package]
 edition = "2021"
-name = "html5ever"
+name = "node-html5ever"
 version = "0.0.0"
+publish = false
 
 [lib]
 crate-type = ["cdylib"]
@@ -11,6 +12,7 @@ crate-type = ["cdylib"]
 napi = { version = "2.7.0", default-features = false, features = ["napi4"] }
 napi-derive = "2.7.0"
 html5ever = "0.26.0"
+node-html5ever-derive = { path = "./src/node_html5ever_derive" }
 
 [build-dependencies]
 napi-build = "2.0.1"

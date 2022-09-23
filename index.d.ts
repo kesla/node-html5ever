@@ -14,6 +14,7 @@ export class DocType {
   publicId: string
   systemId: string
   get parentNode(): Element | Document | null
+  
 }
 export class Document {
   get docType(): DocType | null
@@ -30,17 +31,18 @@ export class Html5EverDom {
   serialize(): string
 }
 export class Element {
+  get parentNode(): Element | Document | null
   getAttribute(key: string): string | null
   get nodeName(): string
   get tagName(): string
   get children(): Array<Element>
   get innerHtml(): string
   get outerHtml(): string
-  get parentNode(): Element | Document | null
 }
 export class NodeList {
   get(index: number): Handle
 }
 export class Text {
   get parentNode(): Element | Document | null
+  
 }

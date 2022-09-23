@@ -4,9 +4,11 @@ use napi::{
   Either, Env, Result,
 };
 
-use crate::{document::Document, handle::Handle, node_list::NodeList, serialize::serialize, parent::clone_parent_node};
+use crate::{document::Document, handle::Handle, node_list::NodeList, serialize::serialize};
+// use crate::node::Node;
 
 #[napi]
+#[derive(Node)]
 pub struct Element {
   pub(crate) attrs: Vec<Attribute>,
   pub(crate) list: Reference<NodeList>,
@@ -29,6 +31,8 @@ impl Element {
       name,
       parent: None,
     };
+    
+    r.get_parent_node();
 
     Self::into_reference(r, env)
   }
@@ -77,10 +81,5 @@ impl Element {
   pub fn outer_html(&self, reference: Reference<Element>) -> String {
     let handle: Handle = reference.into();
     serialize(&handle, html5ever::serialize::TraversalScope::IncludeNode)
-  }
-
-  #[napi(getter)]
-  pub fn get_parent_node(&self) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
-    clone_parent_node(self.parent.as_ref())
   }
 }

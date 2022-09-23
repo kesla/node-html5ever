@@ -1,8 +1,9 @@
 use napi::{Env, bindgen_prelude::{Reference, WeakReference}, Result, Either};
 
-use crate::{element::Element, document::Document, parent::clone_parent_node};
+use crate::{element::Element, document::Document};
 
 #[napi]
+#[derive(Node)]
 pub struct DocType {
   #[napi(writable = false)]
   pub name: String,
@@ -26,11 +27,5 @@ impl DocType {
       name, public_id, system_id, env, parent: None
     };
     Self::into_reference(s, env)
-  }
-
-
-  #[napi(getter)]
-  pub fn get_parent_node(&self) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
-    clone_parent_node(self.parent.as_ref())
   }
 }
