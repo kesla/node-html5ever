@@ -26,6 +26,7 @@ export class Document {
   get head(): Element
   get body(): Element
   get nodeName(): string
+  createElement(name: string): Element
 }
 export type Html5everDom = Html5EverDom
 export class Html5EverDom {

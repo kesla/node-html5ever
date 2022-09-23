@@ -95,3 +95,13 @@ test('comment', (t) => {
 
   t.snapshot(dom.serialize(), "Comment dom");
 })
+
+test('createElement', (t) => {
+  let dom = parse("");
+
+  let element = dom.document.createElement('div');
+
+  t.snapshot(element.outerHtml);
+  t.is(element.parentElement, null)
+  t.is(element.parentNode, null)
+})
