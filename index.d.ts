@@ -39,6 +39,7 @@ export class Element {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
   getAttribute(name: string): string | null
+  removeAttribute(name: string): void
   setAttribute(name: string, value: string): void
   hasAttribute(name: string): boolean
   get nodeName(): string

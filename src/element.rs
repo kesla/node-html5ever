@@ -1,4 +1,4 @@
-use html5ever::{namespace_url, ns, Attribute, QualName};
+use html5ever::{Attribute, QualName, Namespace};
 use napi::bindgen_prelude::Reference;
 
 use crate::{handle::Handle, node_list::NodeList, serialize::serialize};
@@ -31,6 +31,13 @@ impl Element {
   }
 
   #[napi]
+  pub fn remove_attribute(&mut self, name: String) {
+    self.attrs.retain(|attribute| {
+      attribute.name.local != name
+    })
+  }
+
+  #[napi]
   pub fn set_attribute(&mut self, name: String, value: String) {
     let maybe_existing_attribute = self.attrs.iter_mut().find(|attr| attr.name.local == name);
 
@@ -40,7 +47,7 @@ impl Element {
       }
       None => {
         let new_attribute = Attribute {
-          name: QualName::new(None, ns!(), name.into()),
+          name: QualName::new(None, Namespace::from(""), name.into()),
           value: value.into(),
         };
         self.attrs.push(new_attribute);

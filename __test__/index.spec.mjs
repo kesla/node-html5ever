@@ -117,4 +117,12 @@ test('createElement + set attributes', (t) => {
   t.true(element.hasAttribute('foo'))
   t.is(element.getAttribute('foo'), 'baz');
   t.snapshot(element.outerHtml, 'foo="baz"');
+
+  element.setAttribute('hello', 'world');
+
+  element.removeAttribute('foo');
+  t.false(element.hasAttribute('foo'));
+  t.is(element.getAttribute('foo'), null);
+  t.is(element.getAttribute('hello'), 'world');
+  t.snapshot(element.outerHtml, "attribute foo removed, hello added")
 })

@@ -1,7 +1,9 @@
-use html5ever::{local_name, ns, LocalName, QualName, Namespace};
+use html5ever::{QualName, Namespace};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
-use crate::{doc_type::DocType, dom::Html5everDom, element::Element, node_list::NodeList};
+use crate::{doc_type::DocType,element::Element, node_list::NodeList};
+
+
 
 #[napi]
 pub struct Document {
@@ -63,12 +65,10 @@ impl Document {
 
   #[napi]
   pub fn create_element(&mut self, env: Env, name: String) -> Result<Reference<Element>> {
-    let local: &str = &name;
-
     Element::new_reference(
       env,
       vec![],
-      QualName::new(None, Namespace::from("html"), LocalName::from(local)),
+      QualName::new(None, Namespace::from("html"), name.into()),
     )
   }
 }
