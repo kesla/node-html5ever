@@ -56,7 +56,7 @@ impl html5ever::serialize::Serialize for SerializableNode {
             serializer.start_elem(
               // TODO: Is this actually copying the data? Need to figure that out
               element.name.clone(),
-              element.attrs.iter().map(|at| (&at.name, &at.value[..])),
+              element.attributes_wrapper.iter().map(|at| (&at.name, &at.value[..])),
             )?;
             ops.reserve(1 + element.list.len());
             ops.push_front(SerializeOp::Close(element.name.clone()));

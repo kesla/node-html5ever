@@ -1,4 +1,4 @@
-use html5ever::{Attribute, QualName, Namespace};
+use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::bindgen_prelude::Reference;
 
 use crate::{handle::Handle, node_list::NodeList, serialize::serialize};
@@ -7,10 +7,10 @@ use crate::{handle::Handle, node_list::NodeList, serialize::serialize};
 #[derive(Node)]
 #[add_node_fields]
 pub struct Element {
-  pub(crate) attrs: Vec<Attribute>,
-
   #[default(NodeList::new(env)?)]
   pub(crate) list: Reference<NodeList>,
+
+  pub(crate) attributes_wrapper: AttributesWrapper,
 
   pub(crate) name: QualName,
 }
@@ -19,45 +19,30 @@ pub struct Element {
 impl Element {
   #[napi]
   pub fn get_attribute(&self, name: String) -> Option<String> {
-    let b = &self.attrs;
-    let mut iter = b.iter();
-    while let Some(attr) = iter.next() {
-      if attr.name.local == name {
-        return Some(attr.value.to_string());
-      }
-    }
-
-    None
+    self
+      .attributes_wrapper
+      .get_attribute(LocalName::from(name))
+      .map(|attribute| attribute.value.to_string())
   }
 
   #[napi]
   pub fn remove_attribute(&mut self, name: String) {
-    self.attrs.retain(|attribute| {
-      attribute.name.local != name
-    })
+    self.attributes_wrapper.remove_attribute(name.into());
   }
 
   #[napi]
   pub fn set_attribute(&mut self, name: String, value: String) {
-    let maybe_existing_attribute = self.attrs.iter_mut().find(|attr| attr.name.local == name);
+    let local = LocalName::from(name);
 
-    match maybe_existing_attribute {
-      Some(existing_attribute) => {
-        existing_attribute.value = value.into();
-      }
-      None => {
-        let new_attribute = Attribute {
-          name: QualName::new(None, Namespace::from(""), name.into()),
-          value: value.into(),
-        };
-        self.attrs.push(new_attribute);
-      }
-    }
+    self.attributes_wrapper.remove_attribute(local.clone());
+    self
+      .attributes_wrapper
+      .add_attribute(local.clone(), value.into())
   }
 
   #[napi]
   pub fn has_attribute(&self, name: String) -> bool {
-    self.get_attribute(name).is_some()
+    self.attributes_wrapper.has_attribute(name.into())
   }
 
   #[napi(getter)]
@@ -101,3 +86,48 @@ impl Element {
     serialize(&handle, html5ever::serialize::TraversalScope::IncludeNode)
   }
 }
+
+pub(crate) struct AttributesWrapper {
+  attrs: Vec<Attribute>,
+}
+
+impl From<Vec<Attribute>> for AttributesWrapper {
+  fn from(attrs: Vec<Attribute>) -> Self {
+    Self { attrs }
+  }
+}
+
+impl AttributesWrapper {
+  pub(crate) fn get_attribute(&self, name: LocalName) -> Option<&Attribute> {
+    self
+      .iter()
+      .find(|attribute| attribute.name.local == name)
+  }
+
+  pub(crate) fn has_attribute(&self, name: LocalName) -> bool {
+    self.get_attribute(name).is_some()
+  }
+
+  pub(crate) fn remove_attribute(&mut self, name: LocalName) {
+    self.attrs.retain(|attribute| attribute.name.local != name)
+  }
+
+  pub(crate) fn add_attribute(&mut self, name: LocalName, value: StrTendril) {
+    let attribute_name = QualName::new(None, Namespace::from(""), name);
+    let new_attribute = Attribute {
+      name: attribute_name,
+      value,
+    };
+    self.push(new_attribute);
+  }
+
+  pub(crate) fn push(&mut self, attribute: Attribute) {
+    self.attrs.push(attribute)
+  }
+
+  pub(crate) fn iter(&self)-> std::slice::Iter<Attribute> {
+    let attrs = &self.attrs;
+    attrs.into_iter()
+  }
+}
+

@@ -2,7 +2,7 @@ use crate::comment::Comment;
 use crate::doc_type::DocType;
 use crate::document::Document;
 use crate::element::Element;
-use crate::handle::{Inner, Handle};
+use crate::handle::{Handle, Inner};
 use crate::quirks_mode::QuirksMode;
 use crate::serialize::serialize;
 use crate::text::Text;
@@ -44,7 +44,10 @@ impl Html5everDom {
 
   #[napi]
   pub fn serialize(&self) -> String {
-    serialize(&self.document, html5ever::serialize::TraversalScope::ChildrenOnly(None))
+    serialize(
+      &self.document,
+      html5ever::serialize::TraversalScope::ChildrenOnly(None),
+    )
   }
 }
 
@@ -77,12 +80,15 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
-    let element = Element::new_reference(self.env, attrs, name).unwrap();
-    element.into()
+    Element::new_reference(self.env, attrs.into(), name)
+      .unwrap()
+      .into()
   }
 
   fn create_comment(&mut self, text: html5ever::tendril::StrTendril) -> Self::Handle {
-    Comment::new_reference(self.env, text.to_string()).unwrap().into()
+    Comment::new_reference(self.env, text.to_string())
+      .unwrap()
+      .into()
   }
 
   fn create_pi(
@@ -109,15 +115,17 @@ impl TreeSink for Html5everDom {
 
     let mut handle = match child {
       NodeOrText::AppendNode(handle) => handle,
-      NodeOrText::AppendText(content) => Text::new_reference(self.env, content.to_string()).unwrap().into(),
+      NodeOrText::AppendText(content) => Text::new_reference(self.env, content.to_string())
+        .unwrap()
+        .into(),
     };
 
     match &mut handle.inner {
-        Inner::Comment(comment) => comment.parent = parent_reference,
-        Inner::DocType(doc_type) => doc_type.parent = parent_reference,
-        Inner::Document(document) => (),
-        Inner::Element(element) => element.parent = parent_reference,
-        Inner::Text(text) => text.parent = parent_reference,
+      Inner::Comment(comment) => comment.parent = parent_reference,
+      Inner::DocType(doc_type) => doc_type.parent = parent_reference,
+      Inner::Document(document) => (),
+      Inner::Element(element) => element.parent = parent_reference,
+      Inner::Text(text) => text.parent = parent_reference,
     }
 
     list.push(handle);
