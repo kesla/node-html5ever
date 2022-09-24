@@ -99,9 +99,7 @@ impl From<Vec<Attribute>> for AttributesWrapper {
 
 impl AttributesWrapper {
   pub(crate) fn get_attribute(&self, name: LocalName) -> Option<&Attribute> {
-    self
-      .iter()
-      .find(|attribute| attribute.name.local == name)
+    self.iter().find(|attribute| attribute.name.local == name)
   }
 
   pub(crate) fn has_attribute(&self, name: LocalName) -> bool {
@@ -125,9 +123,8 @@ impl AttributesWrapper {
     self.attrs.push(attribute)
   }
 
-  pub(crate) fn iter(&self)-> std::slice::Iter<Attribute> {
+  pub(crate) fn iter(&self) -> std::slice::Iter<Attribute> {
     let attrs = &self.attrs;
     attrs.into_iter()
   }
 }
-

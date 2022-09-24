@@ -16,9 +16,7 @@ mod serialize;
 mod text;
 
 use dom::Html5everDom;
-use html5ever::{
-  tendril::TendrilSink,
-};
+use html5ever::tendril::TendrilSink;
 use napi::{Env, Result};
 
 #[napi]

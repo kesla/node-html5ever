@@ -1,9 +1,11 @@
 use napi::{
-  bindgen_prelude::{Reference, ToNapiValue, Either5},
+  bindgen_prelude::{Either5, Reference, ToNapiValue},
   Env, Error, Result, Status,
 };
 
-use crate::{doc_type::DocType, document::Document, element::Element, text::Text, comment::Comment};
+use crate::{
+  comment::Comment, doc_type::DocType, document::Document, element::Element, text::Text,
+};
 
 pub(crate) enum Inner {
   Comment(Reference<Comment>),
@@ -13,8 +15,13 @@ pub(crate) enum Inner {
   Text(Reference<Text>),
 }
 
-type EitherType =
-  Either5<Reference<Comment>, Reference<DocType>, Reference<Document>, Reference<Element>, Reference<Text>>;
+type EitherType = Either5<
+  Reference<Comment>,
+  Reference<DocType>,
+  Reference<Document>,
+  Reference<Element>,
+  Reference<Text>,
+>;
 
 impl Into<EitherType> for Inner {
   fn into(self) -> EitherType {

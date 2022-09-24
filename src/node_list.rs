@@ -12,12 +12,7 @@ pub struct NodeList {
 #[napi]
 impl NodeList {
   pub fn new(env: Env) -> Result<Reference<Self>> {
-    NodeList::into_reference(
-      Self {
-        children: vec![],
-      },
-      env,
-    )
+    NodeList::into_reference(Self { children: vec![] }, env)
   }
 
   #[napi]
