@@ -27,6 +27,14 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
               })
               .unwrap(),
           );
+
+          fields.named.push(
+            syn::Field::parse_named
+              .parse2(quote! {
+                pub(crate) id: usize
+              })
+              .unwrap(),
+          );
         }
         _ => (),
       }
@@ -101,6 +109,7 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
           #(#argument_fields)*
           parent: None,
           env,
+          id: crate::id::get_id(),
         };
         Self::into_reference(inner, env)
       }

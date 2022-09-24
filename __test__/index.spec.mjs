@@ -126,3 +126,12 @@ test('createElement + set attributes', (t) => {
   t.is(element.getAttribute('hello'), 'world');
   t.snapshot(element.outerHtml, "attribute foo removed, hello added")
 })
+
+test('appendElement', (t) => {
+  let {document} = parse("");
+
+  let body = document.body;
+  let child = document.createElement('div');
+
+  console.log(body.appendElement(child));
+})

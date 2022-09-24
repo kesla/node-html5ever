@@ -47,6 +47,7 @@ export class Element {
   get children(): Array<Element>
   get innerHtml(): string
   get outerHtml(): string
+  appendElement(element: Element): number
 }
 export class NodeList {
   get(index: number): Handle

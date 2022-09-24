@@ -85,6 +85,11 @@ impl Element {
     let handle: Handle = reference.into();
     serialize(&handle, html5ever::serialize::TraversalScope::IncludeNode)
   }
+
+  #[napi]
+  pub fn append_element(&mut self, element: &Element) -> u32 {
+    element.id.try_into().unwrap()
+  }
 }
 
 pub(crate) struct AttributesWrapper {

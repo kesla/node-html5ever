@@ -7,6 +7,7 @@ use crate::{doc_type::DocType, element::Element, node_list::NodeList};
 pub struct Document {
   pub(crate) list: Reference<NodeList>,
   pub(crate) env: Env,
+  pub(crate) id: usize,
 }
 
 #[napi]
@@ -15,6 +16,7 @@ impl Document {
     let document = Self {
       list: NodeList::new(env)?,
       env,
+      id: crate::id::get_id(),
     };
 
     return Self::into_reference(document, env);
