@@ -103,11 +103,11 @@ impl TreeSink for Html5everDom {
     // TODO: concatenate already existing text node
     let (mut list, parent_reference) = match &parent.inner {
       NodeData::Element(r) => (
-        r.list.clone(self.env).unwrap(),
+        r.list.borrow_mut(),
         Some(Either::A(r.downgrade())),
       ),
       NodeData::Document(r) => (
-        r.list.clone(self.env).unwrap(),
+        r.list.borrow_mut(),
         Some(Either::B(r.downgrade())),
       ),
       _ => panic!("Node does not have children"),

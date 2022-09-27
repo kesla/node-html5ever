@@ -23,8 +23,6 @@ impl html5ever::serialize::Serialize for SerializableNode {
   where
     S: html5ever::serialize::Serializer,
   {
-    let env = self.0.env;
-
     let mut ops = VecDeque::new();
     match traversal_scope {
       html5ever::serialize::TraversalScope::IncludeNode => {
@@ -32,8 +30,8 @@ impl html5ever::serialize::Serialize for SerializableNode {
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
         let maybe_children = match &self.0.inner {
-          node::NodeData::Document(r) => Some(r.list.clone(env).unwrap()),
-          node::NodeData::Element(r) => Some(r.list.clone(env).unwrap()),
+          node::NodeData::Document(r) => Some(r.list.borrow()),
+          node::NodeData::Element(r) => Some(r.list.borrow()),
           _ => None,
         };
 
@@ -53,6 +51,7 @@ impl html5ever::serialize::Serialize for SerializableNode {
           node::NodeData::Comment(comment) => serializer.write_comment(&comment.content)?,
           node::NodeData::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
           node::NodeData::Element(element) => {
+            let list = element.list.borrow();
             serializer.start_elem(
               // TODO: Is this actually copying the data? Need to figure that out
               element.name.clone(),
@@ -61,10 +60,10 @@ impl html5ever::serialize::Serialize for SerializableNode {
                 .iter()
                 .map(|at| (&at.name, &at.value[..])),
             )?;
-            ops.reserve(1 + element.list.len());
+            ops.reserve(1 + list.len());
             ops.push_front(SerializeOp::Close(element.name.clone()));
 
-            for child in element.list.iter().rev() {
+            for child in list.iter().rev() {
               ops.push_front(SerializeOp::Open(child.clone()));
             }
           }

@@ -1,11 +1,13 @@
+use std::{rc::Rc, cell::RefCell};
+
 use html5ever::{Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
-use crate::{doc_type::DocType, element::Element, node_list::NodeList};
+use crate::{doc_type::DocType, element::Element, node::Node};
 
 #[napi]
 pub struct Document {
-  pub(crate) list: Reference<NodeList>,
+  pub(crate) list: Rc<RefCell<Vec<Node>>>,
   pub(crate) env: Env,
   pub(crate) id: usize,
 }
@@ -14,7 +16,7 @@ pub struct Document {
 impl Document {
   pub(crate) fn new(env: Env) -> Result<Reference<Self>> {
     let document = Self {
-      list: NodeList::new(env)?,
+      list: Rc::new(RefCell::new(vec![])),
       env,
       id: crate::id::get_id(),
     };
@@ -24,7 +26,7 @@ impl Document {
 
   #[napi(getter)]
   pub fn get_doc_type(&self) -> Result<Option<Reference<DocType>>> {
-    if let Ok(first) = self.list.get(0) {
+    if let Some(first) = self.list.borrow().get(0) {
       if let Ok(doc_type) = first.into_doc_type() {
         return Ok(Some(doc_type.clone(self.env)?));
       }
@@ -35,10 +37,11 @@ impl Document {
 
   #[napi(getter)]
   pub fn get_document_element(&self) -> Result<Reference<Element>> {
-    let node = match self.list.len() {
-      2 => self.list.get(1),
-      _ => self.list.get(0),
-    }?;
+    let list = self.list.borrow();
+    let node = match list.len() {
+      2 => list.get(1),
+      _ => list.get(0),
+    }.unwrap();
     let element = node.into_element()?;
 
     return element.clone(self.env);
@@ -48,14 +51,16 @@ impl Document {
   pub fn get_head(&mut self, env: Env) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
-    document_element.list.get(0)?.into_element()?.clone(env)
+    let list = document_element.list.borrow();
+    list.get(0).unwrap().into_element()?.clone(env)
   }
 
   #[napi(getter)]
   pub fn get_body(&mut self, env: Env) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
-    document_element.list.get(1)?.into_element()?.clone(env)
+    let list = document_element.list.borrow();
+    list.get(1).unwrap().into_element()?.clone(env)
   }
 
   #[napi(getter)]

@@ -11,7 +11,6 @@ mod dom;
 mod element;
 mod node;
 mod id;
-mod node_list;
 mod quirks_mode;
 mod serialize;
 mod text;

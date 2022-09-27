@@ -1,14 +1,16 @@
+use std::{rc::Rc, cell::RefCell};
+
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::bindgen_prelude::Reference;
 
-use crate::{node::Node, node_list::NodeList, serialize::serialize};
+use crate::{node::Node, serialize::serialize};
 
 #[napi]
 #[derive(NodeType)]
 #[add_node_fields]
 pub struct Element {
-  #[default(NodeList::new(env)?)]
-  pub(crate) list: Reference<NodeList>,
+  #[default(Rc::new(RefCell::new(vec![])))]
+  pub(crate) list: Rc<RefCell<Vec<Node>>>,
 
   pub(crate) attributes_wrapper: AttributesWrapper,
 
@@ -61,6 +63,7 @@ impl Element {
   pub fn get_children(&self) -> Vec<Reference<Element>> {
     self
       .list
+      .borrow()
       .iter()
       .filter_map(|node| {
         node

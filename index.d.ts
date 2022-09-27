@@ -49,9 +49,6 @@ export class Element {
   get outerHtml(): string
   appendElement(element: Element): number
 }
-export class NodeList {
-  get(index: number): Node
-}
 export class Text {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
