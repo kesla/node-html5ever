@@ -37,7 +37,6 @@ impl Into<EitherType> for NodeData {
 
 pub struct Node {
   pub(crate) data: NodeData,
-  pub(crate) env: Env,
 }
 
 impl ToNapiValue for Node {
@@ -48,41 +47,31 @@ impl ToNapiValue for Node {
 
 impl From<Reference<Comment>> for Node {
   fn from(r: Reference<Comment>) -> Self {
-    let env = r.env;
-    let inner = NodeData::Comment(r);
-    Self { data: inner, env }
+    Self { data: NodeData::Comment(r) }
   }
 }
 
 impl From<Reference<Element>> for Node {
   fn from(r: Reference<Element>) -> Self {
-    let env = r.env;
-    let inner = NodeData::Element(r);
-    Self { data: inner, env }
+    Self { data: NodeData::Element(r) }
   }
 }
 
 impl From<Reference<Document>> for Node {
   fn from(r: Reference<Document>) -> Self {
-    let env = r.env;
-    let inner = NodeData::Document(r);
-    Self { data: inner, env }
+    Self { data: NodeData::Document(r) }
   }
 }
 
 impl From<Reference<DocType>> for Node {
   fn from(r: Reference<DocType>) -> Self {
-    let env = r.env;
-    let inner = NodeData::DocType(r);
-    Self { data: inner, env }
+    Self { data: NodeData::DocType(r) }
   }
 }
 
 impl From<Reference<Text>> for Node {
   fn from(r: Reference<Text>) -> Self {
-    let env = r.env;
-    let inner = NodeData::Text(r);
-    Self { data: inner, env }
+    Self { data: NodeData::Text(r) }
   }
 }
 
