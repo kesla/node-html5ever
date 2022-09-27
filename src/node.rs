@@ -1,6 +1,6 @@
 use napi::{
   bindgen_prelude::{Either5, Reference, ToNapiValue},
-  Env, Error, Result, Status,
+  Error, Result, Status,
 };
 
 use crate::{
@@ -47,31 +47,41 @@ impl ToNapiValue for Node {
 
 impl From<Reference<Comment>> for Node {
   fn from(r: Reference<Comment>) -> Self {
-    Self { data: NodeData::Comment(r) }
+    Self {
+      data: NodeData::Comment(r),
+    }
   }
 }
 
 impl From<Reference<Element>> for Node {
   fn from(r: Reference<Element>) -> Self {
-    Self { data: NodeData::Element(r) }
+    Self {
+      data: NodeData::Element(r),
+    }
   }
 }
 
 impl From<Reference<Document>> for Node {
   fn from(r: Reference<Document>) -> Self {
-    Self { data: NodeData::Document(r) }
+    Self {
+      data: NodeData::Document(r),
+    }
   }
 }
 
 impl From<Reference<DocType>> for Node {
   fn from(r: Reference<DocType>) -> Self {
-    Self { data: NodeData::DocType(r) }
+    Self {
+      data: NodeData::DocType(r),
+    }
   }
 }
 
 impl From<Reference<Text>> for Node {
   fn from(r: Reference<Text>) -> Self {
-    Self { data: NodeData::Text(r) }
+    Self {
+      data: NodeData::Text(r),
+    }
   }
 }
 

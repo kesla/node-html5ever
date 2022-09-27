@@ -10,7 +10,6 @@ mod document;
 mod dom;
 mod element;
 mod node;
-mod id;
 mod quirks_mode;
 mod serialize;
 mod text;

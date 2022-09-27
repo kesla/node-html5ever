@@ -9,7 +9,6 @@ use crate::{doc_type::DocType, element::Element, dom::Handle};
 pub struct Document {
   pub(crate) list: Rc<RefCell<Vec<Handle>>>,
   pub(crate) env: Env,
-  pub(crate) id: usize,
 }
 
 #[napi]
@@ -18,7 +17,6 @@ impl Document {
     let document = Self {
       list: Rc::new(RefCell::new(vec![])),
       env,
-      id: crate::id::get_id(),
     };
 
     return Self::into_reference(document, env);

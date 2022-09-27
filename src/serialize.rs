@@ -5,7 +5,7 @@ use html5ever::{
   QualName,
 };
 
-use crate::{node::{Node, NodeData}, dom::Handle};
+use crate::{dom::Handle, node::NodeData};
 
 struct SerializableHandle(Handle);
 

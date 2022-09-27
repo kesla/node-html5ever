@@ -47,7 +47,7 @@ export class Element {
   get children(): Array<Element>
   get innerHtml(): string
   get outerHtml(): string
-  appendElement(element: Element): number
+  appendElement(element: Element): void
 }
 export class Text {
   get parentElement(): Element | null

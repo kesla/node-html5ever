@@ -59,6 +59,7 @@ impl Html5everDom {
   }
 }
 
+#[allow(unused_variables)]
 impl TreeSink for Html5everDom {
   type Handle = Handle;
 
@@ -117,17 +118,17 @@ impl TreeSink for Html5everDom {
       _ => panic!("Node does not have children"),
     };
 
-    let mut handle = match child {
+    let handle = match child {
       NodeOrText::AppendNode(handle) => handle,
       NodeOrText::AppendText(content) => {
         let node: Node = Text::new_reference(self.env, content.to_string())
-        .unwrap()
-        .into();
+          .unwrap()
+          .into();
         new_handle(node)
-      },
+      }
     };
 
-    match & handle.data {
+    match &handle.data {
       NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
       NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
       NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,

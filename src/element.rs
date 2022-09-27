@@ -92,8 +92,9 @@ impl Element {
   }
 
   #[napi]
-  pub fn append_element(&mut self, element: &Element) -> u32 {
-    element.id.try_into().unwrap()
+  pub fn append_element(&mut self, _element: &Element)  {
+    // element.id.try_into().unwrap()
+    // todo!()
   }
 }
 
