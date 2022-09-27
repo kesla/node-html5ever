@@ -101,7 +101,7 @@ impl TreeSink for Html5everDom {
 
   fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
     // TODO: concatenate already existing text node
-    let (mut list, parent_reference) = match &parent.inner {
+    let (mut list, parent_reference) = match &parent.data {
       NodeData::Element(r) => (
         r.list.borrow_mut(),
         Some(Either::A(r.downgrade())),
@@ -120,7 +120,7 @@ impl TreeSink for Html5everDom {
         .into(),
     };
 
-    match &mut node.inner {
+    match &mut node.data {
       NodeData::Comment(comment) => comment.parent = parent_reference,
       NodeData::DocType(doc_type) => doc_type.parent = parent_reference,
       NodeData::Document(document) => (),

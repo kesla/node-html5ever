@@ -29,7 +29,7 @@ impl html5ever::serialize::Serialize for SerializableNode {
         ops.push_back(SerializeOp::Open(self.0.clone()))
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-        let maybe_children = match &self.0.inner {
+        let maybe_children = match &self.0.data {
           node::NodeData::Document(r) => Some(r.list.borrow()),
           node::NodeData::Element(r) => Some(r.list.borrow()),
           _ => None,
@@ -47,7 +47,7 @@ impl html5ever::serialize::Serialize for SerializableNode {
 
     while let Some(op) = ops.pop_front() {
       match op {
-        SerializeOp::Open(node) => match node.inner {
+        SerializeOp::Open(node) => match node.data {
           node::NodeData::Comment(comment) => serializer.write_comment(&comment.content)?,
           node::NodeData::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
           node::NodeData::Element(element) => {
