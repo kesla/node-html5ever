@@ -1,14 +1,22 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{
+  cell::RefCell,
+  rc::{Rc},
+};
 
 use html5ever::{Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
-use crate::{doc_type::DocType, element::Element, dom::Handle};
+use crate::{
+  doc_type::DocType,
+  dom::{new_weak_handle, Handle, WeakHandle, new_handle},
+  element::Element, node::Node,
+};
 
 #[napi]
 pub struct Document {
   pub(crate) list: Rc<RefCell<Vec<Handle>>>,
   pub(crate) env: Env,
+  weak_handle: RefCell<WeakHandle>,
 }
 
 #[napi]
@@ -17,9 +25,26 @@ impl Document {
     let document = Self {
       list: Rc::new(RefCell::new(vec![])),
       env,
+      weak_handle: RefCell::new(new_weak_handle(None)),
     };
 
     return Self::into_reference(document, env);
+  }
+
+  pub(crate) fn get_handle(&self, reference: Reference<Document>) -> Handle {
+    let mut weak_handle = self.weak_handle.borrow_mut();
+
+    let maybe_handle = weak_handle.upgrade();
+
+    match maybe_handle {
+      Some(handle) => handle,
+      None => {
+        let node: Node =  reference.into();
+        let handle = new_handle(node);
+        *weak_handle = new_weak_handle(Some(handle.clone()));
+        handle
+      },
+    }
   }
 
   #[napi(getter)]
@@ -39,7 +64,8 @@ impl Document {
     let node = match list.len() {
       2 => list.get(1),
       _ => list.get(0),
-    }.unwrap();
+    }
+    .unwrap();
     let element = node.into_element()?;
 
     return element.clone(self.env);

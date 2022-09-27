@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
 use crate::comment::Comment;
 use crate::doc_type::DocType;
@@ -17,9 +17,17 @@ pub(crate) fn new_handle(node: Node) -> Handle {
   Rc::new(node)
 }
 
+pub(crate) type WeakHandle = Weak<Node>;
+pub(crate) fn new_weak_handle(maybe_handle: Option<Handle>) -> WeakHandle {
+  match maybe_handle {
+    Some(handle) => Rc::downgrade(&handle),
+    None => Weak::new(),
+  }
+}
+
 #[napi]
 pub struct Html5everDom {
-  document: Handle,
+  document: Reference<Document>,
 
   #[napi(writable = false)]
   pub quirks_mode: QuirksMode,
@@ -33,11 +41,10 @@ pub struct Html5everDom {
 #[napi]
 impl Html5everDom {
   pub(crate) fn new(env: Env) -> Result<Html5everDom> {
-    let node: Node = Document::new(env)?.into();
-    let handle: Handle = new_handle(node);
+    let document = Document::new(env)?; // .into();
 
     Ok(Html5everDom {
-      document: handle,
+      document,
       quirks_mode: QuirksMode::NoQuirks,
       errors: vec![],
       env,
@@ -46,14 +53,19 @@ impl Html5everDom {
 
   #[napi(getter)]
   pub fn document(&mut self, env: Env) -> Result<Reference<Document>> {
-    let r = self.document.into_document()?;
+    let handle = self.get_document_handle()?;
+    let r = handle.into_document()?;
     r.clone(env)
+  }
+
+  fn get_document_handle(&self) -> Result<Handle> {
+    Ok(self.document.get_handle(self.document.clone(self.env)?))
   }
 
   #[napi]
   pub fn serialize(&self) -> String {
     serialize(
-      self.document.clone(),
+      self.get_document_handle().unwrap().clone(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
@@ -74,7 +86,7 @@ impl TreeSink for Html5everDom {
   }
 
   fn get_document(&mut self) -> Self::Handle {
-    self.document.clone()
+    self.get_document_handle().unwrap()
   }
 
   fn elem_name<'a>(&'a self, target: &'a Self::Handle) -> html5ever::ExpandedName<'a> {
@@ -163,7 +175,8 @@ impl TreeSink for Html5everDom {
     .unwrap();
     let node: Node = doc_type.into();
     let child = NodeOrText::AppendNode(new_handle(node));
-    self.append(&self.document.clone(), child);
+    let handle = self.get_document();
+    self.append(&handle, child);
   }
 
   fn get_template_contents(&mut self, target: &Self::Handle) -> Self::Handle {
