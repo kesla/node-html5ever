@@ -127,14 +127,13 @@ impl TreeSink for Html5everDom {
       },
     };
 
-    // TODO: figure this out
-    // match &mut handle.data {
-    //   NodeData::Comment(comment) => comment.parent = parent_reference,
-    //   NodeData::DocType(doc_type) => doc_type.parent = parent_reference,
-    //   NodeData::Document(document) => (),
-    //   NodeData::Element(element) => element.parent = parent_reference,
-    //   NodeData::Text(text) => text.parent = parent_reference,
-    // }
+    match & handle.data {
+      NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
+      NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
+      NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
+      NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
+      NodeData::Document(_document) => (),
+    }
 
     list.push(handle);
   }
