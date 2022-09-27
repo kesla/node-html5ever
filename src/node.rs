@@ -99,11 +99,4 @@ impl Node {
       _ => Err(Error::new(Status::InvalidArg, "not a DocType".to_string())),
     }
   }
-
-  pub(crate) fn into_document(&self) -> Result<&Reference<Document>> {
-    match &self.data {
-      NodeData::Document(r) => Ok(r),
-      _ => Err(Error::new(Status::InvalidArg, "not a Document".to_string())),
-    }
-  }
 }

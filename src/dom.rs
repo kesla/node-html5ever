@@ -27,7 +27,8 @@ pub(crate) fn new_weak_handle(maybe_handle: Option<Handle>) -> WeakHandle {
 
 #[napi]
 pub struct Html5everDom {
-  document: Reference<Document>,
+  document_reference: Reference<Document>,
+  document_handle: Handle,
 
   #[napi(writable = false)]
   pub quirks_mode: QuirksMode,
@@ -41,10 +42,11 @@ pub struct Html5everDom {
 #[napi]
 impl Html5everDom {
   pub(crate) fn new(env: Env) -> Result<Html5everDom> {
-    let document = Document::new(env)?; // .into();
+    let document_reference = Document::new(env)?;
 
     Ok(Html5everDom {
-      document,
+      document_handle: document_reference.get_handle(document_reference.clone(env)?),
+      document_reference,
       quirks_mode: QuirksMode::NoQuirks,
       errors: vec![],
       env,
@@ -53,19 +55,13 @@ impl Html5everDom {
 
   #[napi(getter)]
   pub fn document(&mut self, env: Env) -> Result<Reference<Document>> {
-    let handle = self.get_document_handle()?;
-    let r = handle.into_document()?;
-    r.clone(env)
-  }
-
-  fn get_document_handle(&self) -> Result<Handle> {
-    Ok(self.document.get_handle(self.document.clone(self.env)?))
+    self.document_reference.clone(env)
   }
 
   #[napi]
   pub fn serialize(&self) -> String {
     serialize(
-      self.get_document_handle().unwrap().clone(),
+      self.document_handle.clone(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
@@ -86,7 +82,7 @@ impl TreeSink for Html5everDom {
   }
 
   fn get_document(&mut self) -> Self::Handle {
-    self.get_document_handle().unwrap()
+    self.document_handle.clone()
   }
 
   fn elem_name<'a>(&'a self, target: &'a Self::Handle) -> html5ever::ExpandedName<'a> {
