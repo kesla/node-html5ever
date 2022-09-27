@@ -1,6 +1,17 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::{Rc, Weak}};
 
-use crate::{dom::{WeakHandle, Handle, new_handle, new_weak_handle}, node::Node};
+use crate::{dom::{WeakHandle, Handle}, node::Node};
+
+fn new_handle(node: Node) -> Handle {
+  Rc::new(node)
+}
+
+fn new_weak_handle(maybe_handle: Option<Handle>) -> WeakHandle {
+  match maybe_handle {
+    Some(handle) => Rc::downgrade(&handle),
+    None => Weak::new(),
+  }
+}
 
 
 

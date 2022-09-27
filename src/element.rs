@@ -3,11 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::bindgen_prelude::Reference;
 
-use crate::{
-  dom::{new_handle, Handle},
-  node::Node,
-  serialize::serialize,
-};
+use crate::{dom::Handle, serialize::serialize};
 
 #[napi]
 #[derive(NodeType)]
@@ -75,18 +71,16 @@ impl Element {
 
   #[napi(getter)]
   pub fn inner_html(&self, reference: Reference<Element>) -> String {
-    let node: Node = reference.into();
     serialize(
-      new_handle(node),
+      self.get_handle(reference),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
 
   #[napi(getter)]
   pub fn outer_html(&self, reference: Reference<Element>) -> String {
-    let node: Node = reference.into();
     serialize(
-      new_handle(node),
+      self.get_handle(reference),
       html5ever::serialize::TraversalScope::IncludeNode,
     )
   }

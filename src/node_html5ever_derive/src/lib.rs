@@ -27,6 +27,14 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
               })
               .unwrap(),
           );
+
+          fields.named.push(
+            syn::Field::parse_named
+              .parse2(quote! {
+                pub(crate) lazy_weak_handle: crate::lazy_weak_handle::LazyWeakHandle
+              })
+              .unwrap(),
+          );
         }
         _ => (),
       }
@@ -100,9 +108,14 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
           #(#default_fields)*
           #(#argument_fields)*
           parent: std::cell::RefCell::new(None),
+          lazy_weak_handle: crate::lazy_weak_handle::LazyWeakHandle::default(),
           env,
         };
         Self::into_reference(inner, env)
+      }
+
+      pub(crate) fn get_handle(&self, reference: napi::bindgen_prelude::Reference<Self>) -> crate::dom::Handle {
+        self.lazy_weak_handle.get_or_init(reference)
       }
 
       #[napi(getter)]

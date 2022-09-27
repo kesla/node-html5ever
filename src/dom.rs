@@ -13,17 +13,8 @@ use napi::Either;
 use napi::{bindgen_prelude::Reference, Env, Result};
 
 pub(crate) type Handle = Rc<Node>;
-pub(crate) fn new_handle(node: Node) -> Handle {
-  Rc::new(node)
-}
 
 pub(crate) type WeakHandle = Weak<Node>;
-pub(crate) fn new_weak_handle(maybe_handle: Option<Handle>) -> WeakHandle {
-  match maybe_handle {
-    Some(handle) => Rc::downgrade(&handle),
-    None => Weak::new(),
-  }
-}
 
 #[napi]
 pub struct Html5everDom {
@@ -97,17 +88,13 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
-    let node: Node = Element::new_reference(self.env, attrs.into(), name)
-      .unwrap()
-      .into();
-    new_handle(node)
+    let r = Element::new_reference(self.env, attrs.into(), name).unwrap();
+    r.get_handle(r.clone(r.env).unwrap())
   }
 
   fn create_comment(&mut self, text: html5ever::tendril::StrTendril) -> Self::Handle {
-    let node: Node = Comment::new_reference(self.env, text.to_string())
-      .unwrap()
-      .into();
-    new_handle(node)
+    let r = Comment::new_reference(self.env, text.to_string()).unwrap();
+    r.get_handle(r.clone(r.env).unwrap())
   }
 
   fn create_pi(
@@ -129,11 +116,9 @@ impl TreeSink for Html5everDom {
     let handle = match child {
       NodeOrText::AppendNode(handle) => handle,
       NodeOrText::AppendText(content) => {
-        let node: Node = Text::new_reference(self.env, content.to_string())
-          .unwrap()
-          .into();
-        new_handle(node)
-      }
+        let r = Text::new_reference(self.env, content.to_string()).unwrap();
+        r.get_handle(r.clone(r.env).unwrap())
+      },
     };
 
     match &handle.data {
@@ -162,15 +147,15 @@ impl TreeSink for Html5everDom {
     public_id: html5ever::tendril::StrTendril,
     system_id: html5ever::tendril::StrTendril,
   ) {
-    let doc_type = DocType::new_reference(
+    let r = DocType::new_reference(
       self.env,
       name.to_string(),
       public_id.to_string(),
       system_id.to_string(),
     )
     .unwrap();
-    let node: Node = doc_type.into();
-    let child = NodeOrText::AppendNode(new_handle(node));
+    let doc_type = r.get_handle(r.clone(r.env).unwrap());
+    let child = NodeOrText::AppendNode(doc_type);
     let handle = self.get_document();
     self.append(&handle, child);
   }
