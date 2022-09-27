@@ -92,7 +92,7 @@ impl Element {
   }
 
   #[napi]
-  pub fn append_element(&mut self, _element: &Element)  {
+  pub fn append_element(&mut self, _element: &Element) {
     // element.id.try_into().unwrap()
     // todo!()
   }

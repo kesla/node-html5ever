@@ -9,6 +9,7 @@ mod doc_type;
 mod document;
 mod dom;
 mod element;
+mod lazy_weak_handle;
 mod node;
 mod quirks_mode;
 mod serialize;
