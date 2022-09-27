@@ -1,16 +1,20 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::bindgen_prelude::Reference;
 
-use crate::{node::Node, serialize::serialize};
+use crate::{
+  dom::{new_handle, Handle},
+  node::Node,
+  serialize::serialize,
+};
 
 #[napi]
 #[derive(NodeType)]
 #[add_node_fields]
 pub struct Element {
   #[default(Rc::new(RefCell::new(vec![])))]
-  pub(crate) list: Rc<RefCell<Vec<Node>>>,
+  pub(crate) list: Rc<RefCell<Vec<Handle>>>,
 
   pub(crate) attributes_wrapper: AttributesWrapper,
 
@@ -65,12 +69,7 @@ impl Element {
       .list
       .borrow()
       .iter()
-      .filter_map(|node| {
-        node
-          .into_element()
-          .ok()
-          .map(|r| r.clone(self.env).unwrap())
-      })
+      .filter_map(|node| node.into_element().ok().map(|r| r.clone(self.env).unwrap()))
       .collect()
   }
 
@@ -78,7 +77,7 @@ impl Element {
   pub fn inner_html(&self, reference: Reference<Element>) -> String {
     let node: Node = reference.into();
     serialize(
-      &node,
+      new_handle(node),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
@@ -86,7 +85,10 @@ impl Element {
   #[napi(getter)]
   pub fn outer_html(&self, reference: Reference<Element>) -> String {
     let node: Node = reference.into();
-    serialize(&node, html5ever::serialize::TraversalScope::IncludeNode)
+    serialize(
+      new_handle(node),
+      html5ever::serialize::TraversalScope::IncludeNode,
+    )
   }
 
   #[napi]

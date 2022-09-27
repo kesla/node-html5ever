@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::comment::Comment;
 use crate::doc_type::DocType;
 use crate::document::Document;
@@ -10,9 +12,14 @@ use html5ever::tree_builder::{NodeOrText, TreeSink};
 use napi::Either;
 use napi::{bindgen_prelude::Reference, Env, Result};
 
+pub(crate) type Handle = Rc<Node>;
+pub(crate) fn new_handle(node: Node) -> Handle {
+  Rc::new(node)
+}
+
 #[napi]
 pub struct Html5everDom {
-  document: Node,
+  document: Handle,
 
   #[napi(writable = false)]
   pub quirks_mode: QuirksMode,
@@ -26,10 +33,11 @@ pub struct Html5everDom {
 #[napi]
 impl Html5everDom {
   pub(crate) fn new(env: Env) -> Result<Html5everDom> {
-    let document: Node = Document::new(env)?.into();
+    let node: Node = Document::new(env)?.into();
+    let handle: Handle = new_handle(node);
 
     Ok(Html5everDom {
-      document,
+      document: handle,
       quirks_mode: QuirksMode::NoQuirks,
       errors: vec![],
       env,
@@ -45,14 +53,14 @@ impl Html5everDom {
   #[napi]
   pub fn serialize(&self) -> String {
     serialize(
-      &self.document,
+      self.document.clone(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
 }
 
 impl TreeSink for Html5everDom {
-  type Handle = Node;
+  type Handle = Handle;
 
   type Output = Self;
 
@@ -80,15 +88,17 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
-    Element::new_reference(self.env, attrs.into(), name)
+    let node: Node = Element::new_reference(self.env, attrs.into(), name)
       .unwrap()
-      .into()
+      .into();
+    new_handle(node)
   }
 
   fn create_comment(&mut self, text: html5ever::tendril::StrTendril) -> Self::Handle {
-    Comment::new_reference(self.env, text.to_string())
+    let node: Node = Comment::new_reference(self.env, text.to_string())
       .unwrap()
-      .into()
+      .into();
+    new_handle(node)
   }
 
   fn create_pi(
@@ -102,33 +112,31 @@ impl TreeSink for Html5everDom {
   fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
     // TODO: concatenate already existing text node
     let (mut list, parent_reference) = match &parent.data {
-      NodeData::Element(r) => (
-        r.list.borrow_mut(),
-        Some(Either::A(r.downgrade())),
-      ),
-      NodeData::Document(r) => (
-        r.list.borrow_mut(),
-        Some(Either::B(r.downgrade())),
-      ),
+      NodeData::Element(r) => (r.list.borrow_mut(), Some(Either::A(r.downgrade()))),
+      NodeData::Document(r) => (r.list.borrow_mut(), Some(Either::B(r.downgrade()))),
       _ => panic!("Node does not have children"),
     };
 
-    let mut node = match child {
-      NodeOrText::AppendNode(node) => node,
-      NodeOrText::AppendText(content) => Text::new_reference(self.env, content.to_string())
+    let mut handle = match child {
+      NodeOrText::AppendNode(handle) => handle,
+      NodeOrText::AppendText(content) => {
+        let node: Node = Text::new_reference(self.env, content.to_string())
         .unwrap()
-        .into(),
+        .into();
+        new_handle(node)
+      },
     };
 
-    match &mut node.data {
-      NodeData::Comment(comment) => comment.parent = parent_reference,
-      NodeData::DocType(doc_type) => doc_type.parent = parent_reference,
-      NodeData::Document(document) => (),
-      NodeData::Element(element) => element.parent = parent_reference,
-      NodeData::Text(text) => text.parent = parent_reference,
-    }
+    // TODO: figure this out
+    // match &mut handle.data {
+    //   NodeData::Comment(comment) => comment.parent = parent_reference,
+    //   NodeData::DocType(doc_type) => doc_type.parent = parent_reference,
+    //   NodeData::Document(document) => (),
+    //   NodeData::Element(element) => element.parent = parent_reference,
+    //   NodeData::Text(text) => text.parent = parent_reference,
+    // }
 
-    list.push(node);
+    list.push(handle);
   }
 
   fn append_based_on_parent_node(
@@ -154,7 +162,7 @@ impl TreeSink for Html5everDom {
     )
     .unwrap();
     let node: Node = doc_type.into();
-    let child = NodeOrText::AppendNode(node);
+    let child = NodeOrText::AppendNode(new_handle(node));
     self.append(&self.document.clone(), child);
   }
 

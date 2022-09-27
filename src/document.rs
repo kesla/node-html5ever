@@ -3,11 +3,11 @@ use std::{rc::Rc, cell::RefCell};
 use html5ever::{Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
-use crate::{doc_type::DocType, element::Element, node::Node};
+use crate::{doc_type::DocType, element::Element, dom::Handle};
 
 #[napi]
 pub struct Document {
-  pub(crate) list: Rc<RefCell<Vec<Node>>>,
+  pub(crate) list: Rc<RefCell<Vec<Handle>>>,
   pub(crate) env: Env,
   pub(crate) id: usize,
 }

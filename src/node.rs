@@ -46,23 +46,6 @@ impl ToNapiValue for Node {
   }
 }
 
-impl Clone for Node {
-  fn clone(&self) -> Self {
-    let cloned_inner = match &self.data {
-      NodeData::Comment(r) => NodeData::Comment(r.clone(self.env).unwrap()),
-      NodeData::DocType(r) => NodeData::DocType(r.clone(self.env).unwrap()),
-      NodeData::Document(r) => NodeData::Document(r.clone(self.env).unwrap()),
-      NodeData::Element(r) => NodeData::Element(r.clone(self.env).unwrap()),
-      NodeData::Text(r) => NodeData::Text(r.clone(self.env).unwrap()),
-    };
-
-    Self {
-      data: cloned_inner,
-      env: self.env.clone(),
-    }
-  }
-}
-
 impl From<Reference<Comment>> for Node {
   fn from(r: Reference<Comment>) -> Self {
     let env = r.env;
