@@ -2,11 +2,11 @@ use std::slice::Iter;
 
 use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
-use crate::handle::Handle;
+use crate::node::Node;
 
 #[napi]
 pub struct NodeList {
-  children: Vec<Handle>,
+  children: Vec<Node>,
 }
 
 #[napi]
@@ -16,7 +16,7 @@ impl NodeList {
   }
 
   #[napi]
-  pub fn get(&self, index: u32) -> Result<Handle> {
+  pub fn get(&self, index: u32) -> Result<Node> {
     let index: usize =
       usize::try_from(index).map_err(|err| Error::from_reason(format!("{}", err)))?;
 
@@ -26,15 +26,15 @@ impl NodeList {
     }
   }
 
-  pub(crate) fn push(&mut self, handle: Handle) {
-    self.children.push(handle)
+  pub(crate) fn push(&mut self, node: Node) {
+    self.children.push(node)
   }
 
   pub(crate) fn len(&self) -> usize {
     self.children.len()
   }
 
-  pub(crate) fn iter(&self) -> Iter<Handle> {
+  pub(crate) fn iter(&self) -> Iter<Node> {
     self.children.iter()
   }
 }

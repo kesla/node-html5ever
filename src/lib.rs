@@ -9,7 +9,7 @@ mod doc_type;
 mod document;
 mod dom;
 mod element;
-mod handle;
+mod node;
 mod id;
 mod node_list;
 mod quirks_mode;

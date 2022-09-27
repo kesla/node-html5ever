@@ -35,11 +35,11 @@ impl Document {
 
   #[napi(getter)]
   pub fn get_document_element(&self) -> Result<Reference<Element>> {
-    let handle = match self.list.len() {
+    let node = match self.list.len() {
       2 => self.list.get(1),
       _ => self.list.get(0),
     }?;
-    let element = handle.into_element()?;
+    let element = node.into_element()?;
 
     return element.clone(self.env);
   }

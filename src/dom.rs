@@ -2,7 +2,7 @@ use crate::comment::Comment;
 use crate::doc_type::DocType;
 use crate::document::Document;
 use crate::element::Element;
-use crate::handle::{Handle, Inner};
+use crate::node::{Node, NodeData};
 use crate::quirks_mode::QuirksMode;
 use crate::serialize::serialize;
 use crate::text::Text;
@@ -12,7 +12,7 @@ use napi::{bindgen_prelude::Reference, Env, Result};
 
 #[napi]
 pub struct Html5everDom {
-  document: Handle,
+  document: Node,
 
   #[napi(writable = false)]
   pub quirks_mode: QuirksMode,
@@ -26,7 +26,7 @@ pub struct Html5everDom {
 #[napi]
 impl Html5everDom {
   pub(crate) fn new(env: Env) -> Result<Html5everDom> {
-    let document: Handle = Document::new(env)?.into();
+    let document: Node = Document::new(env)?.into();
 
     Ok(Html5everDom {
       document,
@@ -52,7 +52,7 @@ impl Html5everDom {
 }
 
 impl TreeSink for Html5everDom {
-  type Handle = Handle;
+  type Handle = Node;
 
   type Output = Self;
 
@@ -102,33 +102,33 @@ impl TreeSink for Html5everDom {
   fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
     // TODO: concatenate already existing text node
     let (mut list, parent_reference) = match &parent.inner {
-      Inner::Element(r) => (
+      NodeData::Element(r) => (
         r.list.clone(self.env).unwrap(),
         Some(Either::A(r.downgrade())),
       ),
-      Inner::Document(r) => (
+      NodeData::Document(r) => (
         r.list.clone(self.env).unwrap(),
         Some(Either::B(r.downgrade())),
       ),
       _ => panic!("Node does not have children"),
     };
 
-    let mut handle = match child {
-      NodeOrText::AppendNode(handle) => handle,
+    let mut node = match child {
+      NodeOrText::AppendNode(node) => node,
       NodeOrText::AppendText(content) => Text::new_reference(self.env, content.to_string())
         .unwrap()
         .into(),
     };
 
-    match &mut handle.inner {
-      Inner::Comment(comment) => comment.parent = parent_reference,
-      Inner::DocType(doc_type) => doc_type.parent = parent_reference,
-      Inner::Document(document) => (),
-      Inner::Element(element) => element.parent = parent_reference,
-      Inner::Text(text) => text.parent = parent_reference,
+    match &mut node.inner {
+      NodeData::Comment(comment) => comment.parent = parent_reference,
+      NodeData::DocType(doc_type) => doc_type.parent = parent_reference,
+      NodeData::Document(document) => (),
+      NodeData::Element(element) => element.parent = parent_reference,
+      NodeData::Text(text) => text.parent = parent_reference,
     }
 
-    list.push(handle);
+    list.push(node);
   }
 
   fn append_based_on_parent_node(
@@ -153,8 +153,8 @@ impl TreeSink for Html5everDom {
       system_id.to_string(),
     )
     .unwrap();
-    let handle: Handle = doc_type.into();
-    let child = NodeOrText::AppendNode(handle);
+    let node: Node = doc_type.into();
+    let child = NodeOrText::AppendNode(node);
     self.append(&self.document.clone(), child);
   }
 

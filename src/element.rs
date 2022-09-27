@@ -1,10 +1,10 @@
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::bindgen_prelude::Reference;
 
-use crate::{handle::Handle, node_list::NodeList, serialize::serialize};
+use crate::{node::Node, node_list::NodeList, serialize::serialize};
 
 #[napi]
-#[derive(Node)]
+#[derive(NodeType)]
 #[add_node_fields]
 pub struct Element {
   #[default(NodeList::new(env)?)]
@@ -62,8 +62,8 @@ impl Element {
     self
       .list
       .iter()
-      .filter_map(|handle| {
-        handle
+      .filter_map(|node| {
+        node
           .into_element()
           .ok()
           .map(|r| r.clone(self.env).unwrap())
@@ -73,17 +73,17 @@ impl Element {
 
   #[napi(getter)]
   pub fn inner_html(&self, reference: Reference<Element>) -> String {
-    let handle: Handle = reference.into();
+    let node: Node = reference.into();
     serialize(
-      &handle,
+      &node,
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
 
   #[napi(getter)]
   pub fn outer_html(&self, reference: Reference<Element>) -> String {
-    let handle: Handle = reference.into();
-    serialize(&handle, html5ever::serialize::TraversalScope::IncludeNode)
+    let node: Node = reference.into();
+    serialize(&node, html5ever::serialize::TraversalScope::IncludeNode)
   }
 
   #[napi]

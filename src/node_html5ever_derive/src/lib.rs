@@ -48,7 +48,7 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
   }
 }
 
-#[proc_macro_derive(Node, attributes(default))]
+#[proc_macro_derive(NodeType, attributes(default))]
 pub fn node_macro_derive(input: TokenStream) -> TokenStream {
   let ast: &syn::DeriveInput = &syn::parse(input).unwrap();
   let name = &ast.ident;

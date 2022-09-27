@@ -50,7 +50,7 @@ export class Element {
   appendElement(element: Element): number
 }
 export class NodeList {
-  get(index: number): Handle
+  get(index: number): Node
 }
 export class Text {
   get parentElement(): Element | null
