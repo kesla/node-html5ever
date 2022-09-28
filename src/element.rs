@@ -3,10 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::bindgen_prelude::Reference;
 
-use crate::{
-  dom::{append_handle, Handle},
-  serialize::serialize,
-};
+use crate::{dom::Handle, serialize::serialize};
 
 #[napi]
 #[derive(NodeType)]
@@ -93,7 +90,7 @@ impl Element {
     let child: Handle = element.get_handle();
     let parent: Handle = self.get_handle();
 
-    append_handle(parent, child);
+    parent.append_handle(child);
   }
 }
 

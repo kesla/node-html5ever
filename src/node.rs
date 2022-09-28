@@ -1,10 +1,8 @@
-use napi::{
-  bindgen_prelude::{Either5, Reference, ToNapiValue},
-  Error, Result, Status,
-};
+use napi::{bindgen_prelude::Reference, Either, Error, Result, Status};
 
 use crate::{
-  comment::Comment, doc_type::DocType, document::Document, element::Element, text::Text,
+  comment::Comment, doc_type::DocType, document::Document, dom::Handle, element::Element,
+  text::Text,
 };
 
 pub(crate) enum NodeData {
@@ -95,6 +93,24 @@ impl From<Reference<Text>> for Node {
 }
 
 impl Node {
+  pub(crate) fn append_handle(&self, child: Handle) {
+    // TODO: concatenate already existing text node
+    let (mut list, parent_reference) = match &self.data {
+      NodeData::Element(r) => (r.list.borrow_mut(), Some(Either::A(r.downgrade()))),
+      NodeData::Document(r) => (r.list.borrow_mut(), Some(Either::B(r.downgrade()))),
+      _ => panic!("Node does not have children"),
+    };
+    match &child.data {
+      NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
+      NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
+      NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
+      NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
+      NodeData::Document(_document) => (),
+      NodeData::None => panic!("Node is None and cannot be appended"),
+    }
+    list.push(child);
+  }
+
   pub(crate) fn into_element(&self) -> Result<&Reference<Element>> {
     match &self.data {
       NodeData::Element(r) => Ok(r),

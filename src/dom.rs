@@ -4,12 +4,11 @@ use crate::comment::Comment;
 use crate::doc_type::DocType;
 use crate::document::Document;
 use crate::element::Element;
-use crate::node::{Node, NodeData};
+use crate::node::Node;
 use crate::quirks_mode::QuirksMode;
 use crate::serialize::serialize;
 use crate::text::Text;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
-use napi::Either;
 use napi::{bindgen_prelude::Reference, Env, Result};
 
 pub(crate) type Handle = Rc<Node>;
@@ -114,7 +113,7 @@ impl TreeSink for Html5everDom {
       }
     };
 
-    append_handle(parent.clone(), handle);
+    parent.append_handle(handle);
   }
 
   fn append_based_on_parent_node(
@@ -176,22 +175,4 @@ impl TreeSink for Html5everDom {
   fn reparent_children(&mut self, node: &Self::Handle, new_parent: &Self::Handle) {
     todo!()
   }
-}
-
-pub(crate) fn append_handle(parent: Handle, child: Handle) {
-  // TODO: concatenate already existing text node
-  let (mut list, parent_reference) = match &parent.data {
-    NodeData::Element(r) => (r.list.borrow_mut(), Some(Either::A(r.downgrade()))),
-    NodeData::Document(r) => (r.list.borrow_mut(), Some(Either::B(r.downgrade()))),
-    _ => panic!("Node does not have children"),
-  };
-  match &child.data {
-    NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
-    NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
-    NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
-    NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
-    NodeData::Document(_document) => (),
-    NodeData::None => panic!("Node is None and cannot be appended"),
-  }
-  list.push(child);
 }
