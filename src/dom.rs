@@ -127,6 +127,7 @@ impl TreeSink for Html5everDom {
       NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
       NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
       NodeData::Document(_document) => (),
+      NodeData::None => panic!("Node is None and cannot be appended"),
     }
 
     list.push(handle);

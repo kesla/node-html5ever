@@ -13,6 +13,7 @@ pub(crate) enum NodeData {
   Document(Reference<Document>),
   Element(Reference<Element>),
   Text(Reference<Text>),
+  None,
 }
 
 // type EitherType = Either5<
@@ -89,14 +90,20 @@ impl Node {
   pub(crate) fn into_element(&self) -> Result<&Reference<Element>> {
     match &self.data {
       NodeData::Element(r) => Ok(r),
-      _ => Err(Error::new(Status::InvalidArg, "not an Element".to_string())),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        "Node is not an Element".to_string(),
+      )),
     }
   }
 
   pub(crate) fn into_doc_type(&self) -> Result<&Reference<DocType>> {
     match &self.data {
       NodeData::DocType(r) => Ok(r),
-      _ => Err(Error::new(Status::InvalidArg, "not a DocType".to_string())),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        "Node is not a DocType".to_string(),
+      )),
     }
   }
 }
@@ -109,6 +116,7 @@ impl Drop for Node {
       NodeData::Document(_) => "Document".to_string(),
       NodeData::Element(element) => format!("Element <{}>", element.name.local),
       NodeData::Text(_) => "Text".to_string(),
+      NodeData::None => "None".to_string(),
     };
 
     println!("Dropping Node {:?}", node_type);

@@ -69,6 +69,7 @@ impl html5ever::serialize::Serialize for SerializableHandle {
           }
           NodeData::Document(_) => panic!("Can't serialize Document node itself"),
           NodeData::Text(text) => serializer.write_text(&text.content)?,
+          NodeData::None => panic!("Can't serialize None node"),
         },
         SerializeOp::Close(name) => serializer.end_elem(name)?,
       }
