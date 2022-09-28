@@ -92,6 +92,12 @@ impl Element {
   }
 }
 
+impl Drop for Element {
+  fn drop(&mut self) {
+    println!("Dropping element <{}>", self.name.local);
+  }
+}
+
 pub(crate) struct AttributesWrapper {
   attrs: Vec<Attribute>,
 }
