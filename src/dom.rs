@@ -106,13 +106,6 @@ impl TreeSink for Html5everDom {
   }
 
   fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
-    // TODO: concatenate already existing text node
-    let (mut list, parent_reference) = match &parent.data {
-      NodeData::Element(r) => (r.list.borrow_mut(), Some(Either::A(r.downgrade()))),
-      NodeData::Document(r) => (r.list.borrow_mut(), Some(Either::B(r.downgrade()))),
-      _ => panic!("Node does not have children"),
-    };
-
     let handle = match child {
       NodeOrText::AppendNode(handle) => handle,
       NodeOrText::AppendText(content) => {
@@ -121,16 +114,7 @@ impl TreeSink for Html5everDom {
       }
     };
 
-    match &handle.data {
-      NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
-      NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
-      NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
-      NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
-      NodeData::Document(_document) => (),
-      NodeData::None => panic!("Node is None and cannot be appended"),
-    }
-
-    list.push(handle);
+    append_handle(parent.clone(), handle);
   }
 
   fn append_based_on_parent_node(
@@ -192,4 +176,22 @@ impl TreeSink for Html5everDom {
   fn reparent_children(&mut self, node: &Self::Handle, new_parent: &Self::Handle) {
     todo!()
   }
+}
+
+pub(crate) fn append_handle(parent: Handle, child: Handle) {
+  // TODO: concatenate already existing text node
+  let (mut list, parent_reference) = match &parent.data {
+    NodeData::Element(r) => (r.list.borrow_mut(), Some(Either::A(r.downgrade()))),
+    NodeData::Document(r) => (r.list.borrow_mut(), Some(Either::B(r.downgrade()))),
+    _ => panic!("Node does not have children"),
+  };
+  match &child.data {
+    NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
+    NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
+    NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
+    NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
+    NodeData::Document(_document) => (),
+    NodeData::None => panic!("Node is None and cannot be appended"),
+  }
+  list.push(child);
 }

@@ -3,7 +3,10 @@ use std::{cell::RefCell, rc::Rc};
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Either};
 
-use crate::{dom::Handle, serialize::serialize};
+use crate::{
+  dom::{append_handle, Handle},
+  serialize::serialize,
+};
 
 #[napi]
 #[derive(NodeType)]
@@ -86,15 +89,14 @@ impl Element {
   }
 
   #[napi]
-  pub fn append_element(&mut self, element: &Element) {
-    // element.id.try_into().unwrap()
-    // todo!()
-    let weak_reference = element.r.as_ref().unwrap();
+  pub fn append_element(&mut self, me: Reference<Element>, element: &Element) {
+    let child_weak_reference = element.r.as_ref().unwrap();
+    let child: Handle =
+      element.get_handle(child_weak_reference.upgrade(self.env).unwrap().unwrap());
 
-    let handle: Handle = element.get_handle(weak_reference.upgrade(self.env).unwrap().unwrap());
-    self.list.borrow_mut().push(handle);
+    let parent: Handle = self.get_handle(me);
 
-    *element.parent.borrow_mut() = Some(Either::A(self.r.clone().unwrap()));
+    append_handle(parent, child);
   }
 }
 
