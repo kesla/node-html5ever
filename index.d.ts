@@ -12,6 +12,7 @@ export function parse(html: string): Html5EverDom
 export class Comment {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
+  remove(): void
 }
 export class DocType {
   name: string
@@ -19,6 +20,7 @@ export class DocType {
   systemId: string
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
+  remove(): void
 }
 export class Document {
   get docType(): DocType | null
@@ -38,6 +40,7 @@ export class Html5EverDom {
 export class Element {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
+  remove(): void
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void
@@ -49,9 +52,9 @@ export class Element {
   get outerHtml(): string
   appendElement(element: Element): void
   removeElement(element: Element): void
-  remove(): void
 }
 export class Text {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
+  remove(): void
 }

@@ -100,39 +100,6 @@ impl Element {
 
     parent.remove_handle(child);
   }
-
-  #[napi]
-  pub fn remove(&mut self) -> napi::Result<()> {
-    let maybe_handle = self.get_parent_handle()?;
-
-    match maybe_handle {
-      Some(parent) => {
-        let child: Handle = self.get_handle();
-
-        parent.remove_handle(child);
-      }
-      None => {}
-    }
-
-    Ok(())
-  }
-
-  pub(crate) fn get_parent_handle(&self) -> napi::Result<Option<Handle>> {
-    let parent_node = self.parent.borrow();
-
-    let maybe_handle: Option<Handle> = match parent_node.as_ref() {
-      Some(element_or_document) => match element_or_document {
-        napi::Either::A(weak_reference) => {
-          weak_reference.upgrade(self.env)?.map(|r| r.get_handle())
-        }
-        napi::Either::B(weak_reference) => {
-          weak_reference.upgrade(self.env)?.map(|r| r.get_handle())
-        }
-      },
-      None => None,
-    };
-    Ok(maybe_handle)
-  }
 }
 
 impl Drop for Element {

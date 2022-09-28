@@ -173,6 +173,39 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
           napi::Either::B(document) => napi::Either::B(document.clone()),
         })
       }
+
+      #[napi]
+      pub fn remove(&mut self) -> napi::Result<()> {
+        let maybe_handle = self.get_parent_handle()?;
+
+        match maybe_handle {
+          Some(parent) => {
+            let child: crate::dom::Handle = self.get_handle();
+
+            parent.remove_handle(child);
+          }
+          None => {}
+        }
+
+        Ok(())
+      }
+
+      pub(crate) fn get_parent_handle(&self) -> napi::Result<Option<crate::dom::Handle>> {
+        let parent_node = self.parent.borrow();
+
+        let maybe_handle: Option<crate::dom::Handle> = match parent_node.as_ref() {
+          Some(element_or_document) => match element_or_document {
+            napi::Either::A(weak_reference) => {
+              weak_reference.upgrade(self.env)?.map(|r| r.get_handle())
+            }
+            napi::Either::B(weak_reference) => {
+              weak_reference.upgrade(self.env)?.map(|r| r.get_handle())
+            }
+          },
+          None => None,
+        };
+        Ok(maybe_handle)
+      }
     }
   );
   gen.into()
