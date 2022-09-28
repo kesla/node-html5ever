@@ -118,7 +118,7 @@ impl TreeSink for Html5everDom {
       NodeOrText::AppendText(content) => {
         let r = Text::new_reference(self.env, content.to_string()).unwrap();
         r.get_handle(r.clone(r.env).unwrap())
-      },
+      }
     };
 
     match &handle.data {

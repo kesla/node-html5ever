@@ -110,10 +110,7 @@ impl Drop for Node {
       NodeData::Element(element) => format!("Element <{}>", element.name.local),
       NodeData::Text(_) => "Text".to_string(),
     };
-        
-    
 
     println!("Dropping Node {:?}", node_type);
   }
 }
-    

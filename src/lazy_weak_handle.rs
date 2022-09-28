@@ -1,6 +1,12 @@
-use std::{cell::RefCell, rc::{Rc, Weak}};
+use std::{
+  cell::RefCell,
+  rc::{Rc, Weak},
+};
 
-use crate::{dom::{WeakHandle, Handle}, node::Node};
+use crate::{
+  dom::{Handle, WeakHandle},
+  node::Node,
+};
 
 fn new_handle(node: Node) -> Handle {
   Rc::new(node)
@@ -12,8 +18,6 @@ fn new_weak_handle(maybe_handle: Option<Handle>) -> WeakHandle {
     None => Weak::new(),
   }
 }
-
-
 
 pub(crate) struct LazyWeakHandle(RefCell<WeakHandle>);
 
