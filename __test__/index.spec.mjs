@@ -13,7 +13,7 @@ test("parse works", (t) => {
   t.is(dom.quirksMode, QuirksMode.Quirks, "Correct quirks mode");
   t.is(dom.document.docType, null, ".document.docType is not set");
 
-  t.true(dom.document instanceof Document)
+  t.true(dom.document instanceof Document);
 });
 
 test("doc type / Quirks mode", (t) => {
@@ -54,8 +54,8 @@ test("element", (t) => {
   );
   let document = dom.document;
 
-  let {documentElement: html, head, body} = document;
-  let {documentElement: html2, head: head2, body: body2} = document;
+  let { documentElement: html, head, body } = document;
+  let { documentElement: html2, head: head2, body: body2 } = document;
 
   t.is(html.tagName, "HTML");
   t.is(html.getAttribute("id"), "main");
@@ -71,67 +71,66 @@ test("element", (t) => {
   t.snapshot(body.outerHtml, "body.outerHtml");
   t.snapshot(body.innerHtml, "body.innerHtml");
 
+  t.is(html, html2);
+  t.is(body, body2);
+  t.is(head, head2);
 
-  t.is(html, html2)
-  t.is(body, body2)
-  t.is(head, head2)
+  t.is(html.children[0], head);
+  t.is(html.children[1], body);
 
-  t.is(html.children[0], head)
-  t.is(html.children[1], body)
+  t.is(head.parentNode, html);
+  t.is(head.parentElement, head.parentElement);
+  t.is(head.parentElement, html);
 
-  t.is(head.parentNode, html)
-  t.is(head.parentElement, head.parentElement)
-  t.is(head.parentElement, html)
+  t.is(body.parentNode, html);
+  t.is(body.parentElement, html);
 
-  t.is(body.parentNode, html)
-  t.is(body.parentElement, html)
-
-  t.is(html.parentNode, document)
-  t.is(html.parentElement, null)
+  t.is(html.parentNode, document);
+  t.is(html.parentElement, null);
 });
 
-test('comment', (t) => {
+test("comment", (t) => {
   let dom = parse("<!-- Hello, world -->");
 
   t.snapshot(dom.serialize(), "Comment dom");
-})
+});
 
-test('createElement + set attributes', (t) => {
+test("createElement + set attributes", (t) => {
   let dom = parse("");
 
-  let element = dom.document.createElement('div');
+  let element = dom.document.createElement("div");
 
-  t.snapshot(element.outerHtml, 'empty div');
-  t.is(element.parentElement, null)
-  t.is(element.parentNode, null)
+  t.snapshot(element.outerHtml, "empty div");
+  t.is(element.parentElement, null);
+  t.is(element.parentNode, null);
 
-  t.false(element.hasAttribute('foo'));
-  t.is(element.getAttribute('foo'), null)
+  t.false(element.hasAttribute("foo"));
+  t.is(element.getAttribute("foo"), null);
 
-  element.setAttribute('foo', 'bar');
-  t.true(element.hasAttribute('foo'))
-  t.is(element.getAttribute('foo'), 'bar')
+  element.setAttribute("foo", "bar");
+  t.true(element.hasAttribute("foo"));
+  t.is(element.getAttribute("foo"), "bar");
   t.snapshot(element.outerHtml, 'foo="bar"');
 
-  element.setAttribute('foo', 'baz');
-  t.true(element.hasAttribute('foo'))
-  t.is(element.getAttribute('foo'), 'baz');
+  element.setAttribute("foo", "baz");
+  t.true(element.hasAttribute("foo"));
+  t.is(element.getAttribute("foo"), "baz");
   t.snapshot(element.outerHtml, 'foo="baz"');
 
-  element.setAttribute('hello', 'world');
+  element.setAttribute("hello", "world");
 
-  element.removeAttribute('foo');
-  t.false(element.hasAttribute('foo'));
-  t.is(element.getAttribute('foo'), null);
-  t.is(element.getAttribute('hello'), 'world');
-  t.snapshot(element.outerHtml, "attribute foo removed, hello added")
-})
+  element.removeAttribute("foo");
+  t.false(element.hasAttribute("foo"));
+  t.is(element.getAttribute("foo"), null);
+  t.is(element.getAttribute("hello"), "world");
+  t.snapshot(element.outerHtml, "attribute foo removed, hello added");
+});
 
-test('appendElement', (t) => {
-  let {document} = parse("");
+test("appendElement", (t) => {
+  let { document } = parse("");
 
   let body = document.body;
-  let child = document.createElement('div');
+  let child = document.createElement("div");
 
   console.log(body.appendElement(child));
-})
+});
