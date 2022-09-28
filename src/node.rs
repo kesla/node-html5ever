@@ -46,6 +46,14 @@ pub struct Node {
 //   }
 // }
 
+impl Default for Node {
+  fn default() -> Self {
+    Node {
+      data: NodeData::None,
+    }
+  }
+}
+
 impl From<Reference<Comment>> for Node {
   fn from(r: Reference<Comment>) -> Self {
     Self {
