@@ -13,7 +13,7 @@ pub struct Document {
   pub(crate) list: Rc<RefCell<Vec<Handle>>>,
   pub(crate) env: Env,
   lazy_weak_handle: LazyWeakHandle,
-  r: Option<WeakReference<Self>>,
+  weak_reference: Option<WeakReference<Self>>,
 }
 
 #[napi]
@@ -23,18 +23,24 @@ impl Document {
       list: Rc::new(RefCell::new(vec![])),
       env,
       lazy_weak_handle: LazyWeakHandle::default(),
-      r: None,
+      weak_reference: None,
     };
 
     let mut r = Self::into_reference(document, env)?;
-    r.r = Some(r.clone(env)?.downgrade());
+    r.weak_reference = Some(r.clone(env)?.downgrade());
     Ok(r)
   }
 
   pub(crate) fn get_handle(&self) -> Handle {
-    self
-      .lazy_weak_handle
-      .get_or_init(self.r.as_ref().unwrap().upgrade(self.env).unwrap().unwrap())
+    self.lazy_weak_handle.get_or_init(
+      self
+        .weak_reference
+        .as_ref()
+        .unwrap()
+        .upgrade(self.env)
+        .unwrap()
+        .unwrap(),
+    )
   }
 
   #[napi(getter)]

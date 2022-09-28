@@ -39,7 +39,7 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
           fields.named.push(
             syn::Field::parse_named
               .parse2(quote! {
-                pub(crate) r: Option<napi::bindgen_prelude::WeakReference<Self>>
+                pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>
               })
               .unwrap(),
           );
@@ -118,17 +118,16 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
           parent: std::cell::RefCell::new(None),
           lazy_weak_handle: crate::lazy_weak_handle::LazyWeakHandle::default(),
           env,
-          r: None,
+          weak_reference: None,
         };
-        // Self::into_reference(inner, env)
 
         let mut r = Self::into_reference(inner, env)?;
-        r.r = Some(r.clone(env)?.downgrade());
+        r.weak_reference = Some(r.clone(env)?.downgrade());
         Ok(r)
       }
 
       pub(crate) fn get_handle(&self) -> crate::dom::Handle {
-        let weak_reference = self.r.as_ref().unwrap();
+        let weak_reference = self.weak_reference.as_ref().unwrap();
         let reference = weak_reference.upgrade(self.env).unwrap().unwrap();
 
         self.lazy_weak_handle.get_or_init(reference)

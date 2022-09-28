@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
-use napi::{bindgen_prelude::Reference, Either};
+use napi::bindgen_prelude::Reference;
 
 use crate::{
   dom::{append_handle, Handle},
