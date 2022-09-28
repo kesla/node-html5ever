@@ -36,7 +36,7 @@ impl Html5everDom {
     let document_reference = Document::new(env)?;
 
     Ok(Html5everDom {
-      document_handle: document_reference.get_handle(document_reference.clone(env)?),
+      document_handle: document_reference.get_handle(),
       document_reference,
       quirks_mode: QuirksMode::NoQuirks,
       errors: vec![],

@@ -1,7 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use html5ever::{Namespace, QualName};
-use napi::{bindgen_prelude::Reference, Env, Result};
+use napi::{
+  bindgen_prelude::{Reference, WeakReference},
+  Env, Result,
+};
 
 use crate::{doc_type::DocType, dom::Handle, element::Element, lazy_weak_handle::LazyWeakHandle};
 
@@ -10,6 +13,7 @@ pub struct Document {
   pub(crate) list: Rc<RefCell<Vec<Handle>>>,
   pub(crate) env: Env,
   lazy_weak_handle: LazyWeakHandle,
+  r: Option<WeakReference<Self>>,
 }
 
 #[napi]
@@ -19,13 +23,18 @@ impl Document {
       list: Rc::new(RefCell::new(vec![])),
       env,
       lazy_weak_handle: LazyWeakHandle::default(),
+      r: None,
     };
 
-    return Self::into_reference(document, env);
+    let mut r = Self::into_reference(document, env)?;
+    r.r = Some(r.clone(env)?.downgrade());
+    Ok(r)
   }
 
-  pub(crate) fn get_handle(&self, reference: Reference<Document>) -> Handle {
-    self.lazy_weak_handle.get_or_init(reference)
+  pub(crate) fn get_handle(&self) -> Handle {
+    self
+      .lazy_weak_handle
+      .get_or_init(self.r.as_ref().unwrap().upgrade(self.env).unwrap().unwrap())
   }
 
   #[napi(getter)]

@@ -49,7 +49,7 @@ test("element", (t) => {
   let dom = parse(
     `<!DOCTYPE html>
     <html id="main">
-      <body class="foo">Body content</body>
+      <body class="foo"><div>Body content</div></body>
     </html>`
   );
   let document = dom.document;
@@ -84,6 +84,11 @@ test("element", (t) => {
 
   t.is(body.parentNode, html);
   t.is(body.parentElement, html);
+
+  let div = body.children[0];
+  t.is(div.tagName, "DIV");
+  t.is(div.parentNode, body);
+  t.is(div.parentElement, body);
 
   t.is(html.parentNode, document);
   t.is(html.parentElement, null);
@@ -131,6 +136,13 @@ test("appendElement", (t) => {
 
   let body = document.body;
   let child = document.createElement("div");
+  body.appendElement(child);
 
-  console.log(body.appendElement(child));
+  t.snapshot(body.outerHtml, "body.outerHtml");
+
+  t.truthy(child.parentElement, "child.parentElement is truthy");
+  t.is(child.parentElement, body, "child.parentElement is body");
+
+  t.truthy(child.parentNode, "child.parentNode is truthy");
+  t.is(child.parentNode, body, "child.parentNode is body");
 });

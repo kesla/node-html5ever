@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
-use napi::bindgen_prelude::Reference;
+use napi::{bindgen_prelude::Reference, Either};
 
 use crate::{dom::Handle, serialize::serialize};
 
@@ -86,9 +86,15 @@ impl Element {
   }
 
   #[napi]
-  pub fn append_element(&mut self, _element: &Element) {
+  pub fn append_element(&mut self, element: &Element) {
     // element.id.try_into().unwrap()
     // todo!()
+    let weak_reference = element.r.as_ref().unwrap();
+
+    let handle: Handle = element.get_handle(weak_reference.upgrade(self.env).unwrap().unwrap());
+    self.list.borrow_mut().push(handle);
+
+    *element.parent.borrow_mut() = Some(Either::A(self.r.clone().unwrap()));
   }
 }
 
