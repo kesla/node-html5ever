@@ -43,6 +43,14 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
               })
               .unwrap(),
           );
+
+          fields.named.push(
+            syn::Field::parse_named
+              .parse2(quote! {
+                pub(crate) id: usize
+              })
+              .unwrap(),
+          );
         }
         _ => (),
       }
@@ -119,6 +127,7 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
           lazy_weak_handle: crate::lazy_weak_handle::LazyWeakHandle::default(),
           env,
           weak_reference: None,
+          id: crate::id::get_id(),
         };
 
         let mut r = Self::into_reference(inner, env)?;

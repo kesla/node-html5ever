@@ -131,7 +131,7 @@ test("createElement + set attributes", (t) => {
   t.snapshot(element.outerHtml, "attribute foo removed, hello added");
 });
 
-test("appendElement", (t) => {
+test("basic appendElement & remove", (t) => {
   let { document } = parse("");
 
   let body = document.body;
@@ -145,4 +145,38 @@ test("appendElement", (t) => {
 
   t.truthy(child.parentNode, "child.parentNode is truthy");
   t.is(child.parentNode, body, "child.parentNode is body");
+
+  t.is(body.children[0], child, "body.children[0] is child");
+
+  child.remove();
+
+  t.is(child.parentElement, null, "child.parentElement is null");
+  t.is(child.parentNode, null, "child.parentNode is null");
+  t.is(body.children.length, 0, "body.children.length is 0");
+  t.snapshot(body.outerHtml, "body.outerHtml after remove");
+});
+
+test("basic appendElement & removeElement", (t) => {
+  let { document } = parse("");
+
+  let body = document.body;
+  let child = document.createElement("div");
+  body.appendElement(child);
+
+  t.snapshot(body.outerHtml, "body.outerHtml");
+
+  t.truthy(child.parentElement, "child.parentElement is truthy");
+  t.is(child.parentElement, body, "child.parentElement is body");
+
+  t.truthy(child.parentNode, "child.parentNode is truthy");
+  t.is(child.parentNode, body, "child.parentNode is body");
+
+  t.is(body.children[0], child, "body.children[0] is child");
+
+  body.removeElement(child);
+
+  t.is(child.parentElement, null, "child.parentElement is null");
+  t.is(child.parentNode, null, "child.parentNode is null");
+  t.is(body.children.length, 0, "body.children.length is 0");
+  t.snapshot(body.outerHtml, "body.outerHtml after remove");
 });

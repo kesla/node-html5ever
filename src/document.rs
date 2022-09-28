@@ -6,7 +6,9 @@ use napi::{
   Env, Result,
 };
 
-use crate::{doc_type::DocType, dom::Handle, element::Element, lazy_weak_handle::LazyWeakHandle};
+use crate::{
+  doc_type::DocType, dom::Handle, element::Element, id::get_id, lazy_weak_handle::LazyWeakHandle,
+};
 
 #[napi]
 pub struct Document {
@@ -14,6 +16,7 @@ pub struct Document {
   pub(crate) env: Env,
   lazy_weak_handle: LazyWeakHandle,
   weak_reference: Option<WeakReference<Self>>,
+  pub(crate) id: usize,
 }
 
 #[napi]
@@ -24,6 +27,7 @@ impl Document {
       env,
       lazy_weak_handle: LazyWeakHandle::default(),
       weak_reference: None,
+      id: get_id(),
     };
 
     let mut r = Self::into_reference(document, env)?;

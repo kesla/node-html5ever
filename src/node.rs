@@ -14,35 +14,25 @@ pub(crate) enum NodeData {
   None,
 }
 
-// type EitherType = Either5<
-//   Reference<Comment>,
-//   Reference<DocType>,
-//   Reference<Document>,
-//   Reference<Element>,
-//   Reference<Text>,
-// >;
+impl PartialEq for NodeData {
+  fn eq(&self, other: &Self) -> bool {
+    match (self, other) {
+      (Self::Comment(left), Self::Comment(right)) => left.id == right.id,
+      (Self::DocType(left), Self::DocType(right)) => left.id == right.id,
+      (Self::Document(left), Self::Document(right)) => left.id == right.id,
+      (Self::Element(left), Self::Element(right)) => left.id == right.id,
+      (Self::Text(left), Self::Text(right)) => left.id == right.id,
+      _ => false,
+    }
+  }
+}
 
-// impl Into<EitherType> for NodeData {
-//   fn into(self) -> EitherType {
-//     match self {
-//       NodeData::Comment(i) => Either5::A(i),
-//       NodeData::DocType(i) => Either5::B(i),
-//       NodeData::Document(i) => Either5::C(i),
-//       NodeData::Element(i) => Either5::D(i),
-//       NodeData::Text(i) => Either5::E(i),
-//     }
-//   }
-// }
+impl Eq for NodeData {}
 
+#[derive(PartialEq, Eq)]
 pub struct Node {
   pub(crate) data: NodeData,
 }
-
-// impl ToNapiValue for Node {
-//   unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
-//     Either5::to_napi_value(env, val.data.into())
-//   }
-// }
 
 impl Default for Node {
   fn default() -> Self {
@@ -105,10 +95,29 @@ impl Node {
       NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
       NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
       NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
-      NodeData::Document(_document) => (),
-      NodeData::None => panic!("Node is None and cannot be appended"),
+      NodeData::Document(_document) => panic!("Document cannot be a child of another node"),
+      NodeData::None => panic!("Cannot append None"),
     }
     list.push(child);
+  }
+
+  pub(crate) fn remove_handle(&self, child: Handle) {
+    let mut list = match &self.data {
+      NodeData::Element(r) => r.list.borrow_mut(),
+      NodeData::Document(r) => r.list.borrow_mut(),
+      _ => panic!("Node does not have children"),
+    };
+    let index = list.iter().position(|c| c == &child).unwrap();
+    list.remove(index);
+
+    match &child.data {
+      NodeData::Comment(comment) => *comment.parent.borrow_mut() = None,
+      NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = None,
+      NodeData::Element(element) => *element.parent.borrow_mut() = None,
+      NodeData::Text(text) => *text.parent.borrow_mut() = None,
+      NodeData::Document(_document) => panic!("Document cannot be a child of another node"),
+      NodeData::None => panic!("Cannot remove None"),
+    }
   }
 
   pub(crate) fn into_element(&self) -> Result<&Reference<Element>> {

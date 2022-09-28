@@ -48,6 +48,8 @@ export class Element {
   get innerHtml(): string
   get outerHtml(): string
   appendElement(element: Element): void
+  removeElement(element: Element): void
+  remove(): void
 }
 export class Text {
   get parentElement(): Element | null
