@@ -89,12 +89,12 @@ impl TreeSink for Html5everDom {
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
     let r = Element::new_reference(self.env, attrs.into(), name).unwrap();
-    r.get_handle(r.clone(r.env).unwrap())
+    r.get_handle()
   }
 
   fn create_comment(&mut self, text: html5ever::tendril::StrTendril) -> Self::Handle {
     let r = Comment::new_reference(self.env, text.to_string()).unwrap();
-    r.get_handle(r.clone(r.env).unwrap())
+    r.get_handle()
   }
 
   fn create_pi(
@@ -110,7 +110,7 @@ impl TreeSink for Html5everDom {
       NodeOrText::AppendNode(handle) => handle,
       NodeOrText::AppendText(content) => {
         let r = Text::new_reference(self.env, content.to_string()).unwrap();
-        r.get_handle(r.clone(r.env).unwrap())
+        r.get_handle()
       }
     };
 
@@ -139,7 +139,7 @@ impl TreeSink for Html5everDom {
       system_id.to_string(),
     )
     .unwrap();
-    let doc_type = r.get_handle(r.clone(r.env).unwrap());
+    let doc_type = r.get_handle();
     let child = NodeOrText::AppendNode(doc_type);
     let handle = self.get_document();
     self.append(&handle, child);

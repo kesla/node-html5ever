@@ -73,28 +73,25 @@ impl Element {
   }
 
   #[napi(getter)]
-  pub fn inner_html(&self, reference: Reference<Element>) -> String {
+  pub fn inner_html(&self) -> String {
     serialize(
-      self.get_handle(reference),
+      self.get_handle(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
 
   #[napi(getter)]
-  pub fn outer_html(&self, reference: Reference<Element>) -> String {
+  pub fn outer_html(&self) -> String {
     serialize(
-      self.get_handle(reference),
+      self.get_handle(),
       html5ever::serialize::TraversalScope::IncludeNode,
     )
   }
 
   #[napi]
-  pub fn append_element(&mut self, me: Reference<Element>, element: &Element) {
-    let child_weak_reference = element.r.as_ref().unwrap();
-    let child: Handle =
-      element.get_handle(child_weak_reference.upgrade(self.env).unwrap().unwrap());
-
-    let parent: Handle = self.get_handle(me);
+  pub fn append_element(&mut self, element: &Element) {
+    let child: Handle = element.get_handle();
+    let parent: Handle = self.get_handle();
 
     append_handle(parent, child);
   }

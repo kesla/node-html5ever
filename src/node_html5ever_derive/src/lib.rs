@@ -127,7 +127,10 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
         Ok(r)
       }
 
-      pub(crate) fn get_handle(&self, reference: napi::bindgen_prelude::Reference<Self>) -> crate::dom::Handle {
+      pub(crate) fn get_handle(&self) -> crate::dom::Handle {
+        let weak_reference = self.r.as_ref().unwrap();
+        let reference = weak_reference.upgrade(self.env).unwrap().unwrap();
+
         self.lazy_weak_handle.get_or_init(reference)
       }
 
