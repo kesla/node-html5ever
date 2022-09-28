@@ -36,6 +36,7 @@
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "yarn build:debug && ava",
+    "test:update": "yarn build:debug && ava --update-snapshots",
     "version": "napi version"
   },
   "packageManager": "yarn@3.2.3"
