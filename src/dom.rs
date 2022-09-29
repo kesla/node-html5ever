@@ -1,4 +1,5 @@
 use crate::{serialize, Comment, DocType, Document, Element, Handle, QuirksMode, Text};
+use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
@@ -18,16 +19,20 @@ pub struct Html5everDom {
 
 #[napi]
 impl Html5everDom {
-  pub(crate) fn new(env: Env) -> Result<Html5everDom> {
+  #[napi(constructor)]
+  pub fn new(env: Env, html: String) -> Result<Html5everDom> {
     let document_reference = Document::new(env)?;
-
-    Ok(Html5everDom {
+    let sink = Html5everDom {
       document_handle: document_reference.get_handle(),
       document_reference,
       quirks_mode: QuirksMode::NoQuirks,
       errors: vec![],
       env,
-    })
+    };
+
+    let dom: Html5everDom = html5ever::parse_document(sink, Default::default()).one(html);
+
+    Ok(dom)
   }
 
   #[napi(getter)]

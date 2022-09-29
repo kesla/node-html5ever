@@ -1,9 +1,9 @@
 import test from "ava";
 
-import { parse, QuirksMode, Element, Document } from "../index.js";
+import { Html5EverDom, QuirksMode, Element, Document } from "../index.js";
 
 test("parse works", (t) => {
-  let dom = parse("<html></html>");
+  let dom = new Html5EverDom("<html></html>");
   t.truthy(dom);
   t.snapshot(dom, "dom");
   t.snapshot(dom.serialize(), ".serialize()");
@@ -16,7 +16,7 @@ test("parse works", (t) => {
 });
 
 test("doc type / Quirks mode", (t) => {
-  let dom = parse("<!DOCTYPE html><html></html>");
+  let dom = new Html5EverDom("<!DOCTYPE html><html></html>");
   t.truthy(dom);
   t.is(dom.quirksMode, QuirksMode.NoQuirks, "Correct quircks mode");
   t.truthy(dom.document.docType, ".document.docType is truthy");
@@ -25,7 +25,7 @@ test("doc type / Quirks mode", (t) => {
   t.is(dom.document.docType?.systemId, "");
   t.snapshot(dom.serialize(), ".serialize()");
 
-  let dom2 = parse(`
+  let dom2 = new Html5EverDom(`
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   `);
   t.truthy(dom2.document.docType, ".document.docType is truthy");
@@ -38,14 +38,14 @@ test("doc type / Quirks mode", (t) => {
 });
 
 test(".document is initiated once", (t) => {
-  let dom = parse("");
+  let dom = new Html5EverDom("");
   let document1 = dom.document;
   let document2 = dom.document;
   t.is(document1, document2);
 });
 
 test("element", (t) => {
-  let dom = parse(
+  let dom = new Html5EverDom(
     `<!DOCTYPE html>
     <html id="main">
       <body class="foo"><div>Body content</div></body>
@@ -94,13 +94,13 @@ test("element", (t) => {
 });
 
 test("comment", (t) => {
-  let dom = parse("<!-- Hello, world -->");
+  let dom = new Html5EverDom("<!-- Hello, world -->");
 
   t.snapshot(dom.serialize(), "Comment dom");
 });
 
 test("createElement + set attributes", (t) => {
-  let dom = parse("");
+  let dom = new Html5EverDom("");
 
   let element = dom.document.createElement("div");
 
@@ -131,7 +131,7 @@ test("createElement + set attributes", (t) => {
 });
 
 test("basic appendElement & remove", (t) => {
-  let { document } = parse("");
+  let { document } = new Html5EverDom("");
 
   let body = document.body;
   let child = document.createElement("div");
@@ -156,7 +156,7 @@ test("basic appendElement & remove", (t) => {
 });
 
 test("basic appendElement & removeElement", (t) => {
-  let { document } = parse("");
+  let { document } = new Html5EverDom("");
 
   let body = document.body;
   let child = document.createElement("div");

@@ -9,13 +9,12 @@ mod id;
 mod lazy_weak_handle;
 mod node_wrapper;
 mod nodes;
-mod parser;
 mod quirks_mode;
 mod serializer;
 
 use std::rc::{Rc, Weak};
 
-pub(crate) use dom::Html5everDom;
+pub use dom::Html5everDom;
 pub(crate) use id::get_id;
 pub(crate) use lazy_weak_handle::LazyWeakHandle;
 pub(crate) use node_wrapper::{NodeData, NodeWrapper};
@@ -26,5 +25,3 @@ pub(crate) use serializer::serialize;
 pub(crate) type Handle = Rc<NodeWrapper>;
 
 pub(crate) type WeakHandle = Weak<NodeWrapper>;
-
-pub use parser::parse;
