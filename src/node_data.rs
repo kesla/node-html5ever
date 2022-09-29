@@ -84,6 +84,22 @@ impl NodeData {
     }
   }
 
+  pub(crate) fn get_parent(
+    &self,
+  ) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
+    let each = |value: &Either<WeakReference<Element>, WeakReference<Document>>| match value {
+      napi::Either::A(element) => napi::Either::A(element.clone()),
+      napi::Either::B(document) => napi::Either::B(document.clone()),
+    };
+    match self {
+      NodeData::Comment(r) => r.parent.borrow().as_ref().map(each),
+      NodeData::DocType(r) => r.parent.borrow().as_ref().map(each),
+      NodeData::Element(r) => r.parent.borrow().as_ref().map(each),
+      NodeData::Text(r) => r.parent.borrow().as_ref().map(each),
+      _ => None,
+    }
+  }
+
   pub(crate) fn get_parent_mut(
     &self,
   ) -> Option<RefMut<Option<Either<WeakReference<Element>, WeakReference<Document>>>>> {
