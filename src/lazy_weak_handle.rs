@@ -3,12 +3,9 @@ use std::{
   rc::{Rc, Weak},
 };
 
-use crate::{
-  dom::{Handle, WeakHandle},
-  node::Node,
-};
+use crate::{Handle, NodeWrapper, WeakHandle};
 
-fn new_handle(node: Node) -> Handle {
+fn new_handle(node: NodeWrapper) -> Handle {
   Rc::new(node)
 }
 
@@ -28,7 +25,7 @@ impl Default for LazyWeakHandle {
 }
 
 impl LazyWeakHandle {
-  pub(crate) fn get_or_init<T: Into<Node>>(&self, to_node: T) -> Handle {
+  pub(crate) fn get_or_init<T: Into<NodeWrapper>>(&self, to_node: T) -> Handle {
     let mut weak_handle = self.0.borrow_mut();
 
     let maybe_handle = weak_handle.upgrade();
@@ -36,7 +33,7 @@ impl LazyWeakHandle {
     match maybe_handle {
       Some(handle) => handle,
       None => {
-        let node: Node = to_node.into();
+        let node: NodeWrapper = to_node.into();
         let handle = new_handle(node);
         *weak_handle = new_weak_handle(Some(handle.clone()));
         handle

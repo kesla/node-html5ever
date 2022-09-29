@@ -14,8 +14,8 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
               .parse2(quote! {
                 pub(crate) parent:
                   std::cell::RefCell<Option<napi::Either<
-                    napi::bindgen_prelude::WeakReference<crate::element::Element>,
-                    napi::bindgen_prelude::WeakReference<crate::document::Document>
+                    napi::bindgen_prelude::WeakReference<crate::Element>,
+                    napi::bindgen_prelude::WeakReference<crate::Document>
                   >>>
               })
               .unwrap(),
@@ -31,7 +31,7 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
           fields.named.push(
             syn::Field::parse_named
               .parse2(quote! {
-                pub(crate) lazy_weak_handle: crate::lazy_weak_handle::LazyWeakHandle
+                pub(crate) lazy_weak_handle: crate::LazyWeakHandle
               })
               .unwrap(),
           );
@@ -64,7 +64,7 @@ pub fn add_node_fields(_args: TokenStream, input: TokenStream) -> TokenStream {
   }
 }
 
-#[proc_macro_derive(NodeType, attributes(default))]
+#[proc_macro_derive(Node, attributes(default))]
 pub fn node_macro_derive(input: TokenStream) -> TokenStream {
   let ast: &syn::DeriveInput = &syn::parse(input).unwrap();
   let name = &ast.ident;
@@ -124,10 +124,10 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
           #(#default_fields)*
           #(#argument_fields)*
           parent: std::cell::RefCell::new(None),
-          lazy_weak_handle: crate::lazy_weak_handle::LazyWeakHandle::default(),
+          lazy_weak_handle: crate::LazyWeakHandle::default(),
           env,
           weak_reference: None,
-          id: crate::id::get_id(),
+          id: crate::get_id(),
         };
 
         let mut r = Self::into_reference(inner, env)?;
@@ -135,7 +135,7 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
         Ok(r)
       }
 
-      pub(crate) fn get_handle(&self) -> crate::dom::Handle {
+      pub(crate) fn get_handle(&self) -> crate::Handle {
         let weak_reference = self.weak_reference.as_ref().unwrap();
         let reference = weak_reference.upgrade(self.env).unwrap().unwrap();
 
@@ -144,7 +144,7 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
-          Option<napi::bindgen_prelude::WeakReference<crate::element::Element>> {
+          Option<napi::bindgen_prelude::WeakReference<crate::Element>> {
 
         let parent_node = self.parent.borrow();
 
@@ -162,8 +162,8 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
           Option<napi::Either<
-            napi::bindgen_prelude::WeakReference<crate::element::Element>,
-            napi::bindgen_prelude::WeakReference<crate::document::Document>
+            napi::bindgen_prelude::WeakReference<crate::Element>,
+            napi::bindgen_prelude::WeakReference<crate::Document>
           >> {
 
             let maybe_reference = self.parent.borrow();
@@ -180,7 +180,7 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
 
         match maybe_handle {
           Some(parent) => {
-            let child: crate::dom::Handle = self.get_handle();
+            let child: crate::Handle = self.get_handle();
 
             parent.remove_handle(child);
           }
@@ -190,10 +190,10 @@ pub fn node_macro_derive(input: TokenStream) -> TokenStream {
         Ok(())
       }
 
-      pub(crate) fn get_parent_handle(&self) -> napi::Result<Option<crate::dom::Handle>> {
+      pub(crate) fn get_parent_handle(&self) -> napi::Result<Option<crate::Handle>> {
         let parent_node = self.parent.borrow();
 
-        let maybe_handle: Option<crate::dom::Handle> = match parent_node.as_ref() {
+        let maybe_handle: Option<crate::Handle> = match parent_node.as_ref() {
           Some(element_or_document) => match element_or_document {
             napi::Either::A(weak_reference) => {
               weak_reference.upgrade(self.env)?.map(|r| r.get_handle())

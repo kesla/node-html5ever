@@ -1,9 +1,6 @@
 use napi::{bindgen_prelude::Reference, Either, Error, Result, Status};
 
-use crate::{
-  comment::Comment, doc_type::DocType, document::Document, dom::Handle, element::Element,
-  text::Text,
-};
+use crate::{Comment, DocType, Document, Element, Handle, Text};
 
 pub(crate) enum NodeData {
   Comment(Reference<Comment>),
@@ -30,19 +27,19 @@ impl PartialEq for NodeData {
 impl Eq for NodeData {}
 
 #[derive(PartialEq, Eq)]
-pub struct Node {
+pub struct NodeWrapper {
   pub(crate) data: NodeData,
 }
 
-impl Default for Node {
+impl Default for NodeWrapper {
   fn default() -> Self {
-    Node {
+    NodeWrapper {
       data: NodeData::None,
     }
   }
 }
 
-impl From<Reference<Comment>> for Node {
+impl From<Reference<Comment>> for NodeWrapper {
   fn from(r: Reference<Comment>) -> Self {
     Self {
       data: NodeData::Comment(r),
@@ -50,7 +47,7 @@ impl From<Reference<Comment>> for Node {
   }
 }
 
-impl From<Reference<Element>> for Node {
+impl From<Reference<Element>> for NodeWrapper {
   fn from(r: Reference<Element>) -> Self {
     Self {
       data: NodeData::Element(r),
@@ -58,7 +55,7 @@ impl From<Reference<Element>> for Node {
   }
 }
 
-impl From<Reference<Document>> for Node {
+impl From<Reference<Document>> for NodeWrapper {
   fn from(r: Reference<Document>) -> Self {
     Self {
       data: NodeData::Document(r),
@@ -66,7 +63,7 @@ impl From<Reference<Document>> for Node {
   }
 }
 
-impl From<Reference<DocType>> for Node {
+impl From<Reference<DocType>> for NodeWrapper {
   fn from(r: Reference<DocType>) -> Self {
     Self {
       data: NodeData::DocType(r),
@@ -74,7 +71,7 @@ impl From<Reference<DocType>> for Node {
   }
 }
 
-impl From<Reference<Text>> for Node {
+impl From<Reference<Text>> for NodeWrapper {
   fn from(r: Reference<Text>) -> Self {
     Self {
       data: NodeData::Text(r),
@@ -82,7 +79,7 @@ impl From<Reference<Text>> for Node {
   }
 }
 
-impl Node {
+impl NodeWrapper {
   pub(crate) fn append_handle(&self, child: Handle) {
     // TODO: concatenate already existing text node
     let (mut list, parent_reference) = match &self.data {
@@ -141,7 +138,7 @@ impl Node {
   }
 }
 
-impl Drop for Node {
+impl Drop for NodeWrapper {
   fn drop(&mut self) {
     let node_type: String = match &self.data {
       NodeData::Comment(_) => "Comment".to_string(),

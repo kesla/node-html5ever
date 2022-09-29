@@ -4,26 +4,27 @@ extern crate napi_derive;
 #[macro_use]
 extern crate node_html5ever_derive;
 
-mod comment;
-mod doc_type;
-mod document;
 mod dom;
-mod element;
 mod id;
 mod lazy_weak_handle;
-mod node;
+mod node_wrapper;
+mod nodes;
+mod parser;
 mod quirks_mode;
-mod serialize;
-mod text;
+mod serializer;
 
-use dom::Html5everDom;
-use html5ever::tendril::TendrilSink;
-use napi::{Env, Result};
+use std::rc::{Rc, Weak};
 
-#[napi]
-pub fn parse(html: String, env: Env) -> Result<Html5everDom> {
-  let sink = Html5everDom::new(env)?;
-  let dom: Html5everDom = html5ever::parse_document(sink, Default::default()).one(html);
+pub(crate) use dom::Html5everDom;
+pub(crate) use id::get_id;
+pub(crate) use lazy_weak_handle::LazyWeakHandle;
+pub(crate) use node_wrapper::{NodeData, NodeWrapper};
+pub(crate) use nodes::*;
+pub(crate) use quirks_mode::QuirksMode;
+pub(crate) use serializer::serialize;
 
-  Ok(dom)
-}
+pub(crate) type Handle = Rc<NodeWrapper>;
+
+pub(crate) type WeakHandle = Weak<NodeWrapper>;
+
+pub use parser::parse;

@@ -3,10 +3,10 @@ use std::{cell::RefCell, rc::Rc};
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 use napi::bindgen_prelude::Reference;
 
-use crate::{dom::Handle, serialize::serialize};
+use crate::{serialize, Handle};
 
 #[napi]
-#[derive(NodeType)]
+#[derive(Node)]
 #[add_node_fields]
 pub struct Element {
   #[default(Rc::new(RefCell::new(vec![])))]

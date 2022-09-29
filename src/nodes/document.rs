@@ -6,9 +6,7 @@ use napi::{
   Env, Result,
 };
 
-use crate::{
-  doc_type::DocType, dom::Handle, element::Element, id::get_id, lazy_weak_handle::LazyWeakHandle,
-};
+use crate::{get_id, DocType, Element, Handle, LazyWeakHandle};
 
 #[napi]
 pub struct Document {

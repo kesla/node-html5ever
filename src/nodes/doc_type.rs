@@ -1,5 +1,5 @@
 #[napi]
-#[derive(NodeType)]
+#[derive(Node)]
 #[add_node_fields]
 pub struct DocType {
   #[napi(writable = false)]

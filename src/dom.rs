@@ -1,19 +1,6 @@
-use std::rc::{Rc, Weak};
-
-use crate::comment::Comment;
-use crate::doc_type::DocType;
-use crate::document::Document;
-use crate::element::Element;
-use crate::node::Node;
-use crate::quirks_mode::QuirksMode;
-use crate::serialize::serialize;
-use crate::text::Text;
+use crate::{serialize, Comment, DocType, Document, Element, Handle, QuirksMode, Text};
 use html5ever::tree_builder::{NodeOrText, TreeSink};
 use napi::{bindgen_prelude::Reference, Env, Result};
-
-pub(crate) type Handle = Rc<Node>;
-
-pub(crate) type WeakHandle = Weak<Node>;
 
 #[napi]
 pub struct Html5everDom {
