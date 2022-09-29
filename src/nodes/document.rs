@@ -70,19 +70,19 @@ impl Document {
   }
 
   #[napi(getter)]
-  pub fn get_head(&mut self, env: Env) -> Result<Reference<Element>> {
+  pub fn get_head(&mut self) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
     let list = document_element.list.borrow();
-    list.get(0).unwrap().into_element()?.clone(env)
+    list.get(0).unwrap().into_element()?.clone(self.env)
   }
 
   #[napi(getter)]
-  pub fn get_body(&mut self, env: Env) -> Result<Reference<Element>> {
+  pub fn get_body(&mut self) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
     let list = document_element.list.borrow();
-    list.get(1).unwrap().into_element()?.clone(env)
+    list.get(1).unwrap().into_element()?.clone(self.env)
   }
 
   #[napi(getter)]
@@ -91,9 +91,9 @@ impl Document {
   }
 
   #[napi]
-  pub fn create_element(&mut self, env: Env, name: String) -> Result<Reference<Element>> {
+  pub fn create_element(&mut self, name: String) -> Result<Reference<Element>> {
     Element::new_reference(
-      env,
+      self.env,
       vec![].into(),
       QualName::new(None, Namespace::from("html"), name.into()),
     )

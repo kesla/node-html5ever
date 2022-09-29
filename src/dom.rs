@@ -36,8 +36,8 @@ impl Html5everDom {
   }
 
   #[napi(getter)]
-  pub fn document(&mut self, env: Env) -> Result<Reference<Document>> {
-    self.document_reference.clone(env)
+  pub fn document(&mut self) -> Result<Reference<Document>> {
+    self.document_reference.clone(self.env)
   }
 
   #[napi]
