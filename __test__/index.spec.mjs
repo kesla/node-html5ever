@@ -1,5 +1,4 @@
 import test from "ava";
-import { Html5EverDom } from "../index.js";
 
 import { parse, QuirksMode, Element, Document } from "../index.js";
 

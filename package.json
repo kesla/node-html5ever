@@ -25,6 +25,7 @@
     "@napi-rs/cli": "^2.11.4",
     "@types/node": "^18.7.18",
     "ava": "^4.3.0",
+    "nodemon": "^2.0.20",
     "typescript": "^4.8.3"
   },
   "engines": {
@@ -37,7 +38,9 @@
     "prepublishOnly": "napi prepublish -t npm",
     "test": "yarn build:debug && ava",
     "test:update": "yarn build:debug && ava --update-snapshots",
-    "version": "napi version"
+    "version": "napi version",
+    "watch:test": "nodemon --exec \"yarn test\"",
+    "watch:test:update": "nodemon --exec \"yarn test:update\""
   },
   "packageManager": "yarn@3.2.3"
 }
