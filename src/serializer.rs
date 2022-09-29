@@ -29,7 +29,8 @@ impl html5ever::serialize::Serialize for SerializableHandle {
         ops.push_back(SerializeOp::Open(self.0.clone()))
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-        let maybe_children = match &self.0.data {
+        let node_data: &NodeData = &self.0;
+        let maybe_children = match node_data {
           NodeData::Document(r) => Some(r.list.borrow()),
           NodeData::Element(r) => Some(r.list.borrow()),
           _ => None,
@@ -47,30 +48,33 @@ impl html5ever::serialize::Serialize for SerializableHandle {
 
     while let Some(op) = ops.pop_front() {
       match op {
-        SerializeOp::Open(handle) => match &handle.clone().data {
-          NodeData::Comment(comment) => serializer.write_comment(&comment.content)?,
-          NodeData::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
-          NodeData::Element(element) => {
-            let list = element.list.borrow();
-            serializer.start_elem(
-              // TODO: Is this actually copying the data? Need to figure that out
-              element.name.clone(),
-              element
-                .attributes_wrapper
-                .iter()
-                .map(|at| (&at.name, &at.value[..])),
-            )?;
-            ops.reserve(1 + list.len());
-            ops.push_front(SerializeOp::Close(element.name.clone()));
+        SerializeOp::Open(handle) => {
+          let node_data: &NodeData = &handle;
+          match node_data {
+            NodeData::Comment(comment) => serializer.write_comment(&comment.content)?,
+            NodeData::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+            NodeData::Element(element) => {
+              let list = element.list.borrow();
+              serializer.start_elem(
+                // TODO: Is this actually copying the data? Need to figure that out
+                element.name.clone(),
+                element
+                  .attributes_wrapper
+                  .iter()
+                  .map(|at| (&at.name, &at.value[..])),
+              )?;
+              ops.reserve(1 + list.len());
+              ops.push_front(SerializeOp::Close(element.name.clone()));
 
-            for child in list.iter().rev() {
-              ops.push_front(SerializeOp::Open(child.clone()));
+              for child in list.iter().rev() {
+                ops.push_front(SerializeOp::Open(child.clone()));
+              }
             }
+            NodeData::Document(_) => panic!("Can't serialize Document node itself"),
+            NodeData::Text(text) => serializer.write_text(&text.content)?,
+            NodeData::None => panic!("Can't serialize None node"),
           }
-          NodeData::Document(_) => panic!("Can't serialize Document node itself"),
-          NodeData::Text(text) => serializer.write_text(&text.content)?,
-          NodeData::None => panic!("Can't serialize None node"),
-        },
+        }
         SerializeOp::Close(name) => serializer.end_elem(name)?,
       }
     }

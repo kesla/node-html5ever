@@ -2,7 +2,7 @@ use napi::{bindgen_prelude::Reference, Either, Error, Result, Status};
 
 use crate::{Comment, DocType, Document, Element, Handle, Text};
 
-pub(crate) enum NodeData {
+pub enum NodeData {
   Comment(Reference<Comment>),
   DocType(Reference<DocType>),
   Document(Reference<Document>),
@@ -26,68 +26,52 @@ impl PartialEq for NodeData {
 
 impl Eq for NodeData {}
 
-#[derive(PartialEq, Eq)]
-pub struct NodeWrapper {
-  pub(crate) data: NodeData,
-}
-
-impl Default for NodeWrapper {
+impl Default for NodeData {
   fn default() -> Self {
-    NodeWrapper {
-      data: NodeData::None,
-    }
+    NodeData::None
   }
 }
 
-impl From<Reference<Comment>> for NodeWrapper {
+impl From<Reference<Comment>> for NodeData {
   fn from(r: Reference<Comment>) -> Self {
-    Self {
-      data: NodeData::Comment(r),
-    }
+    NodeData::Comment(r)
   }
 }
 
-impl From<Reference<Element>> for NodeWrapper {
+impl From<Reference<Element>> for NodeData {
   fn from(r: Reference<Element>) -> Self {
-    Self {
-      data: NodeData::Element(r),
-    }
+    NodeData::Element(r)
   }
 }
 
-impl From<Reference<Document>> for NodeWrapper {
+impl From<Reference<Document>> for NodeData {
   fn from(r: Reference<Document>) -> Self {
-    Self {
-      data: NodeData::Document(r),
-    }
+    NodeData::Document(r)
   }
 }
 
-impl From<Reference<DocType>> for NodeWrapper {
+impl From<Reference<DocType>> for NodeData {
   fn from(r: Reference<DocType>) -> Self {
-    Self {
-      data: NodeData::DocType(r),
-    }
+    NodeData::DocType(r)
   }
 }
 
-impl From<Reference<Text>> for NodeWrapper {
+impl From<Reference<Text>> for NodeData {
   fn from(r: Reference<Text>) -> Self {
-    Self {
-      data: NodeData::Text(r),
-    }
+    NodeData::Text(r)
   }
 }
 
-impl NodeWrapper {
+impl NodeData {
   pub(crate) fn append_handle(&self, child: Handle) {
     // TODO: concatenate already existing text node
-    let (mut list, parent_reference) = match &self.data {
+    let (mut list, parent_reference) = match &self {
       NodeData::Element(r) => (r.list.borrow_mut(), Some(Either::A(r.downgrade()))),
       NodeData::Document(r) => (r.list.borrow_mut(), Some(Either::B(r.downgrade()))),
       _ => panic!("Node does not have children"),
     };
-    match &child.data {
+    let child_node_data: &NodeData = &child;
+    match &child_node_data {
       NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
       NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
       NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
@@ -99,7 +83,7 @@ impl NodeWrapper {
   }
 
   pub(crate) fn remove_handle(&self, child: Handle) {
-    let mut list = match &self.data {
+    let mut list = match &self {
       NodeData::Element(r) => r.list.borrow_mut(),
       NodeData::Document(r) => r.list.borrow_mut(),
       _ => panic!("Node does not have children"),
@@ -107,7 +91,8 @@ impl NodeWrapper {
     let index = list.iter().position(|c| c == &child).unwrap();
     list.remove(index);
 
-    match &child.data {
+    let child_node_data: &NodeData = &child;
+    match child_node_data {
       NodeData::Comment(comment) => *comment.parent.borrow_mut() = None,
       NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = None,
       NodeData::Element(element) => *element.parent.borrow_mut() = None,
@@ -118,7 +103,7 @@ impl NodeWrapper {
   }
 
   pub(crate) fn into_element(&self) -> Result<&Reference<Element>> {
-    match &self.data {
+    match &self {
       NodeData::Element(r) => Ok(r),
       _ => Err(Error::new(
         Status::InvalidArg,
@@ -128,7 +113,7 @@ impl NodeWrapper {
   }
 
   pub(crate) fn into_doc_type(&self) -> Result<&Reference<DocType>> {
-    match &self.data {
+    match &self {
       NodeData::DocType(r) => Ok(r),
       _ => Err(Error::new(
         Status::InvalidArg,
@@ -138,9 +123,9 @@ impl NodeWrapper {
   }
 }
 
-impl Drop for NodeWrapper {
+impl Drop for NodeData {
   fn drop(&mut self) {
-    let node_type: String = match &self.data {
+    let node_type: String = match &self {
       NodeData::Comment(_) => "Comment".to_string(),
       NodeData::DocType(_) => "DocType".to_string(),
       NodeData::Document(_) => "Document".to_string(),
