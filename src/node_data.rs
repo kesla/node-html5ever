@@ -1,4 +1,9 @@
-use napi::{bindgen_prelude::Reference, Either, Error, Result, Status};
+use std::cell::{Ref, RefMut};
+
+use napi::{
+  bindgen_prelude::{Reference, WeakReference},
+  Either, Error, Result, Status,
+};
 
 use crate::{Comment, DocType, Document, Element, Handle, Text};
 
@@ -63,33 +68,54 @@ impl From<Reference<Text>> for NodeData {
 }
 
 impl NodeData {
+  pub(crate) fn get_children(&self) -> Option<Ref<Vec<Handle>>> {
+    match self {
+      NodeData::Document(r) => Some(r.list.borrow()),
+      NodeData::Element(r) => Some(r.list.borrow()),
+      _ => None,
+    }
+  }
+
+  pub(crate) fn get_children_mut(&self) -> Option<RefMut<Vec<Handle>>> {
+    match self {
+      NodeData::Document(r) => Some(r.list.borrow_mut()),
+      NodeData::Element(r) => Some(r.list.borrow_mut()),
+      _ => None,
+    }
+  }
+
+  pub(crate) fn get_parent_mut(
+    &self,
+  ) -> Option<RefMut<Option<Either<WeakReference<Element>, WeakReference<Document>>>>> {
+    match self {
+      NodeData::Element(r) => Some(r.parent.borrow_mut()),
+      NodeData::Text(r) => Some(r.parent.borrow_mut()),
+      NodeData::Comment(r) => Some(r.parent.borrow_mut()),
+      NodeData::DocType(r) => Some(r.parent.borrow_mut()),
+      _ => None,
+    }
+  }
+
   pub(crate) fn append_handle(&self, child: Handle) {
     // TODO: concatenate already existing text node
-    let (mut list, parent_reference) = match &self {
-      NodeData::Element(r) => (r.list.borrow_mut(), Some(Either::A(r.downgrade()))),
-      NodeData::Document(r) => (r.list.borrow_mut(), Some(Either::B(r.downgrade()))),
-      _ => panic!("Node does not have children"),
+
+    let mut children = self.get_children_mut().unwrap();
+    children.push(child.clone());
+
+    let parent_reference = match &self {
+      NodeData::Element(r) => Some(Either::A(r.downgrade())),
+      NodeData::Document(r) => Some(Either::B(r.downgrade())),
+      _ => panic!("Wrong type"),
     };
     let child_node_data: &NodeData = &child;
-    match &child_node_data {
-      NodeData::Comment(comment) => *comment.parent.borrow_mut() = parent_reference,
-      NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = parent_reference,
-      NodeData::Element(element) => *element.parent.borrow_mut() = parent_reference,
-      NodeData::Text(text) => *text.parent.borrow_mut() = parent_reference,
-      NodeData::Document(_document) => panic!("Document cannot be a child of another node"),
-      NodeData::None => panic!("Cannot append None"),
-    }
-    list.push(child);
+    let mut parent = child_node_data.get_parent_mut().unwrap();
+    *parent = parent_reference;
   }
 
   pub(crate) fn remove_handle(&self, child: Handle) {
-    let mut list = match &self {
-      NodeData::Element(r) => r.list.borrow_mut(),
-      NodeData::Document(r) => r.list.borrow_mut(),
-      _ => panic!("Node does not have children"),
-    };
-    let index = list.iter().position(|c| c == &child).unwrap();
-    list.remove(index);
+    let mut children = self.get_children_mut().unwrap();
+    let index = children.iter().position(|c| c == &child).unwrap();
+    children.remove(index);
 
     let child_node_data: &NodeData = &child;
     match child_node_data {

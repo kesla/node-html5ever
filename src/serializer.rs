@@ -29,14 +29,7 @@ impl html5ever::serialize::Serialize for SerializableHandle {
         ops.push_back(SerializeOp::Open(self.0.clone()))
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-        let node_data: &NodeData = &self.0;
-        let maybe_children = match node_data {
-          NodeData::Document(r) => Some(r.list.borrow()),
-          NodeData::Element(r) => Some(r.list.borrow()),
-          _ => None,
-        };
-
-        if let Some(children) = maybe_children {
+        if let Some(children) = self.0.get_children() {
           ops.extend(
             children
               .iter()
