@@ -1,4 +1,4 @@
-#[create_node]
+#[create_node(parent)]
 pub struct DocType {
   #[napi(writable = false)]
   pub name: String,

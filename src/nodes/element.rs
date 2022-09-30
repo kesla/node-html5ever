@@ -5,7 +5,7 @@ use napi::bindgen_prelude::Reference;
 
 use crate::{serialize, Handle};
 
-#[create_node]
+#[create_node(parent)]
 pub struct Element {
   pub(crate) list: Rc<RefCell<Vec<Handle>>>,
 

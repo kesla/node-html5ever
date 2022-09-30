@@ -1,4 +1,4 @@
-#[create_node]
+#[create_node(parent)]
 pub struct Text {
   pub(crate) content: String,
 }

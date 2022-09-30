@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::{serialize, Comment, DocType, Document, Element, Handle, QuirksMode, Text};
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
@@ -21,7 +24,7 @@ pub struct Html5everDom {
 impl Html5everDom {
   #[napi(constructor)]
   pub fn new(env: Env, html: String) -> Result<Html5everDom> {
-    let document_reference = Document::new(env)?;
+    let document_reference = Document::new_reference(env, Rc::new(RefCell::new(vec![])))?;
     let sink = Html5everDom {
       document_handle: document_reference.get_handle(),
       document_reference,

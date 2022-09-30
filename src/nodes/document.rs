@@ -1,50 +1,17 @@
 use std::{cell::RefCell, rc::Rc};
 
 use html5ever::{Namespace, QualName};
-use napi::{
-  bindgen_prelude::{Reference, WeakReference},
-  Env, Result,
-};
+use napi::{bindgen_prelude::Reference, Result};
 
-use crate::{get_id, DocType, Element, Handle, LazyWeakHandle};
+use crate::{DocType, Element, Handle};
 
-#[napi]
+#[create_node]
 pub struct Document {
   pub(crate) list: Rc<RefCell<Vec<Handle>>>,
-  pub(crate) env: Env,
-  lazy_weak_handle: LazyWeakHandle,
-  weak_reference: Option<WeakReference<Self>>,
-  pub(crate) id: usize,
 }
 
 #[napi]
 impl Document {
-  pub(crate) fn new(env: Env) -> Result<Reference<Self>> {
-    let document = Self {
-      list: Rc::new(RefCell::new(vec![])),
-      env,
-      lazy_weak_handle: LazyWeakHandle::default(),
-      weak_reference: None,
-      id: get_id(),
-    };
-
-    let mut r = Self::into_reference(document, env)?;
-    r.weak_reference = Some(r.clone(env)?.downgrade());
-    Ok(r)
-  }
-
-  pub(crate) fn get_handle(&self) -> Handle {
-    self.lazy_weak_handle.get_or_init(
-      self
-        .weak_reference
-        .as_ref()
-        .unwrap()
-        .upgrade(self.env)
-        .unwrap()
-        .unwrap(),
-    )
-  }
-
   #[napi(getter)]
   pub fn get_doc_type(&self) -> Result<Option<Reference<DocType>>> {
     if let Some(first) = self.list.borrow().get(0) {
