@@ -1,7 +1,7 @@
 use html5ever::{Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Result};
 
-use crate::{DocType, Element};
+use crate::{DocType, Element, Text};
 
 #[create_node(children_field)]
 pub struct Document {}
@@ -60,6 +60,11 @@ impl Document {
       vec![].into(),
       QualName::new(None, Namespace::from("html"), name.into()),
     )
+  }
+
+  #[napi]
+  pub fn create_text_node(&mut self, data: String) -> Result<Reference<Text>> {
+    Text::new_reference(self.env, data)
   }
 }
 
