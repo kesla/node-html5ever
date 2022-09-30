@@ -1,14 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
-
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
-use napi::bindgen_prelude::Reference;
 
-use crate::{serialize, Handle};
+use crate::serialize;
 
-#[create_node(parent)]
+#[create_node(parent, children)]
 pub struct Element {
-  pub(crate) list: Rc<RefCell<Vec<Handle>>>,
-
   pub(crate) attributes_wrapper: AttributesWrapper,
 
   pub(crate) name: QualName,
@@ -54,18 +49,6 @@ impl Element {
     self.node_name()
   }
 
-  // TODO: cache this & perhaps return something nicer
-  // remove .unwrap
-  #[napi(getter)]
-  pub fn get_children(&self) -> Vec<Reference<Element>> {
-    self
-      .list
-      .borrow()
-      .iter()
-      .filter_map(|node| node.into_element().ok().map(|r| r.clone(self.env).unwrap()))
-      .collect()
-  }
-
   #[napi(getter)]
   pub fn inner_html(&self) -> String {
     serialize(
@@ -80,22 +63,6 @@ impl Element {
       self.get_handle(),
       html5ever::serialize::TraversalScope::IncludeNode,
     )
-  }
-
-  #[napi]
-  pub fn append_element(&mut self, element: &Element) {
-    let child: Handle = element.get_handle();
-    let parent: Handle = self.get_handle();
-
-    parent.append_handle(child);
-  }
-
-  #[napi]
-  pub fn remove_element(&mut self, element: &Element) {
-    let child: Handle = element.get_handle();
-    let parent: Handle = self.get_handle();
-
-    parent.remove_handle(child);
   }
 }
 

@@ -41,17 +41,17 @@ export class Element {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
   remove(): void
+  get children(): Array<Element>
+  appendElement(element: Element): void
+  removeElement(element: Element): void
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void
   hasAttribute(name: string): boolean
   get nodeName(): string
   get tagName(): string
-  get children(): Array<Element>
   get innerHtml(): string
   get outerHtml(): string
-  appendElement(element: Element): void
-  removeElement(element: Element): void
 }
 export class Text {
   get parentElement(): Element | null

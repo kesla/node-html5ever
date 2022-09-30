@@ -1,14 +1,10 @@
-use std::{cell::RefCell, rc::Rc};
-
 use html5ever::{Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Result};
 
-use crate::{DocType, Element, Handle};
+use crate::{DocType, Element};
 
-#[create_node]
-pub struct Document {
-  pub(crate) list: Rc<RefCell<Vec<Handle>>>,
-}
+#[create_node(children_field)]
+pub struct Document {}
 
 #[napi]
 impl Document {
@@ -61,7 +57,6 @@ impl Document {
   pub fn create_element(&mut self, name: String) -> Result<Reference<Element>> {
     Element::new_reference(
       self.env,
-      Default::default(),
       vec![].into(),
       QualName::new(None, Namespace::from("html"), name.into()),
     )

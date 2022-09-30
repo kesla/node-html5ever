@@ -1,10 +1,34 @@
 use itertools::multiunzip;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{self, parse_macro_input, DeriveInput};
+use syn::{self, parse::Parser, parse_macro_input, DeriveInput};
+
+#[derive(Default)]
+struct Features {
+  children: bool,
+  children_field: bool,
+  parent: bool,
+}
 
 #[proc_macro_attribute]
 pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
+  let mut features: Features = Default::default();
+  for f in syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated
+    .parse(args)
+    .unwrap()
+    .into_iter()
+  {
+    match f.get_ident().unwrap().to_string().as_str() {
+      "children" => features.children = true,
+      "children_field" => features.children_field = true,
+      "parent" => features.parent = true,
+      _ => panic!("Unknown feature"),
+    }
+  }
+
+  // .map(|path| path.get_ident().unwrap().to_string())
+  // .collect::<Vec<String>>();
+
   let ast: DeriveInput = parse_macro_input!(input as DeriveInput).into();
 
   let named_fields = &match ast.data {
@@ -28,9 +52,49 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     }));
 
   let name = &ast.ident;
-  let has_parent = args.to_string().contains("parent");
 
-  let parent_field = match has_parent {
+  let children_field = match features.children || features.children_field {
+    true => quote!(pub(crate) list: std::rc::Rc<std::cell::RefCell<Vec<crate::Handle>>>,),
+    false => quote!(),
+  };
+  let children_init = match features.children || features.children_field {
+    true => quote!(list: std::rc::Rc::new(std::cell::RefCell::new(vec![])),),
+    false => quote!(),
+  };
+  let children_impl = match features.children {
+    true => quote!(
+      // TODO: cache this & perhaps return something nicer
+      // remove .unwrap
+      #[napi(getter)]
+      pub fn get_children(&self) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
+        self
+          .list
+          .borrow()
+          .iter()
+          .filter_map(|node| node.into_element().ok().map(|r| r.clone(self.env).unwrap()))
+          .collect()
+      }
+
+      #[napi]
+      pub fn append_element(&mut self, element: &crate::Element) {
+        let child: crate::Handle = element.get_handle();
+        let parent: crate::Handle = self.get_handle();
+
+        parent.append_handle(child);
+      }
+
+      #[napi]
+      pub fn remove_element(&mut self, element: &crate::Element) {
+        let child: crate::Handle = element.get_handle();
+        let parent: crate::Handle = self.get_handle();
+
+        parent.remove_handle(child);
+      }
+    ),
+    false => quote!(),
+  };
+
+  let parent_field = match features.parent {
     true => quote!(
       pub(crate) parent:
         std::cell::RefCell<Option<napi::Either<
@@ -40,11 +104,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     ),
     false => quote!(),
   };
-  let parent_init = match has_parent {
+  let parent_init = match features.parent {
     true => quote!(parent: std::cell::RefCell::new(None),),
     false => quote!(),
   };
-  let parent_impl = match has_parent {
+  let parent_impl = match features.parent {
     true => quote! {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
@@ -118,6 +182,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #[napi]
       pub struct #name {
         #parent_field
+        #children_field
         pub(crate) env: napi::Env,
         pub(crate) lazy_weak_handle: crate::LazyWeakHandle,
         pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
@@ -138,6 +203,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             id: crate::get_id(),
             lazy_weak_handle: crate::LazyWeakHandle::default(),
             #parent_init
+            #children_init
             weak_reference: None,
           };
 
@@ -154,6 +220,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         }
 
         #parent_impl
+        #children_impl
       }
   }
   .into();
