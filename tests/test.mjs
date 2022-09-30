@@ -149,12 +149,26 @@ test("createElement + set attributes", (t) => {
   t.matchSnapshot(element.outerHtml, "attribute foo removed, hello added");
 });
 
-test("basic appendElement & remove", (t) => {
+test("Text node", (t) => {
+  let dom = new Html5EverDom("");
+  let text = dom.document.createTextNode("Hello, world");
+  t.strictSame(text.parentElement, null);
+  t.strictSame(text.parentNode, null);
+  t.strictSame(text.ownerDocument, null);
+
+  dom.document.body.appendChild(text);
+  t.matchSnapshot(dom.serialize(), "Text node in body");
+  t.strictSame(text.parentElement, dom.document.body);
+  t.strictSame(text.parentNode, dom.document.body);
+  t.strictSame(text.ownerDocument, dom.document);
+});
+
+test("basic appendChild & remove", (t) => {
   let { document } = new Html5EverDom("");
 
   let body = document.body;
   let child = document.createElement("div");
-  body.appendElement(child);
+  body.appendChild(child);
 
   t.matchSnapshot(body.outerHtml, "body.outerHtml");
 
@@ -174,12 +188,12 @@ test("basic appendElement & remove", (t) => {
   t.matchSnapshot(body.outerHtml, "body.outerHtml after remove");
 });
 
-test("basic appendElement & removeElement", (t) => {
+test("basic appendChild & removeElement", (t) => {
   let { document } = new Html5EverDom("");
 
   let body = document.body;
   let child = document.createElement("div");
-  body.appendElement(child);
+  body.appendChild(child);
 
   t.matchSnapshot(body.outerHtml, "body.outerHtml");
 

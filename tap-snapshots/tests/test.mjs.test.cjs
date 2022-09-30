@@ -5,19 +5,23 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
-exports[`tests/test.mjs TAP basic appendElement & remove > body.outerHtml 1`] = `
+exports[`tests/test.mjs TAP Text node > Text node in body 1`] = `
+<html><head></head><body>Hello, world</body></html>
+`
+
+exports[`tests/test.mjs TAP basic appendChild & remove > body.outerHtml 1`] = `
 <body><div></div></body>
 `
 
-exports[`tests/test.mjs TAP basic appendElement & remove > body.outerHtml after remove 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & remove > body.outerHtml after remove 1`] = `
 <body></body>
 `
 
-exports[`tests/test.mjs TAP basic appendElement & removeElement > body.outerHtml 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHtml 1`] = `
 <body><div></div></body>
 `
 
-exports[`tests/test.mjs TAP basic appendElement & removeElement > body.outerHtml after remove 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHtml after remove 1`] = `
 <body></body>
 `
 

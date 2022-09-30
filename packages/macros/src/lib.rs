@@ -76,11 +76,23 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi]
-      pub fn append_element(&mut self, element: &crate::Element) {
-        let child: crate::Handle = element.get_handle();
-        let parent: crate::Handle = self.get_handle();
-
-        parent.append_handle(child);
+      pub fn append_child(
+        &self,
+        child: napi::bindgen_prelude::Either4<
+          &crate::Comment,
+          &crate::DocType,
+          &crate::Element,
+          &crate::Text,
+        >,
+      ) {
+        let child_handle = match child {
+          napi::bindgen_prelude::Either4::A(r) => r.get_handle(),
+          napi::bindgen_prelude::Either4::B(r) => r.get_handle(),
+          napi::bindgen_prelude::Either4::C(r) => r.get_handle(),
+          napi::bindgen_prelude::Either4::D(r) => r.get_handle(),
+        };
+        let parent_handle = self.get_handle();
+        parent_handle.append_handle(child_handle);
       }
 
       #[napi]
@@ -173,6 +185,21 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
           None => None,
         };
         Ok(maybe_handle)
+      }
+
+
+      #[napi(getter)]
+      pub fn owner_document(
+        &self,
+      ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
+        match self.parent.borrow().as_ref() {
+          Some(napi::Either::A(r)) => match r.upgrade(self.env)? {
+            Some(element) => element.owner_document(),
+            None => Ok(None),
+          },
+          Some(napi::Either::B(document)) => Ok(Some(document.clone())),
+          None => Ok(None),
+        }
       }
     },
     false => quote! {},

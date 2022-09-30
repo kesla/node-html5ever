@@ -20,6 +20,7 @@ export class Comment {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
   remove(): void
+  get ownerDocument(): Document | null
 }
 export class DocType {
   name: string
@@ -28,6 +29,7 @@ export class DocType {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
   remove(): void
+  get ownerDocument(): Document | null
 }
 export class Document {
   get docType(): DocType | null
@@ -36,13 +38,14 @@ export class Document {
   get body(): Element
   get nodeName(): string
   createElement(name: string): Element
+  createTextNode(data: string): Text
 }
 export class Element {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
   remove(): void
+  get ownerDocument(): Document | null
   get children(): Array<Element>
-  appendElement(element: Element): void
   removeElement(element: Element): void
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
@@ -52,9 +55,11 @@ export class Element {
   get tagName(): string
   get innerHtml(): string
   get outerHtml(): string
+  appendChild(child: Comment | DocType | Element | Text): void
 }
 export class Text {
   get parentElement(): Element | null
   get parentNode(): Element | Document | null
   remove(): void
+  get ownerDocument(): Document | null
 }
