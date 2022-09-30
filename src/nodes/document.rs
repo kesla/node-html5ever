@@ -94,6 +94,7 @@ impl Document {
   pub fn create_element(&mut self, name: String) -> Result<Reference<Element>> {
     Element::new_reference(
       self.env,
+      Default::default(),
       vec![].into(),
       QualName::new(None, Namespace::from("html"), name.into()),
     )

@@ -5,11 +5,8 @@ use napi::bindgen_prelude::Reference;
 
 use crate::{serialize, Handle};
 
-#[napi]
-#[derive(Node)]
-#[add_node_fields]
+#[create_node]
 pub struct Element {
-  #[default(Rc::new(RefCell::new(vec![])))]
   pub(crate) list: Rc<RefCell<Vec<Handle>>>,
 
   pub(crate) attributes_wrapper: AttributesWrapper,

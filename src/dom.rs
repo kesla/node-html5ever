@@ -79,7 +79,7 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
-    let r = Element::new_reference(self.env, attrs.into(), name).unwrap();
+    let r = Element::new_reference(self.env, Default::default(), attrs.into(), name).unwrap();
     r.get_handle()
   }
 
