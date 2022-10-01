@@ -5,6 +5,10 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
+exports[`tests/test.mjs TAP Element.id & Element.className > div.outerHtml 1`] = `
+<div id="foo" class="bar baz"></div>
+`
+
 exports[`tests/test.mjs TAP Text node > Text node in body 1`] = `
 <html><head></head><body>Hello, world</body></html>
 `

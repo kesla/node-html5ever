@@ -46,6 +46,7 @@ export class Element {
   remove(): void
   get ownerDocument(): Document | null
   get children(): Array<Element>
+  appendChild(child: Comment | DocType | Element | Text): void
   removeElement(element: Element): void
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
@@ -55,7 +56,10 @@ export class Element {
   get tagName(): string
   get innerHtml(): string
   get outerHtml(): string
-  appendChild(child: Comment | DocType | Element | Text): void
+  get className(): string
+  set className(className: string)
+  get id(): string
+  set id(id: string)
 }
 export class Text {
   get parentElement(): Element | null

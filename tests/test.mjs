@@ -212,3 +212,19 @@ test("basic appendChild & removeElement", (t) => {
   t.strictSame(body.children.length, 0, "body.children.length is 0");
   t.matchSnapshot(body.outerHtml, "body.outerHtml after remove");
 });
+
+test("Element.id & Element.className", (t) => {
+  let { document } = new Html5EverDom("");
+
+  let div = document.createElement("div");
+  t.strictSame(div.id, "");
+  t.strictSame(div.className, "");
+
+  div.id = "foo";
+  div.className = "bar baz";
+
+  t.matchSnapshot(div.outerHtml, "div.outerHtml");
+
+  t.strictSame(div.id, "foo");
+  t.strictSame(div.className, "bar baz");
+});

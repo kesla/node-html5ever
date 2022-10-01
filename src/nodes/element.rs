@@ -26,12 +26,9 @@ impl Element {
 
   #[napi]
   pub fn set_attribute(&mut self, name: String, value: String) {
-    let local = LocalName::from(name);
-
-    self.attributes_wrapper.remove_attribute(local.clone());
     self
       .attributes_wrapper
-      .add_attribute(local.clone(), value.into())
+      .set_attribute(LocalName::from(name), value.into());
   }
 
   #[napi]
@@ -63,6 +60,38 @@ impl Element {
       self.get_handle(),
       html5ever::serialize::TraversalScope::IncludeNode,
     )
+  }
+
+  #[napi(getter)]
+  pub fn get_class_name(&self) -> String {
+    self
+      .attributes_wrapper
+      .get_attribute(LocalName::from("class"))
+      .map(|attribute| attribute.value.to_string())
+      .unwrap_or_default()
+  }
+
+  #[napi(setter)]
+  pub fn set_class_name(&mut self, class_name: String) {
+    self
+      .attributes_wrapper
+      .set_attribute(LocalName::from("class"), class_name.into());
+  }
+
+  #[napi(getter)]
+  pub fn get_id(&self) -> String {
+    self
+      .attributes_wrapper
+      .get_attribute(LocalName::from("id"))
+      .map(|attribute| attribute.value.to_string())
+      .unwrap_or_default()
+  }
+
+  #[napi(setter)]
+  pub fn set_id(&mut self, id: String) {
+    self
+      .attributes_wrapper
+      .set_attribute(LocalName::from("id"), id.into());
   }
 }
 
@@ -102,6 +131,11 @@ impl AttributesWrapper {
       value,
     };
     self.push(new_attribute);
+  }
+
+  pub(crate) fn set_attribute(&mut self, name: LocalName, value: StrTendril) {
+    self.remove_attribute(name.clone());
+    self.add_attribute(name, value);
   }
 
   pub(crate) fn push(&mut self, attribute: Attribute) {
