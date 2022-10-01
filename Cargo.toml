@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 napi = { version = "2.7.0", default-features = false, features = ["napi4"] }
 napi-derive = "2.7.0"
 html5ever = "0.26.0"
+log = "0.4.17"
 node-html5ever-derive = { path = "./packages/macros" }
 
 [build-dependencies]

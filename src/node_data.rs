@@ -176,6 +176,6 @@ impl Drop for NodeData {
       NodeData::None => "None".to_string(),
     };
 
-    println!("Dropping Node {:?}", node_type);
+    log::debug!("Dropping Node {:?}", node_type);
   }
 }

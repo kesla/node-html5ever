@@ -70,6 +70,6 @@ impl Document {
 
 impl Drop for Document {
   fn drop(&mut self) {
-    println!("Dropping Document");
+    log::debug!("Dropping Document");
   }
 }

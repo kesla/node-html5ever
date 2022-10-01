@@ -5,6 +5,6 @@ pub struct Text {
 
 impl Drop for Text {
   fn drop(&mut self) {
-    println!("Dropping Text {:?}", self.content);
+    log::debug!("Dropping Text {:?}", self.content);
   }
 }

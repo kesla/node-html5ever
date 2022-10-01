@@ -97,7 +97,7 @@ impl Element {
 
 impl Drop for Element {
   fn drop(&mut self) {
-    println!("Dropping element <{}>", self.name.local);
+    log::debug!("Dropping element <{}>", self.name.local);
   }
 }
 
