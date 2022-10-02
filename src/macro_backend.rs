@@ -107,3 +107,20 @@ pub(crate) mod parent {
     }
   }
 }
+
+mod base {
+  use napi::{
+    bindgen_prelude::{Reference, WeakReference},
+    Env, Result,
+  };
+
+  pub(crate) fn upgrade_weak_reference<T>(
+    env: Env,
+    weak: &Option<WeakReference<T>>,
+  ) -> Result<Reference<T>> {
+    let weak: &WeakReference<T> = weak.as_ref().unwrap();
+    weak.upgrade(env).map(|r| r.unwrap())
+  }
+}
+
+pub(crate) use base::*;

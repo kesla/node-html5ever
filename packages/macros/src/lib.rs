@@ -174,8 +174,10 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
           }
 
           pub(crate) fn get_handle(&self) -> crate::Handle {
-            let weak_reference = self.weak_reference.as_ref().unwrap();
-            let reference = weak_reference.upgrade(self.env).unwrap().unwrap();
+            let reference = macro_backend::upgrade_weak_reference(
+              self.env,
+              &self.weak_reference
+            ).unwrap();
 
             self.lazy_weak_handle.get_or_init(reference)
           }
