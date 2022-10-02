@@ -63,16 +63,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
   };
   let children_impl = match features.children {
     true => quote!(
-      // TODO: cache this & perhaps return something nicer
-      // remove .unwrap
       #[napi(getter)]
-      pub fn get_children(&self) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
-        self
-          .list
-          .borrow()
-          .iter()
-          .filter_map(|node| node.into_element().ok().map(|r| r.clone(self.env).unwrap()))
-          .collect()
+      pub fn get_children(
+        &self,
+      ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
+        macro_backend::children::get_children(self.list.borrow())
       }
 
       #[napi]
@@ -206,49 +201,51 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
   };
 
   return quote! {
-      #[napi]
-      pub struct #name {
-        #parent_field
-        #children_field
-        pub(crate) env: napi::Env,
-        pub(crate) lazy_weak_handle: crate::LazyWeakHandle,
-        pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
-        pub(crate) id: usize,
+  use crate::macro_backend;
 
-        #(#fields)*
-      }
+        #[napi]
+        pub struct #name {
+          #parent_field
+          #children_field
+          pub(crate) env: napi::Env,
+          pub(crate) lazy_weak_handle: crate::LazyWeakHandle,
+          pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
+          pub(crate) id: usize,
 
-      #[napi]
-      #[automatically_derived]
-      impl #name {
-        pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) ->
-            napi::Result<napi::bindgen_prelude::Reference<Self>> {
-
-          let inner = Self {
-            #(#argument_fields)*
-            env,
-            id: crate::get_id(),
-            lazy_weak_handle: crate::LazyWeakHandle::default(),
-            #parent_init
-            #children_init
-            weak_reference: None,
-          };
-
-          let mut r = Self::into_reference(inner, env)?;
-          r.weak_reference = Some(r.clone(env)?.downgrade());
-          Ok(r)
+          #(#fields)*
         }
 
-        pub(crate) fn get_handle(&self) -> crate::Handle {
-          let weak_reference = self.weak_reference.as_ref().unwrap();
-          let reference = weak_reference.upgrade(self.env).unwrap().unwrap();
+        #[napi]
+        #[automatically_derived]
+        impl #name {
+          pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) ->
+              napi::Result<napi::bindgen_prelude::Reference<Self>> {
 
-          self.lazy_weak_handle.get_or_init(reference)
+            let inner = Self {
+              #(#argument_fields)*
+              env,
+              id: crate::get_id(),
+              lazy_weak_handle: crate::LazyWeakHandle::default(),
+              #parent_init
+              #children_init
+              weak_reference: None,
+            };
+
+            let mut r = Self::into_reference(inner, env)?;
+            r.weak_reference = Some(r.clone(env)?.downgrade());
+            Ok(r)
+          }
+
+          pub(crate) fn get_handle(&self) -> crate::Handle {
+            let weak_reference = self.weak_reference.as_ref().unwrap();
+            let reference = weak_reference.upgrade(self.env).unwrap().unwrap();
+
+            self.lazy_weak_handle.get_or_init(reference)
+          }
+
+          #parent_impl
+          #children_impl
         }
-
-        #parent_impl
-        #children_impl
-      }
-  }
+    }
   .into();
 }

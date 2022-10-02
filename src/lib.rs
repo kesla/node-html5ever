@@ -7,6 +7,7 @@ extern crate node_html5ever_derive;
 mod dom;
 mod id;
 mod lazy_weak_handle;
+mod macro_backend;
 mod node_data;
 mod nodes;
 mod quirks_mode;
