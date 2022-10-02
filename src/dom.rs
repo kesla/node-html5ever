@@ -41,7 +41,7 @@ impl Html5everDom {
   }
 
   #[napi]
-  pub fn serialize(&self) -> String {
+  #[must_use] pub fn serialize(&self) -> String {
     serialize(
       self.document_handle.clone(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
@@ -68,7 +68,7 @@ impl TreeSink for Html5everDom {
   }
 
   fn elem_name<'a>(&'a self, target: &'a Self::Handle) -> html5ever::ExpandedName<'a> {
-    let element: &Reference<Element> = target.into_element().unwrap();
+    let element: &Reference<Element> = target.as_element().unwrap();
     element.name.expanded()
   }
 

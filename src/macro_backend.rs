@@ -12,7 +12,7 @@ pub(crate) mod children {
     list
       .borrow()
       .iter()
-      .filter_map(|handle| handle.into_element().ok().map(|r| r.clone(r.env)))
+      .filter_map(|handle| handle.as_element().ok().map(|r| r.clone(r.env)))
       .collect()
   }
 
@@ -42,7 +42,7 @@ pub(crate) mod children {
     let mut q: VecDeque<Handle> = list.borrow().iter().cloned().collect();
 
     while let Some(handle) = q.pop_front() {
-      if let Ok(element) = handle.into_element() {
+      if let Ok(element) = handle.as_element() {
         if element.get_id() == id {
           return Ok(Some(element.clone(element.env)?));
         }
@@ -62,7 +62,7 @@ pub(crate) mod children {
     let mut elements = vec![];
 
     while let Some(handle) = q.pop() {
-      if let Ok(element) = handle.into_element() {
+      if let Ok(element) = handle.as_element() {
         if element.get_class_name() == class_name {
           elements.push(element.clone(element.env)?);
         }
@@ -151,7 +151,7 @@ mod base {
     weak: &Option<WeakReference<T>>,
   ) -> Result<Reference<T>> {
     let weak: &WeakReference<T> = weak.as_ref().unwrap();
-    weak.upgrade(env).map(|r| r.unwrap())
+    weak.upgrade(env).map(std::option::Option::unwrap)
   }
 }
 

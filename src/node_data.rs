@@ -7,6 +7,8 @@ use napi::{
 
 use crate::{Comment, DocType, Document, Element, Handle, Text};
 
+type ElmentOrDocument = Either<WeakReference<Element>, WeakReference<Document>>;
+
 pub enum NodeData {
   Comment(Reference<Comment>),
   DocType(Reference<DocType>),
@@ -84,10 +86,8 @@ impl NodeData {
     }
   }
 
-  pub(crate) fn get_parent(
-    &self,
-  ) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
-    let each = |value: &Either<WeakReference<Element>, WeakReference<Document>>| match value {
+  pub(crate) fn get_parent(&self) -> Option<ElmentOrDocument> {
+    let each = |value: &ElmentOrDocument| match value {
       napi::Either::A(element) => napi::Either::A(element.clone()),
       napi::Either::B(document) => napi::Either::B(document.clone()),
     };
@@ -100,9 +100,7 @@ impl NodeData {
     }
   }
 
-  pub(crate) fn get_parent_mut(
-    &self,
-  ) -> Option<RefMut<Option<Either<WeakReference<Element>, WeakReference<Document>>>>> {
+  pub(crate) fn get_parent_mut(&self) -> Option<RefMut<Option<ElmentOrDocument>>> {
     match self {
       NodeData::Element(r) => Some(r.parent.borrow_mut()),
       NodeData::Text(r) => Some(r.parent.borrow_mut()),
@@ -144,7 +142,7 @@ impl NodeData {
     }
   }
 
-  pub(crate) fn into_element(&self) -> Result<&Reference<Element>> {
+  pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
     match &self {
       NodeData::Element(r) => Ok(r),
       _ => Err(Error::new(
@@ -154,7 +152,7 @@ impl NodeData {
     }
   }
 
-  pub(crate) fn into_doc_type(&self) -> Result<&Reference<DocType>> {
+  pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocType>> {
     match &self {
       NodeData::DocType(r) => Ok(r),
       _ => Err(Error::new(

@@ -19,7 +19,7 @@ pub use dom::Html5everDom;
 pub(crate) use id::get_id;
 pub(crate) use lazy_weak_handle::LazyWeakHandle;
 pub(crate) use node_data::NodeData;
-pub(crate) use nodes::*;
+pub(crate) use nodes::{Comment, DocType, Document, Element, Text};
 pub(crate) use quirks_mode::QuirksMode;
 pub(crate) use serializer::serialize;
 

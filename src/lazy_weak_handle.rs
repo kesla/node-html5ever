@@ -16,13 +16,8 @@ fn new_weak_handle(maybe_handle: Option<Handle>) -> WeakHandle {
   }
 }
 
+#[derive(Default)]
 pub(crate) struct LazyWeakHandle(RefCell<WeakHandle>);
-
-impl Default for LazyWeakHandle {
-  fn default() -> Self {
-    Self(Default::default())
-  }
-}
 
 impl LazyWeakHandle {
   pub(crate) fn get_or_init<T: Into<NodeData>>(&self, to_node: T) -> Handle {

@@ -11,7 +11,7 @@ impl Document {
   #[napi(getter)]
   pub fn get_doc_type(&self) -> Result<Option<Reference<DocType>>> {
     if let Some(first) = self.list.borrow().get(0) {
-      if let Ok(doc_type) = first.into_doc_type() {
+      if let Ok(doc_type) = first.as_doc_type() {
         return Ok(Some(doc_type.clone(self.env)?));
       }
     }
@@ -27,9 +27,9 @@ impl Document {
       _ => list.get(0),
     }
     .unwrap();
-    let element = node.into_element()?;
+    let element = node.as_element()?;
 
-    return element.clone(self.env);
+    element.clone(self.env)
   }
 
   #[napi(getter)]
@@ -37,7 +37,7 @@ impl Document {
     let document_element = self.get_document_element()?;
 
     let list = document_element.list.borrow();
-    list.get(0).unwrap().into_element()?.clone(self.env)
+    list.get(0).unwrap().as_element()?.clone(self.env)
   }
 
   #[napi(getter)]
@@ -45,7 +45,7 @@ impl Document {
     let document_element = self.get_document_element()?;
 
     let list = document_element.list.borrow();
-    list.get(1).unwrap().into_element()?.clone(self.env)
+    list.get(1).unwrap().as_element()?.clone(self.env)
   }
 
   #[napi(getter)]
