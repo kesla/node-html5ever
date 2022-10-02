@@ -47,7 +47,7 @@ export class Element {
   get ownerDocument(): Document | null
   get children(): Array<Element>
   appendChild(child: Comment | DocType | Element | Text): void
-  removeElement(element: Element): void
+  removeElement(child: Element): void
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void

@@ -67,7 +67,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       pub fn get_children(
         &self,
       ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::children::get_children(self.list.borrow())
+        macro_backend::children::get_children(self.list.clone())
       }
 
       #[napi]
@@ -80,22 +80,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
           &crate::Text,
         >,
       ) {
-        let child_handle = match child {
-          napi::bindgen_prelude::Either4::A(r) => r.get_handle(),
-          napi::bindgen_prelude::Either4::B(r) => r.get_handle(),
-          napi::bindgen_prelude::Either4::C(r) => r.get_handle(),
-          napi::bindgen_prelude::Either4::D(r) => r.get_handle(),
-        };
-        let parent_handle = self.get_handle();
-        parent_handle.append_handle(child_handle);
+        macro_backend::children::append_child(self.get_handle(), child);
       }
 
       #[napi]
-      pub fn remove_element(&mut self, element: &crate::Element) {
-        let child: crate::Handle = element.get_handle();
-        let parent: crate::Handle = self.get_handle();
-
-        parent.remove_handle(child);
+      pub fn remove_element(&mut self, child: &crate::Element) {
+        macro_backend::children::remove_element(self.get_handle(), child);
       }
     ),
     false => quote!(),
@@ -120,18 +110,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
           Option<napi::bindgen_prelude::WeakReference<crate::Element>> {
-
-        let parent_node = self.parent.borrow();
-
-        match parent_node.as_ref() {
-          Some(element_or_document) => {
-            match (element_or_document) {
-              napi::Either::A(element) => Some(element.clone()),
-              napi::Either::B(_) => None,
-            }
-          },
-          None => None
-        }
+        macro_backend::parent::get_parent_element(&self.parent)
       }
 
       #[napi(getter)]
@@ -140,61 +119,19 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             napi::bindgen_prelude::WeakReference<crate::Element>,
             napi::bindgen_prelude::WeakReference<crate::Document>
           >> {
-
-            let maybe_reference = self.parent.borrow();
-
-        maybe_reference.as_ref().map(|value| match value {
-          napi::Either::A(element) => napi::Either::A(element.clone()),
-          napi::Either::B(document) => napi::Either::B(document.clone()),
-        })
+        macro_backend::parent::get_parent_node(&self.parent)
       }
 
       #[napi]
       pub fn remove(&mut self) -> napi::Result<()> {
-        let maybe_handle = self.get_parent_handle()?;
-
-        match maybe_handle {
-          Some(parent) => {
-            let child: crate::Handle = self.get_handle();
-
-            parent.remove_handle(child);
-          }
-          None => {}
-        }
-
-        Ok(())
+        macro_backend::parent::remove(self.env.clone(), &self.parent, &self.get_handle())
       }
-
-      pub(crate) fn get_parent_handle(&self) -> napi::Result<Option<crate::Handle>> {
-        let parent_node = self.parent.borrow();
-
-        let maybe_handle: Option<crate::Handle> = match parent_node.as_ref() {
-          Some(element_or_document) => match element_or_document {
-            napi::Either::A(weak_reference) => {
-              weak_reference.upgrade(self.env)?.map(|r| r.get_handle())
-            }
-            napi::Either::B(weak_reference) => {
-              weak_reference.upgrade(self.env)?.map(|r| r.get_handle())
-            }
-          },
-          None => None,
-        };
-        Ok(maybe_handle)
-      }
-
 
       #[napi(getter)]
       pub fn owner_document(
         &self,
       ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
-        match self.parent.borrow().as_ref() {
-          Some(napi::Either::A(r)) => match r.upgrade(self.env)? {
-            Some(element) => element.owner_document(),
-            None => Ok(None),
-          },
-          Some(napi::Either::B(document)) => Ok(Some(document.clone())),
-          None => Ok(None),
-        }
+        macro_backend::parent::owner_document(self.env.clone(), &self.parent)
       }
     },
     false => quote! {},
