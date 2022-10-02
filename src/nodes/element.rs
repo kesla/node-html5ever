@@ -2,7 +2,7 @@ use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
 
 use crate::serialize;
 
-#[create_node(parent, children)]
+#[create_node(has_children, is_child)]
 pub struct Element {
   pub(crate) attributes_wrapper: AttributesWrapper,
 

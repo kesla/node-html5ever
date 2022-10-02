@@ -5,8 +5,8 @@ use syn::{self, parse::Parser, parse_macro_input, DeriveInput};
 
 #[derive(Default)]
 struct Features {
-  children: bool,
-  parent: bool,
+  has_children: bool,
+  is_child: bool,
 }
 
 #[proc_macro_attribute]
@@ -18,8 +18,8 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     .into_iter()
   {
     match f.get_ident().unwrap().to_string().as_str() {
-      "children" => features.children = true,
-      "parent" => features.parent = true,
+      "has_children" => features.has_children = true,
+      "is_child" => features.is_child = true,
       _ => panic!("Unknown feature"),
     }
   }
@@ -51,15 +51,15 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
   let name = &ast.ident;
 
-  let children_field = match features.children {
+  let has_children_field = match features.has_children {
     true => quote!(pub(crate) list: std::rc::Rc<std::cell::RefCell<Vec<crate::Handle>>>,),
     false => quote!(),
   };
-  let children_init = match features.children {
+  let has_children_init = match features.has_children {
     true => quote!(list: std::rc::Rc::new(std::cell::RefCell::new(vec![])),),
     false => quote!(),
   };
-  let children_impl = match features.children {
+  let has_children_impl = match features.has_children {
     true => quote!(
       #[napi(getter)]
       pub fn get_children(
@@ -105,7 +105,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     false => quote!(),
   };
 
-  let parent_field = match features.parent {
+  let is_child_field = match features.is_child {
     true => quote!(
       pub(crate) parent:
         std::cell::RefCell<Option<napi::Either<
@@ -115,11 +115,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     ),
     false => quote!(),
   };
-  let parent_init = match features.parent {
+  let is_child_init = match features.is_child {
     true => quote!(parent: std::cell::RefCell::new(None),),
     false => quote!(),
   };
-  let parent_impl = match features.parent {
+  let is_child_impl = match features.is_child {
     true => quote! {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
@@ -156,8 +156,8 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
         #[napi]
         pub struct #name {
-          #parent_field
-          #children_field
+          #is_child_field
+          #has_children_field
           pub(crate) env: napi::Env,
           pub(crate) lazy_weak_handle: crate::LazyWeakHandle,
           pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
@@ -177,8 +177,8 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
               env,
               id: crate::get_id(),
               lazy_weak_handle: crate::LazyWeakHandle::default(),
-              #parent_init
-              #children_init
+              #is_child_init
+              #has_children_init
               weak_reference: None,
             };
 
@@ -196,8 +196,8 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             self.lazy_weak_handle.get_or_init(reference)
           }
 
-          #parent_impl
-          #children_impl
+          #is_child_impl
+          #has_children_impl
         }
     }
   .into();
