@@ -1,9 +1,12 @@
 pub(crate) mod children {
   use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-  use napi::{bindgen_prelude::Reference, Result};
+  use napi::{
+    bindgen_prelude::{Either4, Reference},
+    Result,
+  };
 
-  use crate::{Element, Handle};
+  use crate::{Comment, DocType, Element, Handle, Text};
 
   pub(crate) fn get_children(list: Rc<RefCell<Vec<Handle>>>) -> Result<Vec<Reference<Element>>> {
     list
@@ -15,24 +18,19 @@ pub(crate) mod children {
 
   pub(crate) fn append_child(
     parent_handle: Handle,
-    child: napi::bindgen_prelude::Either4<
-      &crate::Comment,
-      &crate::DocType,
-      &crate::Element,
-      &crate::Text,
-    >,
+    child: Either4<&Comment, &DocType, &Element, &Text>,
   ) {
     let child_handle = match child {
-      napi::bindgen_prelude::Either4::A(r) => r.get_handle(),
-      napi::bindgen_prelude::Either4::B(r) => r.get_handle(),
-      napi::bindgen_prelude::Either4::C(r) => r.get_handle(),
-      napi::bindgen_prelude::Either4::D(r) => r.get_handle(),
+      Either4::A(r) => r.get_handle(),
+      Either4::B(r) => r.get_handle(),
+      Either4::C(r) => r.get_handle(),
+      Either4::D(r) => r.get_handle(),
     };
     parent_handle.append_handle(child_handle);
   }
 
-  pub(crate) fn remove_element(parent_handle: Handle, element: &crate::Element) {
-    let child: crate::Handle = element.get_handle();
+  pub(crate) fn remove_element(parent_handle: Handle, element: &Element) {
+    let child: Handle = element.get_handle();
 
     parent_handle.remove_handle(child);
   }
@@ -89,24 +87,19 @@ pub(crate) mod parent {
     let parent_node = parent.borrow();
 
     match parent_node.as_ref() {
-      Some(napi::Either::A(element)) => Some(element.clone()),
+      Some(Either::A(element)) => Some(element.clone()),
       _ => None,
     }
   }
 
   pub(crate) fn get_parent_node(
     parent: &Parent,
-  ) -> Option<
-    napi::Either<
-      napi::bindgen_prelude::WeakReference<crate::Element>,
-      napi::bindgen_prelude::WeakReference<crate::Document>,
-    >,
-  > {
+  ) -> Option<Either<WeakReference<Element>, WeakReference<Document>>> {
     let maybe_reference = parent.borrow();
 
     maybe_reference.as_ref().map(|value| match value {
-      napi::Either::A(element) => napi::Either::A(element.clone()),
-      napi::Either::B(document) => napi::Either::B(document.clone()),
+      Either::A(element) => Either::A(element.clone()),
+      Either::B(document) => Either::B(document.clone()),
     })
   }
 
@@ -137,11 +130,11 @@ pub(crate) mod parent {
     parent: &Parent,
   ) -> Result<Option<WeakReference<Document>>> {
     match parent.borrow().as_ref() {
-      Some(napi::Either::A(r)) => match r.upgrade(env)? {
+      Some(Either::A(r)) => match r.upgrade(env)? {
         Some(element) => element.owner_document(),
         None => Ok(None),
       },
-      Some(napi::Either::B(document)) => Ok(Some(document.clone())),
+      Some(Either::B(document)) => Ok(Some(document.clone())),
       None => Ok(None),
     }
   }
