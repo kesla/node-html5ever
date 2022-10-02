@@ -6,7 +6,6 @@ use syn::{self, parse::Parser, parse_macro_input, DeriveInput};
 #[derive(Default)]
 struct Features {
   children: bool,
-  children_field: bool,
   parent: bool,
 }
 
@@ -20,7 +19,6 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
   {
     match f.get_ident().unwrap().to_string().as_str() {
       "children" => features.children = true,
-      "children_field" => features.children_field = true,
       "parent" => features.parent = true,
       _ => panic!("Unknown feature"),
     }
@@ -53,11 +51,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
   let name = &ast.ident;
 
-  let children_field = match features.children || features.children_field {
+  let children_field = match features.children {
     true => quote!(pub(crate) list: std::rc::Rc<std::cell::RefCell<Vec<crate::Handle>>>,),
     false => quote!(),
   };
-  let children_init = match features.children || features.children_field {
+  let children_init = match features.children {
     true => quote!(list: std::rc::Rc::new(std::cell::RefCell::new(vec![])),),
     false => quote!(),
   };
@@ -86,6 +84,22 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #[napi]
       pub fn remove_element(&mut self, child: &crate::Element) {
         macro_backend::children::remove_element(self.get_handle(), child);
+      }
+
+      #[napi]
+      pub fn get_element_by_id(
+        &self,
+        id: String,
+      ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
+        macro_backend::children::get_element_by_id(self.list.clone(), id)
+      }
+
+      #[napi]
+      pub fn get_elements_by_class_name(
+        &self,
+        class_name: String,
+      ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
+        macro_backend::children::get_elements_by_class_name(self.list.clone(), class_name)
       }
     ),
     false => quote!(),

@@ -3,7 +3,7 @@ use napi::{bindgen_prelude::Reference, Result};
 
 use crate::{DocType, Element, Text};
 
-#[create_node(children_field)]
+#[create_node(children)]
 pub struct Document {}
 
 #[napi]

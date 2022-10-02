@@ -32,6 +32,11 @@ export class DocType {
   get ownerDocument(): Document | null
 }
 export class Document {
+  get children(): Array<Element>
+  appendChild(child: Comment | DocType | Element | Text): void
+  removeElement(child: Element): void
+  getElementById(id: string): Element | null
+  getElementsByClassName(className: string): Array<Element>
   get docType(): DocType | null
   get documentElement(): Element
   get head(): Element
@@ -48,6 +53,8 @@ export class Element {
   get children(): Array<Element>
   appendChild(child: Comment | DocType | Element | Text): void
   removeElement(child: Element): void
+  getElementById(id: string): Element | null
+  getElementsByClassName(className: string): Array<Element>
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void

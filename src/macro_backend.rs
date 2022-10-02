@@ -1,5 +1,5 @@
 pub(crate) mod children {
-  use std::{cell::RefCell, rc::Rc};
+  use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
   use napi::{bindgen_prelude::Reference, Result};
 
@@ -35,6 +35,45 @@ pub(crate) mod children {
     let child: crate::Handle = element.get_handle();
 
     parent_handle.remove_handle(child);
+  }
+
+  pub(crate) fn get_element_by_id(
+    list: Rc<RefCell<Vec<Handle>>>,
+    id: String,
+  ) -> Result<Option<Reference<Element>>> {
+    let mut q: VecDeque<Handle> = list.borrow().iter().cloned().collect();
+
+    while let Some(handle) = q.pop_front() {
+      if let Ok(element) = handle.into_element() {
+        if element.get_id() == id {
+          return Ok(Some(element.clone(element.env)?));
+        }
+
+        q.extend(element.list.borrow().iter().cloned());
+      }
+    }
+
+    Ok(None)
+  }
+
+  pub(crate) fn get_elements_by_class_name(
+    list: Rc<RefCell<Vec<Handle>>>,
+    class_name: String,
+  ) -> Result<Vec<Reference<Element>>> {
+    let mut q: Vec<Handle> = list.borrow().iter().rev().cloned().collect();
+    let mut elements = vec![];
+
+    while let Some(handle) = q.pop() {
+      if let Ok(element) = handle.into_element() {
+        if element.get_class_name() == class_name {
+          elements.push(element.clone(element.env)?);
+        }
+
+        q.extend(element.list.borrow().iter().rev().cloned());
+      }
+    }
+
+    Ok(elements)
   }
 }
 

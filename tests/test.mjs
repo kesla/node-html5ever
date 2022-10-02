@@ -228,3 +228,25 @@ test("Element.id & Element.className", (t) => {
   t.strictSame(div.id, "foo");
   t.strictSame(div.className, "bar baz");
 });
+
+test("Element.getElementById + Element.getElementsByClassName", (t) => {
+  let { document } = new Html5EverDom(`
+    <div id="foo">
+      <div id="bar" class="baz">First</div>
+    </div>
+    <div class="baz">Second</div>
+  `);
+
+  let div = document.getElementById("foo");
+  t.strictSame(div?.id, "foo");
+
+  let bar = document.getElementById("bar");
+  t.strictSame(bar?.id, "bar");
+
+  let baz = document.getElementsByClassName("baz");
+  t.strictSame(baz.length, 2);
+  t.strictSame(baz[0].id, "bar");
+  t.strictSame(baz[0].className, "baz");
+  t.strictSame(baz[1].id, "");
+  t.strictSame(baz[0].className, "baz");
+});
