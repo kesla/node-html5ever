@@ -24,9 +24,6 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     }
   }
 
-  // .map(|path| path.get_ident().unwrap().to_string())
-  // .collect::<Vec<String>>();
-
   let ast: DeriveInput = parse_macro_input!(input as DeriveInput).into();
 
   let named_fields = &match ast.data {
