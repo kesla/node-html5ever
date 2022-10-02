@@ -120,17 +120,17 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     true => quote! {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
-          Option<napi::bindgen_prelude::WeakReference<crate::Element>> {
-        macro_backend::parent::get_parent_element(&self.parent)
+          napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
+        macro_backend::parent::get_parent_element(self.env.clone(), &self.parent)
       }
 
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
-          Option<napi::Either<
-            napi::bindgen_prelude::WeakReference<crate::Element>,
-            napi::bindgen_prelude::WeakReference<crate::Document>
-          >> {
-        macro_backend::parent::get_parent_node(&self.parent)
+          napi::Result<Option<napi::Either<
+            napi::bindgen_prelude::Reference<crate::Element>,
+            napi::bindgen_prelude::Reference<crate::Document>
+          >>> {
+        macro_backend::parent::get_parent_node(self.env.clone(), &self.parent)
       }
 
       #[napi]
@@ -143,6 +143,19 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
       ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
         macro_backend::parent::owner_document(self.env.clone(), &self.parent)
+      }
+
+      #[napi(getter)]
+      pub fn get_previous_sibling(&self) ->
+        napi::Result<Option<
+          napi::bindgen_prelude::Either4<
+            napi::bindgen_prelude::Reference<crate::Comment>,
+            napi::bindgen_prelude::Reference<crate::DocType>,
+            napi::bindgen_prelude::Reference<crate::Element>,
+            napi::bindgen_prelude::Reference<crate::Text>
+          >
+        >> {
+        macro_backend::parent::get_previous_sibling(self.env.clone(), &self.parent, &self.get_handle())
       }
     },
     false => quote! {},

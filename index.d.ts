@@ -21,6 +21,7 @@ export class Comment {
   get parentNode(): Element | Document | null
   remove(): void
   get ownerDocument(): Document | null
+  get previousSibling(): Comment | DocType | Element | Text | null
 }
 export class DocType {
   name: string
@@ -30,6 +31,7 @@ export class DocType {
   get parentNode(): Element | Document | null
   remove(): void
   get ownerDocument(): Document | null
+  get previousSibling(): Comment | DocType | Element | Text | null
 }
 export class Document {
   get children(): Array<Element>
@@ -50,6 +52,7 @@ export class Element {
   get parentNode(): Element | Document | null
   remove(): void
   get ownerDocument(): Document | null
+  get previousSibling(): Comment | DocType | Element | Text | null
   get children(): Array<Element>
   appendChild(child: Comment | DocType | Element | Text): void
   removeElement(child: Element): void
@@ -73,4 +76,5 @@ export class Text {
   get parentNode(): Element | Document | null
   remove(): void
   get ownerDocument(): Document | null
+  get previousSibling(): Comment | DocType | Element | Text | null
 }
