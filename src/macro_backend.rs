@@ -78,17 +78,13 @@ pub(crate) mod children {
 pub(crate) mod parent {
   use std::{cell::RefCell, rc::Rc};
 
-  use crate::{
-    node_data::NodeData,
-    nodes::{Comment, DocType, Text},
-    Document, Element, Handle,
-  };
+  use crate::{Comment, DocType, Document, Element, Handle, NodeData, ParentContext, Text};
   use napi::{
-    bindgen_prelude::{Either4, Reference, WeakReference},
+    bindgen_prelude::{Either4, Reference},
     Either, Env, Result,
   };
 
-  type Parent = RefCell<Option<Either<WeakReference<Element>, WeakReference<Document>>>>;
+  type Parent = RefCell<Option<ParentContext>>;
 
   pub(crate) fn get_parent_element(
     env: Env,
@@ -109,8 +105,16 @@ pub(crate) mod parent {
     let maybe_reference = parent.borrow();
 
     let r = match maybe_reference.as_ref() {
-      Some(Either::A(weak_reference)) => weak_reference.upgrade(env)?.map(Either::A),
-      Some(Either::B(weak_reference)) => weak_reference.upgrade(env)?.map(Either::B),
+      Some(parent_context) => match parent_context.node {
+        Either::A(ref element) => {
+          let element = element.upgrade(env)?;
+          element.map(Either::A)
+        }
+        Either::B(ref document) => {
+          let document = document.upgrade(env)?;
+          document.map(Either::B)
+        }
+      },
       None => None,
     };
 
@@ -138,7 +142,7 @@ pub(crate) mod parent {
     let parent_node = get_parent_node(env, parent)?;
 
     let children = get_child_nodes(parent_node);
-    let children = children.borrow();
+    let children: &Vec<Handle> = &children.borrow();
     let sibling: &NodeData = match find_next(children.iter().rev(), child) {
       Some(handle) => handle,
       None => return Ok(None),
@@ -216,16 +220,12 @@ pub(crate) mod parent {
     }
   }
 
-  pub(crate) fn owner_document(
-    env: Env,
-    parent: &Parent,
-  ) -> Result<Option<WeakReference<Document>>> {
-    match parent.borrow().as_ref() {
-      Some(Either::A(r)) => match r.upgrade(env)? {
-        Some(element) => element.owner_document(),
-        None => Ok(None),
-      },
-      Some(Either::B(document)) => Ok(Some(document.clone())),
+  pub(crate) fn owner_document(env: Env, parent: &Parent) -> Result<Option<Reference<Document>>> {
+    let parent_node = get_parent_node(env, parent)?;
+
+    match parent_node {
+      Some(Either::A(element)) => element.owner_document(),
+      Some(Either::B(document)) => Ok(Some(document)),
       None => Ok(None),
     }
   }

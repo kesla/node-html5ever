@@ -104,16 +104,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
   let is_child_field = match features.is_child {
     true => quote!(
-      pub(crate) parent:
-        std::cell::RefCell<Option<napi::Either<
-          napi::bindgen_prelude::WeakReference<crate::Element>,
-          napi::bindgen_prelude::WeakReference<crate::Document>
-        >>>,
+      pub(crate) parent_context: std::rc::Rc<std::cell::RefCell<Option<crate::ParentContext>>>,
     ),
     false => quote!(),
   };
   let is_child_init = match features.is_child {
-    true => quote!(parent: std::cell::RefCell::new(None),),
+    true => quote!(parent_context: std::rc::Rc::new(std::cell::RefCell::new(None)),),
     false => quote!(),
   };
   let is_child_impl = match features.is_child {
@@ -121,7 +117,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
           napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::parent::get_parent_element(self.env.clone(), &self.parent)
+        macro_backend::parent::get_parent_element(self.env.clone(), &self.parent_context)
       }
 
       #[napi(getter)]
@@ -130,19 +126,19 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             napi::bindgen_prelude::Reference<crate::Element>,
             napi::bindgen_prelude::Reference<crate::Document>
           >>> {
-        macro_backend::parent::get_parent_node(self.env.clone(), &self.parent)
+        macro_backend::parent::get_parent_node(self.env.clone(), &self.parent_context)
       }
 
       #[napi]
       pub fn remove(&mut self) -> napi::Result<()> {
-        macro_backend::parent::remove(self.env.clone(), &self.parent, &self.get_handle())
+        macro_backend::parent::remove(self.env.clone(), &self.parent_context, &self.get_handle())
       }
 
       #[napi(getter)]
       pub fn owner_document(
         &self,
-      ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
-        macro_backend::parent::owner_document(self.env.clone(), &self.parent)
+      ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Document>>> {
+        macro_backend::parent::owner_document(self.env.clone(), &self.parent_context)
       }
 
       #[napi(getter)]
@@ -155,7 +151,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             napi::bindgen_prelude::Reference<crate::Text>
           >
         >> {
-        macro_backend::parent::get_previous_sibling(self.env.clone(), &self.parent, &self.get_handle())
+        macro_backend::parent::get_previous_sibling(self.env.clone(), &self.parent_context, &self.get_handle())
       }
 
       #[napi(getter)]
@@ -168,7 +164,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             napi::bindgen_prelude::Reference<crate::Text>
           >
         >> {
-        macro_backend::parent::get_next_sibling(self.env.clone(), &self.parent, &self.get_handle())
+        macro_backend::parent::get_next_sibling(self.env.clone(), &self.parent_context, &self.get_handle())
       }
     },
     false => quote! {},

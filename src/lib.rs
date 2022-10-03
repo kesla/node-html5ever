@@ -10,6 +10,7 @@ mod lazy_weak_handle;
 mod macro_backend;
 mod node_data;
 mod nodes;
+mod parent_context;
 mod quirks_mode;
 mod serializer;
 
@@ -20,6 +21,7 @@ pub(crate) use id::get_id;
 pub(crate) use lazy_weak_handle::LazyWeakHandle;
 pub(crate) use node_data::NodeData;
 pub(crate) use nodes::{Comment, DocType, Document, Element, Text};
+pub(crate) use parent_context::ParentContext;
 pub(crate) use quirks_mode::QuirksMode;
 pub(crate) use serializer::serialize;
 

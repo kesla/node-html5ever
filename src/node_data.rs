@@ -5,7 +5,7 @@ use napi::{
   Either, Error, Result, Status,
 };
 
-use crate::{Comment, DocType, Document, Element, Handle, Text};
+use crate::{parent_context::ParentContext, Comment, DocType, Document, Element, Handle, Text};
 
 type ElmentOrDocument = Either<WeakReference<Element>, WeakReference<Document>>;
 
@@ -86,26 +86,12 @@ impl NodeData {
     }
   }
 
-  pub(crate) fn get_parent(&self) -> Option<ElmentOrDocument> {
-    let each = |value: &ElmentOrDocument| match value {
-      napi::Either::A(element) => napi::Either::A(element.clone()),
-      napi::Either::B(document) => napi::Either::B(document.clone()),
-    };
+  pub(crate) fn get_parent_mut(&self) -> Option<RefMut<Option<ParentContext>>> {
     match self {
-      NodeData::Comment(r) => r.parent.borrow().as_ref().map(each),
-      NodeData::DocType(r) => r.parent.borrow().as_ref().map(each),
-      NodeData::Element(r) => r.parent.borrow().as_ref().map(each),
-      NodeData::Text(r) => r.parent.borrow().as_ref().map(each),
-      _ => None,
-    }
-  }
-
-  pub(crate) fn get_parent_mut(&self) -> Option<RefMut<Option<ElmentOrDocument>>> {
-    match self {
-      NodeData::Element(r) => Some(r.parent.borrow_mut()),
-      NodeData::Text(r) => Some(r.parent.borrow_mut()),
-      NodeData::Comment(r) => Some(r.parent.borrow_mut()),
-      NodeData::DocType(r) => Some(r.parent.borrow_mut()),
+      NodeData::Element(r) => Some(r.parent_context.borrow_mut()),
+      NodeData::Text(r) => Some(r.parent_context.borrow_mut()),
+      NodeData::Comment(r) => Some(r.parent_context.borrow_mut()),
+      NodeData::DocType(r) => Some(r.parent_context.borrow_mut()),
       _ => None,
     }
   }
@@ -117,13 +103,17 @@ impl NodeData {
     children.push(child.clone());
 
     let parent_reference = match &self {
-      NodeData::Element(r) => Some(Either::A(r.downgrade())),
-      NodeData::Document(r) => Some(Either::B(r.downgrade())),
+      NodeData::Element(r) => Either::A(r.downgrade()),
+      NodeData::Document(r) => Either::B(r.downgrade()),
       _ => panic!("Wrong type"),
     };
+    let parent_context = Some(ParentContext {
+      node: parent_reference,
+      index: children.len() - 1,
+    });
     let child_node_data: &NodeData = &child;
     let mut parent = child_node_data.get_parent_mut().unwrap();
-    *parent = parent_reference;
+    *parent = parent_context;
   }
 
   pub(crate) fn remove_handle(&self, child: Handle) {
@@ -133,10 +123,10 @@ impl NodeData {
 
     let child_node_data: &NodeData = &child;
     match child_node_data {
-      NodeData::Comment(comment) => *comment.parent.borrow_mut() = None,
-      NodeData::DocType(doc_type) => *doc_type.parent.borrow_mut() = None,
-      NodeData::Element(element) => *element.parent.borrow_mut() = None,
-      NodeData::Text(text) => *text.parent.borrow_mut() = None,
+      NodeData::Comment(comment) => *comment.parent_context.borrow_mut() = None,
+      NodeData::DocType(doc_type) => *doc_type.parent_context.borrow_mut() = None,
+      NodeData::Element(element) => *element.parent_context.borrow_mut() = None,
+      NodeData::Text(text) => *text.parent_context.borrow_mut() = None,
       NodeData::Document(_document) => panic!("Document cannot be a child of another node"),
       NodeData::None => panic!("Cannot remove None"),
     }
