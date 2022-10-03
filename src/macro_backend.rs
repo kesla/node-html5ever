@@ -76,11 +76,11 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use std::{cell::RefCell, rc::Rc};
+  use std::cell::RefCell;
 
-  use crate::{Comment, DocType, Document, Element, Handle, NodeData, ParentContext, Text};
+  use crate::{Comment, DocType, Document, Element, Handle, ParentContext, Text};
   use napi::{
-    bindgen_prelude::{Either4, Reference},
+    bindgen_prelude::{Either4, Reference, WeakReference},
     Either, Env, Result,
   };
 
@@ -135,80 +135,50 @@ pub(crate) mod parent {
   pub(crate) fn get_previous_sibling(
     env: Env,
     parent: &Parent,
-    child: &Handle,
   ) -> Result<
-    Option<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>,
+    Option<
+      Either4<
+        WeakReference<Comment>,
+        WeakReference<DocType>,
+        WeakReference<Element>,
+        WeakReference<Text>,
+      >,
+    >,
   > {
-    let parent_node = get_parent_node(env, parent)?;
-
-    let children = get_child_nodes(parent_node);
-    let children: &Vec<Handle> = &children.borrow();
-    let sibling: &NodeData = match find_next(children.iter().rev(), child) {
-      Some(handle) => handle,
+    let borrow = parent.borrow();
+    let ctx: &ParentContext = match borrow.as_ref() {
+      Some(ctx) => ctx,
       None => return Ok(None),
     };
 
-    let previous = node_data_to_either(sibling, env)?;
-
-    Ok(Some(previous))
+    match ctx.previous_iterator(env)?.next() {
+      Some(s) => Ok(Some(s)),
+      None => Ok(None),
+    }
   }
 
   pub(crate) fn get_next_sibling(
     env: Env,
     parent: &Parent,
-    child: &Handle,
   ) -> Result<
-    Option<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>,
+    Option<
+      Either4<
+        WeakReference<Comment>,
+        WeakReference<DocType>,
+        WeakReference<Element>,
+        WeakReference<Text>,
+      >,
+    >,
   > {
-    let parent_node = get_parent_node(env, parent)?;
-
-    let children = get_child_nodes(parent_node);
-    let children = children.borrow();
-    let sibling: &NodeData = match find_next(children.iter(), child) {
-      Some(handle) => handle,
+    let borrow = parent.borrow();
+    let ctx: &ParentContext = match borrow.as_ref() {
+      Some(ctx) => ctx,
       None => return Ok(None),
     };
 
-    let previous = node_data_to_either(sibling, env)?;
-
-    Ok(Some(previous))
-  }
-
-  fn find_next<'a, I: Iterator<Item = &'a Handle>>(
-    mut iter: I,
-    child: &'a Handle,
-  ) -> Option<&Handle> {
-    while let Some(handle) = iter.next() {
-      if handle == child {
-        return iter.next();
-      }
-    }
-
-    None
-  }
-
-  fn node_data_to_either(
-    data: &NodeData,
-    env: Env,
-  ) -> Result<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>
-  {
-    let either = match data {
-      NodeData::Comment(r) => Either4::A(r.clone(env)?),
-      NodeData::DocType(r) => Either4::B(r.clone(env)?),
-      NodeData::Element(r) => Either4::C(r.clone(env)?),
-      NodeData::Text(r) => Either4::D(r.clone(env)?),
-      _ => unreachable!(),
-    };
-    Ok(either)
-  }
-
-  fn get_child_nodes(
-    parent_node: Option<Either<Reference<Element>, Reference<Document>>>,
-  ) -> Rc<RefCell<Vec<Handle>>> {
-    match parent_node {
-      Some(Either::A(element)) => element.list.clone(),
-      Some(Either::B(document)) => document.list.clone(),
-      None => unreachable!(),
+    match ctx.next_iterator(env)?.next() {
+      Some(s) => Ok(Some(s)),
+      None => Ok(None),
     }
   }
 

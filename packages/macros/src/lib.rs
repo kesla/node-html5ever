@@ -145,26 +145,26 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       pub fn get_previous_sibling(&self) ->
         napi::Result<Option<
           napi::bindgen_prelude::Either4<
-            napi::bindgen_prelude::Reference<crate::Comment>,
-            napi::bindgen_prelude::Reference<crate::DocType>,
-            napi::bindgen_prelude::Reference<crate::Element>,
-            napi::bindgen_prelude::Reference<crate::Text>
+            napi::bindgen_prelude::WeakReference<crate::Comment>,
+            napi::bindgen_prelude::WeakReference<crate::DocType>,
+            napi::bindgen_prelude::WeakReference<crate::Element>,
+            napi::bindgen_prelude::WeakReference<crate::Text>
           >
         >> {
-        macro_backend::parent::get_previous_sibling(self.env.clone(), &self.parent_context, &self.get_handle())
+        macro_backend::parent::get_previous_sibling(self.env.clone(), &self.parent_context)
       }
 
       #[napi(getter)]
       pub fn get_next_sibling(&self) ->
         napi::Result<Option<
           napi::bindgen_prelude::Either4<
-            napi::bindgen_prelude::Reference<crate::Comment>,
-            napi::bindgen_prelude::Reference<crate::DocType>,
-            napi::bindgen_prelude::Reference<crate::Element>,
-            napi::bindgen_prelude::Reference<crate::Text>
+            napi::bindgen_prelude::WeakReference<crate::Comment>,
+            napi::bindgen_prelude::WeakReference<crate::DocType>,
+            napi::bindgen_prelude::WeakReference<crate::Element>,
+            napi::bindgen_prelude::WeakReference<crate::Text>
           >
         >> {
-        macro_backend::parent::get_next_sibling(self.env.clone(), &self.parent_context, &self.get_handle())
+        macro_backend::parent::get_next_sibling(self.env.clone(), &self.parent_context)
       }
     },
     false => quote! {},

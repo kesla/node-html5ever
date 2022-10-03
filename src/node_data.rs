@@ -1,13 +1,8 @@
 use std::cell::{Ref, RefMut};
 
-use napi::{
-  bindgen_prelude::{Reference, WeakReference},
-  Either, Error, Result, Status,
-};
+use napi::{bindgen_prelude::Reference, Either, Error, Result, Status};
 
 use crate::{parent_context::ParentContext, Comment, DocType, Document, Element, Handle, Text};
-
-type ElmentOrDocument = Either<WeakReference<Element>, WeakReference<Document>>;
 
 pub enum NodeData {
   Comment(Reference<Comment>),
@@ -107,10 +102,7 @@ impl NodeData {
       NodeData::Document(r) => Either::B(r.downgrade()),
       _ => panic!("Wrong type"),
     };
-    let parent_context = Some(ParentContext {
-      node: parent_reference,
-      index: children.len() - 1,
-    });
+    let parent_context = Some(ParentContext::new(parent_reference, children.len() - 1));
     let child_node_data: &NodeData = &child;
     let mut parent = child_node_data.get_parent_mut().unwrap();
     *parent = parent_context;
