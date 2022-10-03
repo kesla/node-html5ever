@@ -76,10 +76,7 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use std::{
-    cell::{Ref, RefCell},
-    rc::Rc,
-  };
+  use std::{cell::RefCell, rc::Rc};
 
   use crate::{
     node_data::NodeData,
@@ -139,21 +136,15 @@ pub(crate) mod parent {
     Option<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>,
   > {
     let parent_node = get_parent_node(env, parent)?;
+
     let children = get_child_nodes(parent_node);
-
-    let index = get_position(children.borrow(), child);
-
-    if index == 0 {
-      return Ok(None);
-    }
-
     let children = children.borrow();
-    let previous_sibling: &NodeData = match children.get(index - 1) {
+    let sibling: &NodeData = match find_next(children.iter().rev(), child) {
       Some(handle) => handle,
       None => return Ok(None),
     };
 
-    let previous = node_data_to_either(previous_sibling, env)?;
+    let previous = node_data_to_either(sibling, env)?;
 
     Ok(Some(previous))
   }
@@ -166,19 +157,30 @@ pub(crate) mod parent {
     Option<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>,
   > {
     let parent_node = get_parent_node(env, parent)?;
+
     let children = get_child_nodes(parent_node);
-
-    let index = get_position(children.borrow(), child);
-
     let children = children.borrow();
-    let previous_sibling: &NodeData = match children.get(index + 1) {
+    let sibling: &NodeData = match find_next(children.iter(), child) {
       Some(handle) => handle,
       None => return Ok(None),
     };
 
-    let previous = node_data_to_either(previous_sibling, env)?;
+    let previous = node_data_to_either(sibling, env)?;
 
     Ok(Some(previous))
+  }
+
+  fn find_next<'a, I: Iterator<Item = &'a Handle>>(
+    mut iter: I,
+    child: &'a Handle,
+  ) -> Option<&Handle> {
+    while let Some(handle) = iter.next() {
+      if handle == child {
+        return iter.next();
+      }
+    }
+
+    None
   }
 
   fn node_data_to_either(
@@ -194,13 +196,6 @@ pub(crate) mod parent {
       _ => unreachable!(),
     };
     Ok(either)
-  }
-
-  fn get_position(children: Ref<Vec<Handle>>, child: &Handle) -> usize {
-    match children.iter().position(|r| r == child) {
-      Some(index) => index,
-      None => unreachable!(),
-    }
   }
 
   fn get_child_nodes(
