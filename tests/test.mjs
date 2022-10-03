@@ -250,3 +250,20 @@ test("Element.getElementById + Element.getElementsByClassName", (t) => {
   t.strictSame(baz[1].id, "");
   t.strictSame(baz[0].className, "baz");
 });
+
+test("previousSibling & nextSibling", (t) => {
+  let { document } = new Html5EverDom(
+    `
+    <div id="foo"></div><div id="bar"></div>
+    `.trim()
+  );
+
+  let foo = document.getElementById("foo");
+  let bar = document.getElementById("bar");
+
+  t.strictSame(foo?.previousSibling, null);
+  // t.strictSame(foo?.nextSibling, bar);
+
+  t.strictSame(bar?.previousSibling, foo);
+  // t.strictSame(bar?.nextSibling, null);
+});

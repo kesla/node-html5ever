@@ -157,6 +157,19 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         >> {
         macro_backend::parent::get_previous_sibling(self.env.clone(), &self.parent, &self.get_handle())
       }
+
+      #[napi(getter)]
+      pub fn get_next_sibling(&self) ->
+        napi::Result<Option<
+          napi::bindgen_prelude::Either4<
+            napi::bindgen_prelude::Reference<crate::Comment>,
+            napi::bindgen_prelude::Reference<crate::DocType>,
+            napi::bindgen_prelude::Reference<crate::Element>,
+            napi::bindgen_prelude::Reference<crate::Text>
+          >
+        >> {
+        macro_backend::parent::get_next_sibling(self.env.clone(), &self.parent, &self.get_handle())
+      }
     },
     false => quote! {},
   };

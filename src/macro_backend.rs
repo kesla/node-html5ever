@@ -76,7 +76,10 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use std::cell::RefCell;
+  use std::{
+    cell::{Ref, RefCell},
+    rc::Rc,
+  };
 
   use crate::{
     node_data::NodeData,
@@ -136,16 +139,9 @@ pub(crate) mod parent {
     Option<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>,
   > {
     let parent_node = get_parent_node(env, parent)?;
-    let children = match parent_node {
-      Some(Either::A(element)) => element.list.clone(),
-      Some(Either::B(document)) => document.list.clone(),
-      None => unreachable!(),
-    };
+    let children = get_child_nodes(parent_node);
 
-    let index = match children.borrow().iter().position(|r| r == child) {
-      Some(index) => index,
-      None => unreachable!(),
-    };
+    let index = get_position(children.borrow(), child);
 
     if index == 0 {
       return Ok(None);
@@ -154,33 +150,67 @@ pub(crate) mod parent {
     let children = children.borrow();
     let previous_sibling: &NodeData = match children.get(index - 1) {
       Some(handle) => handle,
-      None => unreachable!(),
+      None => return Ok(None),
     };
 
-    let previous = match previous_sibling {
+    let previous = node_data_to_either(previous_sibling, env)?;
+
+    Ok(Some(previous))
+  }
+
+  pub(crate) fn get_next_sibling(
+    env: Env,
+    parent: &Parent,
+    child: &Handle,
+  ) -> Result<
+    Option<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>,
+  > {
+    let parent_node = get_parent_node(env, parent)?;
+    let children = get_child_nodes(parent_node);
+
+    let index = get_position(children.borrow(), child);
+
+    let children = children.borrow();
+    let previous_sibling: &NodeData = match children.get(index + 1) {
+      Some(handle) => handle,
+      None => return Ok(None),
+    };
+
+    let previous = node_data_to_either(previous_sibling, env)?;
+
+    Ok(Some(previous))
+  }
+
+  fn node_data_to_either(
+    data: &NodeData,
+    env: Env,
+  ) -> Result<Either4<Reference<Comment>, Reference<DocType>, Reference<Element>, Reference<Text>>>
+  {
+    let either = match data {
       NodeData::Comment(r) => Either4::A(r.clone(env)?),
       NodeData::DocType(r) => Either4::B(r.clone(env)?),
       NodeData::Element(r) => Either4::C(r.clone(env)?),
       NodeData::Text(r) => Either4::D(r.clone(env)?),
       _ => unreachable!(),
     };
+    Ok(either)
+  }
 
-    Ok(Some(previous))
+  fn get_position(children: Ref<Vec<Handle>>, child: &Handle) -> usize {
+    match children.iter().position(|r| r == child) {
+      Some(index) => index,
+      None => unreachable!(),
+    }
+  }
 
-    // let prevmatch maybe_parent_handle.map(|handle| handle.get_children()) {
-    //   Some(Ok(children)) => {
-    //     let mut iter = children.iter().rev();
-
-    //     while let Some(handle) = iter.next() {
-    //       if handle == child {
-    //         return Ok(iter.next().cloned());
-    //       }
-    //     }
-
-    //     Ok(None)
-    //   }
-    // }
-    // todo!()
+  fn get_child_nodes(
+    parent_node: Option<Either<Reference<Element>, Reference<Document>>>,
+  ) -> Rc<RefCell<Vec<Handle>>> {
+    match parent_node {
+      Some(Either::A(element)) => element.list.clone(),
+      Some(Either::B(document)) => document.list.clone(),
+      None => unreachable!(),
+    }
   }
 
   fn get_parent_handle(parent: &Parent, env: Env) -> Result<Option<Handle>> {
