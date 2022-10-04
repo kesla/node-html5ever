@@ -213,6 +213,50 @@ test("basic appendChild & removeElement", (t) => {
   t.matchSnapshot(body.outerHtml, "body.outerHtml after remove");
 });
 
+test("appendChild() remove element from previous parent", (t) => {
+  let { document } = new Html5EverDom(`
+    <div id="parent1">
+      <div id="child1"></div>
+      <div id="child2"></div>
+    </div>
+    <div id="parent2"></div>
+  `);
+  let parent1 = document.getElementById("parent1");
+  let parent2 = document.getElementById("parent2");
+  let child1 = document.getElementById("child1");
+  let child2 = document.getElementById("child2");
+  if (!parent1 || !parent2 || !child1 || !child2) {
+    throw new Error("missing element");
+  }
+
+  parent2.appendChild(child1);
+
+  t.strictSame(
+    child1.parentElement,
+    parent2,
+    "child1.parentElement is parent2"
+  );
+  t.strictSame(parent1.children.length, 1, "parent1.children.length is 1");
+  t.strictSame(parent2.children.length, 1, "parent2.children.length is 1");
+  t.strictSame(
+    child1.nextElementSibling,
+    null,
+    "child1.nextElementSibling is null"
+  );
+  t.strictSame(child1.previousElementSibling, null),
+    "child1.previousElementSibling is null";
+  t.strictSame(
+    child2.nextElementSibling,
+    null,
+    "child2.nextElementSibling is null"
+  );
+  t.strictSame(
+    child2.previousElementSibling,
+    null,
+    "child2.previousElementSibling is null"
+  );
+});
+
 test("Element.id & Element.className", (t) => {
   let { document } = new Html5EverDom("");
 
