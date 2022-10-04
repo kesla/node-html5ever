@@ -1,6 +1,8 @@
 use crate::{serialize, Comment, DocType, Document, Element, Handle, QuirksMode, Text};
+use html5ever::driver::parse_fragment_for_element;
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
+use html5ever::{local_name, namespace_url, ns, parse_document, Namespace, ParseOpts, QualName};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
 #[napi]
@@ -21,6 +23,76 @@ pub struct Html5everDom {
 impl Html5everDom {
   #[napi(constructor)]
   pub fn new(env: Env, html: String) -> Result<Html5everDom> {
+    let dom: Html5everDom = parse_document(Self::create_sink(env)?, ParseOpts::default()).one(html);
+
+    Ok(dom)
+  }
+
+  #[napi]
+  pub fn create_document_fragment(env: Env, html: String) -> Result<Reference<Element>> {
+    // let dom =
+    // DocumentFragment::new_reference(env)
+    let sink = Self::create_sink(env)?;
+    let element = Element::new_reference(
+      env,
+      vec![].into(),
+      QualName::new(None, ns!(html), "#document-fragment".into()),
+    )?;
+    let mut handle = element.get_handle();
+
+    let fragment: Html5everDom = parse_fragment_for_element(
+      sink,
+      ParseOpts::default(),
+      handle.clone(),
+      None, // QualName::new(None, ns!(html), local_name!("span")),
+            // Vec::new(),
+    )
+    .one(html);
+
+    let s = serialize(
+      fragment.document_handle.clone(),
+      html5ever::serialize::TraversalScope::ChildrenOnly(None),
+    );
+
+    println!("s: {}", s);
+    println!(
+      "foo {:?}",
+      fragment
+        .document_reference
+        .get_document_element()?
+        .outer_html()
+    );
+    println!("element: {:?}", element.outer_html());
+
+    let get_document_element = fragment.document_reference.get_document_element()?;
+    let list = get_document_element.list.borrow_mut();
+    // list.iter().for_each(|node| {
+    //   // println!("node: {:?}", node);
+    //   let var_name: &Handle = node.clone();
+    //   handle.append_handle(var_name);
+    // });
+
+    while let Some(node) = list.get(0) {
+      // let var_name: &Handle = node.clone();
+      handle.clone().append_handle(&node);
+    }
+
+    println!("s: {}", s);
+    println!(
+      "foo {:?}",
+      fragment
+        .document_reference
+        .get_document_element()?
+        .outer_html()
+    );
+    println!("element: {:?}", element.outer_html());
+
+    todo!()
+    // Ok(fragment.document_reference.)
+    // fragment.
+  }
+
+  fn create_sink(env: Env) -> Result<Html5everDom> {
     let document_reference = Document::new_reference(env)?;
     let sink = Html5everDom {
       document_handle: document_reference.get_handle(),
@@ -30,9 +102,7 @@ impl Html5everDom {
       env,
     };
 
-    let dom: Html5everDom = html5ever::parse_document(sink, Default::default()).one(html);
-
-    Ok(dom)
+    Ok(sink)
   }
 
   #[napi(getter)]
@@ -41,7 +111,8 @@ impl Html5everDom {
   }
 
   #[napi]
-  #[must_use] pub fn serialize(&self) -> String {
+  #[must_use]
+  pub fn serialize(&self) -> String {
     serialize(
       self.document_handle.clone(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
@@ -79,6 +150,7 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
+    println!("create_element: {:?}", name);
     let r = Element::new_reference(self.env, attrs.into(), name).unwrap();
     r.get_handle()
   }
@@ -105,7 +177,7 @@ impl TreeSink for Html5everDom {
       }
     };
 
-    parent.append_handle(handle);
+    parent.append_handle(&handle);
   }
 
   fn append_based_on_parent_node(

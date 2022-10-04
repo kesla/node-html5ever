@@ -26,7 +26,7 @@ pub(crate) mod children {
       Either4::C(r) => r.get_handle(),
       Either4::D(r) => r.get_handle(),
     };
-    parent_handle.append_handle(child_handle);
+    parent_handle.append_handle(&child_handle);
   }
 
   pub(crate) fn remove_element(parent_handle: Handle, element: &Element) {

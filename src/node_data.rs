@@ -91,7 +91,7 @@ impl NodeData {
     }
   }
 
-  pub(crate) fn append_handle(&self, child: Handle) {
+  pub(crate) fn append_handle(&self, child: &Handle) {
     // TODO: concatenate already existing text node
 
     let mut children = self.get_children_mut().unwrap();
