@@ -9,7 +9,7 @@ use napi::{
   Env,
 };
 
-use crate::{node_data::NodeData, Comment, DocType, Document, Element, Handle, Text};
+use crate::{node::NodeData, Comment, DocType, Document, Element, Handle, Text};
 
 pub(crate) struct ParentContext {
   pub(crate) node: Either<WeakReference<Element>, WeakReference<Document>>,
