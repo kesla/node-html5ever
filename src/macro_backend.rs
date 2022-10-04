@@ -157,6 +157,23 @@ pub(crate) mod parent {
     }
   }
 
+  pub(crate) fn get_previous_element_sibling(
+    env: Env,
+    parent: &Parent,
+  ) -> Result<Option<WeakReference<Element>>> {
+    let borrow = parent.borrow();
+    let ctx: &ParentContext = match borrow.as_ref() {
+      Some(ctx) => ctx,
+      None => return Ok(None),
+    };
+
+    let val = ctx.previous_iterator(env)?.find_map(|s| match s {
+      Either4::C(r) => Some(r),
+      _ => None,
+    });
+    Ok(val)
+  }
+
   pub(crate) fn get_next_sibling(
     env: Env,
     parent: &Parent,
@@ -180,6 +197,23 @@ pub(crate) mod parent {
       Some(s) => Ok(Some(s)),
       None => Ok(None),
     }
+  }
+
+  pub(crate) fn get_next_element_sibling(
+    env: Env,
+    parent: &Parent,
+  ) -> Result<Option<WeakReference<Element>>> {
+    let borrow = parent.borrow();
+    let ctx: &ParentContext = match borrow.as_ref() {
+      Some(ctx) => ctx,
+      None => return Ok(None),
+    };
+
+    let val = ctx.next_iterator(env)?.find_map(|s| match s {
+      Either4::C(r) => Some(r),
+      _ => None,
+    });
+    Ok(val)
   }
 
   fn get_parent_handle(parent: &Parent, env: Env) -> Result<Option<Handle>> {

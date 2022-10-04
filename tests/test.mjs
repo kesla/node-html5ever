@@ -262,8 +262,12 @@ test("previousSibling & nextSibling", (t) => {
   let bar = document.getElementById("bar");
 
   t.strictSame(foo?.previousSibling, null);
-  // t.strictSame(foo?.nextSibling, bar);
+  t.strictSame(foo?.previousElementSibling, null);
+  t.strictSame(foo?.nextSibling, bar);
+  t.strictSame(foo?.nextElementSibling, bar);
 
   t.strictSame(bar?.previousSibling, foo);
-  // t.strictSame(bar?.nextSibling, null);
+  t.strictSame(bar?.previousElementSibling, foo);
+  t.strictSame(bar?.nextSibling, null);
+  t.strictSame(bar?.nextElementSibling, null);
 });

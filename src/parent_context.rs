@@ -103,7 +103,7 @@ impl Iterator for NextIterator {
     if self.index == last {
       None
     } else {
-      self.index -= 1;
+      self.index += 1;
 
       let data: &NodeData = borrow[self.index].borrow();
       match data {

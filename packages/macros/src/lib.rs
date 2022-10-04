@@ -155,6 +155,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi(getter)]
+      pub fn get_previous_element_sibling(&self) ->
+        napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
+        macro_backend::parent::get_previous_element_sibling(self.env.clone(), &self.parent_context)
+      }
+
+      #[napi(getter)]
       pub fn get_next_sibling(&self) ->
         napi::Result<Option<
           napi::bindgen_prelude::Either4<
@@ -165,6 +171,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
           >
         >> {
         macro_backend::parent::get_next_sibling(self.env.clone(), &self.parent_context)
+      }
+
+      #[napi(getter)]
+      pub fn get_next_element_sibling(&self) ->
+        napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
+        macro_backend::parent::get_next_element_sibling(self.env.clone(), &self.parent_context)
       }
     },
     false => quote! {},
