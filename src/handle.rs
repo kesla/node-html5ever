@@ -16,17 +16,20 @@ mod node_reference;
 mod parent_context;
 mod weak;
 
-pub(crate) use node_reference::NodeReference;
-pub(crate) use parent_context::ParentContext;
-pub(crate) use weak::WeakHandle;
+pub(crate) use self::{
+  node_reference::NodeReference, parent_context::ParentContext, weak::WeakHandle,
+};
 
-use self::iterators::{NextIterator, PreviousIterator};
+use self::{
+  child_node_list::ChildNodeList,
+  iterators::{NextIterator, PreviousIterator},
+};
 
 struct HandleInner {
   env: Env,
   id: usize,
-  node: node_reference::NodeReference,
-  list: RefCell<child_node_list::ChildNodeList>,
+  node: NodeReference,
+  list: RefCell<ChildNodeList>,
   parent_context: RefCell<Option<ParentContext>>,
 }
 
@@ -34,7 +37,7 @@ struct HandleInner {
 pub struct Handle(Rc<HandleInner>);
 
 impl Handle {
-  pub(crate) fn new(env: Env, node: node_reference::NodeReference) -> Self {
+  pub(crate) fn new(env: Env, node: NodeReference) -> Self {
     Handle(Rc::new(HandleInner {
       env,
       id: get_id(),
@@ -44,11 +47,11 @@ impl Handle {
     }))
   }
 
-  pub(crate) fn get_children(&self) -> Ref<child_node_list::ChildNodeList> {
+  pub(crate) fn get_children(&self) -> Ref<ChildNodeList> {
     self.0.list.borrow()
   }
 
-  pub(crate) fn get_children_mut(&self) -> RefMut<child_node_list::ChildNodeList> {
+  pub(crate) fn get_children_mut(&self) -> RefMut<ChildNodeList> {
     self.0.list.borrow_mut()
   }
 
@@ -91,13 +94,13 @@ impl Handle {
     }
   }
 
-  pub(crate) fn get_node_reference(&self) -> &node_reference::NodeReference {
+  pub(crate) fn get_node_reference(&self) -> &NodeReference {
     &self.0.node
   }
 
   pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
     match self.get_node_reference() {
-      node_reference::NodeReference::Element(r) => Ok(r),
+      NodeReference::Element(r) => Ok(r),
       _ => Err(Error::new(
         Status::InvalidArg,
         "Node is not an Element".to_string(),
@@ -107,7 +110,7 @@ impl Handle {
 
   pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocType>> {
     match self.get_node_reference() {
-      node_reference::NodeReference::DocType(r) => Ok(r),
+      NodeReference::DocType(r) => Ok(r),
       _ => Err(Error::new(
         Status::InvalidArg,
         "Node is not a DocType".to_string(),
@@ -125,8 +128,8 @@ impl Handle {
     children.append_handle(child.clone());
 
     let parent_reference = match &self.get_node_reference() {
-      node_reference::NodeReference::Document(r) => Either::A(r.downgrade()),
-      node_reference::NodeReference::Element(r) => Either::B(r.downgrade()),
+      NodeReference::Document(r) => Either::A(r.downgrade()),
+      NodeReference::Element(r) => Either::B(r.downgrade()),
       _ => panic!("Wrong type"),
     };
     let parent_context = Some(ParentContext::new(
