@@ -11,6 +11,7 @@ use napi::{
 use crate::{get_id, Comment, DocType, Document, Element, Text};
 
 mod child_node_list;
+mod iterators;
 mod node_reference;
 mod parent_context;
 mod weak;
@@ -18,6 +19,8 @@ mod weak;
 pub(crate) use node_reference::NodeReference;
 pub(crate) use parent_context::ParentContext;
 pub(crate) use weak::WeakHandle;
+
+use self::iterators::{NextIterator, PreviousIterator};
 
 struct HandleInner {
   env: Env,
@@ -126,7 +129,11 @@ impl Handle {
       node_reference::NodeReference::Element(r) => Either::B(r.downgrade()),
       _ => panic!("Wrong type"),
     };
-    let parent_context = Some(ParentContext::new(parent_reference, children.len() - 1));
+    let parent_context = Some(ParentContext::new(
+      self.0.env,
+      parent_reference,
+      children.len() - 1,
+    ));
     let mut parent = child.get_parent_mut();
     *parent = parent_context;
     Ok(())
@@ -153,6 +160,53 @@ impl Handle {
 
   pub(crate) fn downgrade(&self) -> WeakHandle {
     self.into()
+  }
+
+  pub(crate) fn previous_iterator(&self) -> Result<PreviousIterator> {
+    let maybe_parent_context = self.get_parent();
+    let maybe_parent_context = maybe_parent_context.as_ref();
+
+    match maybe_parent_context {
+      Some(ctx) => Ok(PreviousIterator::Data {
+        handle: ctx.try_into()?,
+        index: ctx.index,
+      }),
+      None => Ok(PreviousIterator::None),
+    }
+  }
+
+  pub(crate) fn next_iterator(&self) -> Result<NextIterator> {
+    let maybe_parent_context = self.get_parent();
+    let maybe_parent_context = maybe_parent_context.as_ref();
+
+    match maybe_parent_context {
+      Some(ctx) => Ok(NextIterator::Data {
+        handle: ctx.try_into()?,
+        index: ctx.index,
+      }),
+      None => Ok(NextIterator::None),
+    }
+  }
+}
+
+impl TryFrom<&ParentContext> for Handle {
+  type Error = Error;
+
+  fn try_from(parent_context: &ParentContext) -> Result<Self> {
+    match &parent_context.node {
+      Either::A(document) => {
+        let document = document
+          .upgrade(parent_context.env)?
+          .expect("Document is gone");
+        Ok(document.get_handle())
+      }
+      Either::B(element) => {
+        let element = element
+          .upgrade(parent_context.env)?
+          .expect("Element is gone");
+        Ok(element.get_handle())
+      }
+    }
   }
 }
 

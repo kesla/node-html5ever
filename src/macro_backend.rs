@@ -97,7 +97,6 @@ pub(crate) mod parent {
   }
 
   pub(crate) fn get_previous_sibling(
-    env: Env,
     handle: Handle,
   ) -> Result<
     Option<
@@ -109,37 +108,19 @@ pub(crate) mod parent {
       >,
     >,
   > {
-    let parent = handle.get_parent();
-    let ctx: &ParentContext = match parent.as_ref() {
-      Some(ctx) => ctx,
-      None => return Ok(None),
-    };
-
-    match ctx.previous_iterator(env)?.next() {
-      Some(s) => Ok(Some(s)),
-      None => Ok(None),
-    }
+    Ok(handle.previous_iterator()?.next())
   }
 
   pub(crate) fn get_previous_element_sibling(
-    env: Env,
     handle: Handle,
   ) -> Result<Option<WeakReference<Element>>> {
-    let parent = handle.get_parent();
-    let ctx: &ParentContext = match parent.as_ref() {
-      Some(ctx) => ctx,
-      None => return Ok(None),
-    };
-
-    let val = ctx.previous_iterator(env)?.find_map(|s| match s {
+    Ok(handle.previous_iterator()?.find_map(|s| match s {
       Either4::C(r) => Some(r),
       _ => None,
-    });
-    Ok(val)
+    }))
   }
 
   pub(crate) fn get_next_sibling(
-    env: Env,
     handle: Handle,
   ) -> Result<
     Option<
@@ -151,33 +132,14 @@ pub(crate) mod parent {
       >,
     >,
   > {
-    let parent = handle.get_parent();
-    let ctx: &ParentContext = match parent.as_ref() {
-      Some(ctx) => ctx,
-      None => return Ok(None),
-    };
-
-    match ctx.next_iterator(env)?.next() {
-      Some(s) => Ok(Some(s)),
-      None => Ok(None),
-    }
+    Ok(handle.next_iterator()?.next())
   }
 
-  pub(crate) fn get_next_element_sibling(
-    env: Env,
-    handle: Handle,
-  ) -> Result<Option<WeakReference<Element>>> {
-    let parent = handle.get_parent();
-    let ctx: &ParentContext = match parent.as_ref() {
-      Some(ctx) => ctx,
-      None => return Ok(None),
-    };
-
-    let val = ctx.next_iterator(env)?.find_map(|s| match s {
+  pub(crate) fn get_next_element_sibling(handle: Handle) -> Result<Option<WeakReference<Element>>> {
+    Ok(handle.next_iterator()?.find_map(|s| match s {
       Either4::C(r) => Some(r),
       _ => None,
-    });
-    Ok(val)
+    }))
   }
 }
 

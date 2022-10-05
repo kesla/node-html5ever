@@ -38,9 +38,8 @@ impl ChildNodeList {
     }
   }
 
-  pub(crate) fn append_handle(&mut self, handle: Handle) {
-    self.0.push(handle);
-    self.sync_parent_context();
+  pub(crate) fn append_handle(&mut self, child: Handle) {
+    self.0.push(child);
   }
 }
 
