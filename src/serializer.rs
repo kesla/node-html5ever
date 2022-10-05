@@ -5,7 +5,7 @@ use html5ever::{
   QualName,
 };
 
-use crate::{Handle, NodeData};
+use crate::{Handle, NodeReference};
 
 struct SerializableHandle(Handle);
 
@@ -29,25 +29,25 @@ impl html5ever::serialize::Serialize for SerializableHandle {
         ops.push_back(SerializeOp::Open(self.0.clone()))
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-        if let Some(children) = self.0.get_children() {
-          ops.extend(
-            children
-              .iter()
-              .map(|child| SerializeOp::Open(child.clone())),
-          );
-        }
+        let children = self.0.get_children();
+        ops.extend(
+          children
+            .iter()
+            .map(|child| SerializeOp::Open(child.clone())),
+        );
       }
     };
 
     while let Some(op) = ops.pop_front() {
       match op {
         SerializeOp::Open(handle) => {
-          let node_data: &NodeData = &handle;
+          let node_data: &NodeReference = handle.get_node_reference();
           match node_data {
-            NodeData::Comment(comment) => serializer.write_comment(&comment.content)?,
-            NodeData::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
-            NodeData::Element(element) => {
-              let list = element.list.borrow();
+            NodeReference::Comment(comment) => serializer.write_comment(&comment.content)?,
+            NodeReference::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+            NodeReference::Element(element) => {
+              let handle = element.get_handle();
+              let list = handle.get_children();
               serializer.start_elem(
                 // TODO: Is this actually copying the data? Need to figure that out
                 element.name.clone(),
@@ -63,9 +63,8 @@ impl html5ever::serialize::Serialize for SerializableHandle {
                 ops.push_front(SerializeOp::Open(child.clone()));
               }
             }
-            NodeData::Document(_) => panic!("Can't serialize Document node itself"),
-            NodeData::Text(text) => serializer.write_text(&text.content)?,
-            NodeData::None => panic!("Can't serialize None node"),
+            NodeReference::Document(_) => panic!("Can't serialize Document node itself"),
+            NodeReference::Text(text) => serializer.write_text(&text.content)?,
           }
         }
         SerializeOp::Close(name) => serializer.end_elem(name)?,

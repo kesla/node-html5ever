@@ -41,7 +41,8 @@ impl Html5everDom {
   }
 
   #[napi]
-  #[must_use] pub fn serialize(&self) -> String {
+  #[must_use]
+  pub fn serialize(&self) -> String {
     serialize(
       self.document_handle.clone(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),

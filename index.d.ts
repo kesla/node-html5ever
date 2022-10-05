@@ -18,7 +18,7 @@ export class Html5EverDom {
 }
 export class Comment {
   get parentElement(): Element | null
-  get parentNode(): Element | Document | null
+  get parentNode(): Document | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null
@@ -31,7 +31,7 @@ export class DocType {
   publicId: string
   systemId: string
   get parentElement(): Element | null
-  get parentNode(): Element | Document | null
+  get parentNode(): Document | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null
@@ -55,7 +55,7 @@ export class Document {
 }
 export class Element {
   get parentElement(): Element | null
-  get parentNode(): Element | Document | null
+  get parentNode(): Document | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null
@@ -82,7 +82,7 @@ export class Element {
 }
 export class Text {
   get parentElement(): Element | null
-  get parentNode(): Element | Document | null
+  get parentNode(): Document | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null
