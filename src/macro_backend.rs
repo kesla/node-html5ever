@@ -1,53 +1,38 @@
 pub(crate) mod children {
-  use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-  use napi::{
-    bindgen_prelude::{Either4, Reference},
-    Result,
-  };
+  use napi::{bindgen_prelude::Reference, Result};
 
-  use crate::{Comment, DocType, Element, Handle, Text};
+  use crate::{Element, Handle};
 
-  pub(crate) fn get_children(list: Rc<RefCell<Vec<Handle>>>) -> Result<Vec<Reference<Element>>> {
-    list
-      .borrow()
+  pub(crate) fn get_children(handle: Handle) -> Result<Vec<Reference<Element>>> {
+    handle
+      .get_children()
       .iter()
       .filter_map(|handle| handle.as_element().ok().map(|r| r.clone(r.env)))
       .collect()
   }
 
-  pub(crate) fn append_child(
-    parent_handle: Handle,
-    child: Either4<&Comment, &DocType, &Element, &Text>,
-  ) {
-    let child_handle = match child {
-      Either4::A(r) => r.get_handle(),
-      Either4::B(r) => r.get_handle(),
-      Either4::C(r) => r.get_handle(),
-      Either4::D(r) => r.get_handle(),
-    };
-    parent_handle.append_handle(&child_handle);
+  pub(crate) fn append_child(parent_handle: Handle, child_handle: Handle) {
+    parent_handle.append_handle(child_handle);
   }
 
-  pub(crate) fn remove_element(parent_handle: Handle, element: &Element) {
-    let child: Handle = element.get_handle();
-
-    parent_handle.remove_handle(child);
+  pub(crate) fn remove_element(parent_handle: Handle, child_handle: Handle) {
+    parent_handle.remove_handle(child_handle);
   }
 
   pub(crate) fn get_element_by_id(
-    list: Rc<RefCell<Vec<Handle>>>,
+    handle: Handle,
     id: String,
   ) -> Result<Option<Reference<Element>>> {
-    let mut q: VecDeque<Handle> = list.borrow().iter().cloned().collect();
+    let mut q: Vec<Handle> = handle.get_children().iter().rev().cloned().collect();
 
-    while let Some(handle) = q.pop_front() {
+    while let Some(handle) = q.pop() {
       if let Ok(element) = handle.as_element() {
         if element.get_id() == id {
           return Ok(Some(element.clone(element.env)?));
         }
 
-        q.extend(element.list.borrow().iter().cloned());
+        q.extend(handle.get_children().iter().rev().cloned());
       }
     }
 
@@ -55,10 +40,10 @@ pub(crate) mod children {
   }
 
   pub(crate) fn get_elements_by_class_name(
-    list: Rc<RefCell<Vec<Handle>>>,
+    handle: Handle,
     class_name: String,
   ) -> Result<Vec<Reference<Element>>> {
-    let mut q: Vec<Handle> = list.borrow().iter().rev().cloned().collect();
+    let mut q: Vec<Handle> = handle.get_children().iter().rev().cloned().collect();
     let mut elements = vec![];
 
     while let Some(handle) = q.pop() {
@@ -67,7 +52,7 @@ pub(crate) mod children {
           elements.push(element.clone(element.env)?);
         }
 
-        q.extend(element.list.borrow().iter().rev().cloned());
+        q.extend(handle.get_children().iter().rev().cloned());
       }
     }
 
@@ -76,53 +61,29 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use std::cell::RefCell;
-
   use crate::{Comment, DocType, Document, Element, Handle, ParentContext, Text};
   use napi::{
     bindgen_prelude::{Either4, Reference, WeakReference},
     Either, Env, Result,
   };
 
-  type Parent = RefCell<Option<ParentContext>>;
-
-  pub(crate) fn get_parent_element(
-    env: Env,
-    parent: &Parent,
-  ) -> Result<Option<Reference<Element>>> {
-    let parent_node = get_parent_node(env, parent);
+  pub(crate) fn get_parent_element(handle: Handle) -> Result<Option<Reference<Element>>> {
+    let parent_node = handle.get_parent_node();
 
     match parent_node {
-      Ok(Some(Either::A(element))) => Ok(Some(element)),
+      Ok(Some(Either::B(element))) => Ok(Some(element)),
       _ => Ok(None),
     }
   }
 
   pub(crate) fn get_parent_node(
-    env: Env,
-    parent: &Parent,
-  ) -> Result<Option<Either<Reference<Element>, Reference<Document>>>> {
-    let maybe_reference = parent.borrow();
-
-    let r = match maybe_reference.as_ref() {
-      Some(parent_context) => match parent_context.node {
-        Either::A(ref element) => {
-          let element = element.upgrade(env)?;
-          element.map(Either::A)
-        }
-        Either::B(ref document) => {
-          let document = document.upgrade(env)?;
-          document.map(Either::B)
-        }
-      },
-      None => None,
-    };
-
-    Ok(r)
+    handle: Handle,
+  ) -> Result<Option<Either<Reference<Document>, Reference<Element>>>> {
+    handle.get_parent_node()
   }
 
-  pub(crate) fn remove(env: Env, parent: &Parent, child: &Handle) -> Result<()> {
-    let maybe_handle = get_parent_handle(parent, env)?;
+  pub(crate) fn remove(child: Handle) -> Result<()> {
+    let maybe_handle = child.get_parent_handle()?;
 
     match maybe_handle {
       Some(parent) => parent.remove_handle(child.clone()),
@@ -132,9 +93,19 @@ pub(crate) mod parent {
     Ok(())
   }
 
+  pub(crate) fn owner_document(handle: Handle) -> Result<Option<Reference<Document>>> {
+    let maybe_parent = handle.get_parent_node()?;
+
+    match maybe_parent {
+      Some(Either::A(document)) => Ok(Some(document)),
+      Some(Either::B(element)) => element.owner_document(),
+      None => Ok(None),
+    }
+  }
+
   pub(crate) fn get_previous_sibling(
     env: Env,
-    parent: &Parent,
+    handle: Handle,
   ) -> Result<
     Option<
       Either4<
@@ -145,8 +116,8 @@ pub(crate) mod parent {
       >,
     >,
   > {
-    let borrow = parent.borrow();
-    let ctx: &ParentContext = match borrow.as_ref() {
+    let parent = handle.get_parent();
+    let ctx: &ParentContext = match parent.as_ref() {
       Some(ctx) => ctx,
       None => return Ok(None),
     };
@@ -159,10 +130,10 @@ pub(crate) mod parent {
 
   pub(crate) fn get_previous_element_sibling(
     env: Env,
-    parent: &Parent,
+    handle: Handle,
   ) -> Result<Option<WeakReference<Element>>> {
-    let borrow = parent.borrow();
-    let ctx: &ParentContext = match borrow.as_ref() {
+    let parent = handle.get_parent();
+    let ctx: &ParentContext = match parent.as_ref() {
       Some(ctx) => ctx,
       None => return Ok(None),
     };
@@ -176,7 +147,7 @@ pub(crate) mod parent {
 
   pub(crate) fn get_next_sibling(
     env: Env,
-    parent: &Parent,
+    handle: Handle,
   ) -> Result<
     Option<
       Either4<
@@ -187,8 +158,8 @@ pub(crate) mod parent {
       >,
     >,
   > {
-    let borrow = parent.borrow();
-    let ctx: &ParentContext = match borrow.as_ref() {
+    let parent = handle.get_parent();
+    let ctx: &ParentContext = match parent.as_ref() {
       Some(ctx) => ctx,
       None => return Ok(None),
     };
@@ -201,10 +172,10 @@ pub(crate) mod parent {
 
   pub(crate) fn get_next_element_sibling(
     env: Env,
-    parent: &Parent,
+    handle: Handle,
   ) -> Result<Option<WeakReference<Element>>> {
-    let borrow = parent.borrow();
-    let ctx: &ParentContext = match borrow.as_ref() {
+    let parent = handle.get_parent();
+    let ctx: &ParentContext = match parent.as_ref() {
       Some(ctx) => ctx,
       None => return Ok(None),
     };
@@ -214,24 +185,6 @@ pub(crate) mod parent {
       _ => None,
     });
     Ok(val)
-  }
-
-  fn get_parent_handle(parent: &Parent, env: Env) -> Result<Option<Handle>> {
-    match get_parent_node(env, parent)? {
-      Some(Either::A(element)) => Ok(Some(element.get_handle())),
-      Some(Either::B(document)) => Ok(Some(document.get_handle())),
-      None => Ok(None),
-    }
-  }
-
-  pub(crate) fn owner_document(env: Env, parent: &Parent) -> Result<Option<Reference<Document>>> {
-    let parent_node = get_parent_node(env, parent)?;
-
-    match parent_node {
-      Some(Either::A(element)) => element.owner_document(),
-      Some(Either::B(document)) => Ok(Some(document)),
-      None => Ok(None),
-    }
   }
 }
 

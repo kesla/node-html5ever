@@ -10,7 +10,7 @@ pub struct Document {}
 impl Document {
   #[napi(getter)]
   pub fn get_doc_type(&self) -> Result<Option<Reference<DocType>>> {
-    if let Some(first) = self.list.borrow().get(0) {
+    if let Some(first) = self.get_handle().get_children().get(0) {
       if let Ok(doc_type) = first.as_doc_type() {
         return Ok(Some(doc_type.clone(self.env)?));
       }
@@ -21,7 +21,8 @@ impl Document {
 
   #[napi(getter)]
   pub fn get_document_element(&self) -> Result<Reference<Element>> {
-    let list = self.list.borrow();
+    let handle = self.get_handle();
+    let list = handle.get_children();
     let node = match list.len() {
       2 => list.get(1),
       _ => list.get(0),
@@ -36,7 +37,8 @@ impl Document {
   pub fn get_head(&mut self) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
-    let list = document_element.list.borrow();
+    let handle = document_element.get_handle();
+    let list = handle.get_children();
     list.get(0).unwrap().as_element()?.clone(self.env)
   }
 
@@ -44,7 +46,8 @@ impl Document {
   pub fn get_body(&mut self) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
-    let list = document_element.list.borrow();
+    let handle = document_element.get_handle();
+    let list = handle.get_children();
     list.get(1).unwrap().as_element()?.clone(self.env)
   }
 

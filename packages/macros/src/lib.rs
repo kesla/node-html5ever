@@ -48,21 +48,13 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
   let name = &ast.ident;
 
-  let has_children_field = match features.has_children {
-    true => quote!(pub(crate) list: std::rc::Rc<std::cell::RefCell<Vec<crate::Handle>>>,),
-    false => quote!(),
-  };
-  let has_children_init = match features.has_children {
-    true => quote!(list: std::rc::Rc::new(std::cell::RefCell::new(vec![])),),
-    false => quote!(),
-  };
   let has_children_impl = match features.has_children {
     true => quote!(
       #[napi(getter)]
       pub fn get_children(
         &self,
       ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::children::get_children(self.list.clone())
+        macro_backend::children::get_children(self.get_handle())
       }
 
       #[napi]
@@ -75,12 +67,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
           &crate::Text,
         >,
       ) {
-        macro_backend::children::append_child(self.get_handle(), child);
+        macro_backend::children::append_child(self.get_handle(), child.into());
       }
 
       #[napi]
-      pub fn remove_element(&mut self, child: &crate::Element) {
-        macro_backend::children::remove_element(self.get_handle(), child);
+      pub fn remove_element(&self, child: &crate::Element) {
+        macro_backend::children::remove_element(self.get_handle(), child.into());
       }
 
       #[napi]
@@ -88,7 +80,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         id: String,
       ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::children::get_element_by_id(self.list.clone(), id)
+        macro_backend::children::get_element_by_id(self.get_handle(), id)
       }
 
       #[napi]
@@ -96,49 +88,39 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         class_name: String,
       ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::children::get_elements_by_class_name(self.list.clone(), class_name)
+        macro_backend::children::get_elements_by_class_name(self.get_handle(), class_name)
       }
     ),
     false => quote!(),
   };
 
-  let is_child_field = match features.is_child {
-    true => quote!(
-      pub(crate) parent_context: std::rc::Rc<std::cell::RefCell<Option<crate::ParentContext>>>,
-    ),
-    false => quote!(),
-  };
-  let is_child_init = match features.is_child {
-    true => quote!(parent_context: std::rc::Rc::new(std::cell::RefCell::new(None)),),
-    false => quote!(),
-  };
   let is_child_impl = match features.is_child {
     true => quote! {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
           napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::parent::get_parent_element(self.env.clone(), &self.parent_context)
+        macro_backend::parent::get_parent_element(self.get_handle())
       }
 
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
           napi::Result<Option<napi::Either<
+            napi::bindgen_prelude::Reference<crate::Document>,
             napi::bindgen_prelude::Reference<crate::Element>,
-            napi::bindgen_prelude::Reference<crate::Document>
           >>> {
-        macro_backend::parent::get_parent_node(self.env.clone(), &self.parent_context)
+        macro_backend::parent::get_parent_node(self.get_handle())
       }
 
       #[napi]
-      pub fn remove(&mut self) -> napi::Result<()> {
-        macro_backend::parent::remove(self.env.clone(), &self.parent_context, &self.get_handle())
+      pub fn remove(&self) -> napi::Result<()> {
+        macro_backend::parent::remove(self.get_handle())
       }
 
       #[napi(getter)]
       pub fn owner_document(
         &self,
       ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Document>>> {
-        macro_backend::parent::owner_document(self.env.clone(), &self.parent_context)
+        macro_backend::parent::owner_document(self.get_handle())
       }
 
       #[napi(getter)]
@@ -151,13 +133,13 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             napi::bindgen_prelude::WeakReference<crate::Text>
           >
         >> {
-        macro_backend::parent::get_previous_sibling(self.env.clone(), &self.parent_context)
+        macro_backend::parent::get_previous_sibling(self.env.clone(), self.get_handle())
       }
 
       #[napi(getter)]
       pub fn get_previous_element_sibling(&self) ->
         napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
-        macro_backend::parent::get_previous_element_sibling(self.env.clone(), &self.parent_context)
+        macro_backend::parent::get_previous_element_sibling(self.env.clone(), self.get_handle())
       }
 
       #[napi(getter)]
@@ -170,66 +152,74 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
             napi::bindgen_prelude::WeakReference<crate::Text>
           >
         >> {
-        macro_backend::parent::get_next_sibling(self.env.clone(), &self.parent_context)
+        macro_backend::parent::get_next_sibling(self.env.clone(), self.get_handle())
       }
 
       #[napi(getter)]
       pub fn get_next_element_sibling(&self) ->
         napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
-        macro_backend::parent::get_next_element_sibling(self.env.clone(), &self.parent_context)
+        macro_backend::parent::get_next_element_sibling(self.env.clone(), self.get_handle())
       }
     },
     false => quote! {},
   };
 
   return quote! {
-  use crate::macro_backend;
+    use crate::macro_backend;
 
-        #[napi]
-        pub struct #name {
-          #is_child_field
-          #has_children_field
-          pub(crate) env: napi::Env,
-          pub(crate) lazy_weak_handle: crate::LazyWeakHandle,
-          pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
-          pub(crate) id: usize,
+    #[napi]
+    pub struct #name {
+      pub(crate) env: napi::Env,
+      pub(crate) lazy_weak_handle: crate::LazyWeakHandle,
+      pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
+      pub(crate) id: usize,
 
-          #(#fields)*
-        }
-
-        #[napi]
-        #[automatically_derived]
-        impl #name {
-          pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) ->
-              napi::Result<napi::bindgen_prelude::Reference<Self>> {
-
-            let inner = Self {
-              #(#argument_fields)*
-              env,
-              id: crate::get_id(),
-              lazy_weak_handle: crate::LazyWeakHandle::default(),
-              #is_child_init
-              #has_children_init
-              weak_reference: None,
-            };
-
-            let mut r = Self::into_reference(inner, env)?;
-            r.weak_reference = Some(r.clone(env)?.downgrade());
-            Ok(r)
-          }
-
-          pub(crate) fn get_handle(&self) -> crate::Handle {
-            let reference = macro_backend::upgrade_weak_reference(
-              self.env,
-              &self.weak_reference
-            ).unwrap();
-
-            self.lazy_weak_handle.get_or_init(reference)
-          }
-
-          #is_child_impl
-          #has_children_impl
-        }
+      #(#fields)*
     }
+
+    #[napi]
+    #[automatically_derived]
+    impl #name {
+      pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) ->
+          napi::Result<napi::bindgen_prelude::Reference<Self>> {
+
+        let inner = Self {
+          #(#argument_fields)*
+          env,
+          id: crate::get_id(),
+          lazy_weak_handle: crate::LazyWeakHandle::new(env),
+          weak_reference: None,
+        };
+
+        let mut r = Self::into_reference(inner, env)?;
+        r.weak_reference = Some(r.clone(env)?.downgrade());
+        Ok(r)
+      }
+
+      pub(crate) fn get_handle(&self) -> crate::Handle {
+        let reference = macro_backend::upgrade_weak_reference(
+          self.env,
+          &self.weak_reference
+        ).unwrap();
+
+        self.lazy_weak_handle.get_or_init(reference)
+      }
+
+      #is_child_impl
+      #has_children_impl
+    }
+
+    impl From<#name> for crate::Handle {
+      fn from(value: #name) -> Self {
+        value.get_handle()
+      }
+    }
+
+    impl From<&#name> for crate::Handle {
+      fn from(value: &#name) -> Self {
+        value.get_handle()
+      }
+    }
+  }
   .into();
 }

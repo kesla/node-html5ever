@@ -1,26 +1,17 @@
-use std::{
-  cell::RefCell,
-  rc::{Rc, Weak},
-};
+use std::cell::RefCell;
 
-use crate::{Handle, NodeData, WeakHandle};
+use napi::Env;
 
-fn new_handle(node: NodeData) -> Handle {
-  Rc::new(node)
-}
+use crate::{Handle, NodeReference, WeakHandle};
 
-fn new_weak_handle(maybe_handle: Option<Handle>) -> WeakHandle {
-  match maybe_handle {
-    Some(handle) => Rc::downgrade(&handle),
-    None => Weak::new(),
-  }
-}
-
-#[derive(Default)]
-pub(crate) struct LazyWeakHandle(RefCell<WeakHandle>);
+pub(crate) struct LazyWeakHandle(RefCell<WeakHandle>, Env);
 
 impl LazyWeakHandle {
-  pub(crate) fn get_or_init<T: Into<NodeData>>(&self, to_node: T) -> Handle {
+  pub(crate) fn new(env: Env) -> Self {
+    Self(Default::default(), env)
+  }
+
+  pub(crate) fn get_or_init<T: Into<NodeReference>>(&self, to_node: T) -> Handle {
     let mut weak_handle = self.0.borrow_mut();
 
     let maybe_handle = weak_handle.upgrade();
@@ -28,9 +19,9 @@ impl LazyWeakHandle {
     match maybe_handle {
       Some(handle) => handle,
       None => {
-        let node: NodeData = to_node.into();
-        let handle = new_handle(node);
-        *weak_handle = new_weak_handle(Some(handle.clone()));
+        let node: NodeReference = to_node.into();
+        let handle = Handle::new(self.1, node);
+        *weak_handle = handle.downgrade();
         handle
       }
     }
