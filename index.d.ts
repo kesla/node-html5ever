@@ -13,7 +13,6 @@ export class Html5EverDom {
   quirksMode: QuirksMode
   errors: Array<string>
   constructor(html: string)
-  static createDocumentFragment(html: string): Element
   get document(): Document
   serialize(): string
 }
