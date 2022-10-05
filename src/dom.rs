@@ -112,7 +112,7 @@ impl TreeSink for Html5everDom {
       }
     };
 
-    parent.append_handle(handle);
+    parent.append_handle(&handle).unwrap();
   }
 
   fn append_based_on_parent_node(

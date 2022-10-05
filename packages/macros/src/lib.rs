@@ -66,8 +66,8 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
           &crate::Element,
           &crate::Text,
         >,
-      ) {
-        macro_backend::children::append_child(self.get_handle(), child.into());
+      ) -> napi::Result<()> {
+        macro_backend::children::append_child(self.get_handle(), child.into())
       }
 
       #[napi]

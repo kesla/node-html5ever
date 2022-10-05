@@ -12,12 +12,12 @@ pub(crate) mod children {
       .collect()
   }
 
-  pub(crate) fn append_child(parent_handle: Handle, child_handle: Handle) {
-    parent_handle.append_handle(child_handle);
+  pub(crate) fn append_child(parent_handle: Handle, child_handle: Handle) -> Result<()> {
+    parent_handle.append_handle(&child_handle)
   }
 
   pub(crate) fn remove_element(parent_handle: Handle, child_handle: Handle) {
-    parent_handle.remove_handle(child_handle);
+    parent_handle.remove_handle(&child_handle);
   }
 
   pub(crate) fn get_element_by_id(
@@ -83,14 +83,7 @@ pub(crate) mod parent {
   }
 
   pub(crate) fn remove(child: Handle) -> Result<()> {
-    let maybe_handle = child.get_parent_handle()?;
-
-    match maybe_handle {
-      Some(parent) => parent.remove_handle(child.clone()),
-      None => {}
-    }
-
-    Ok(())
+    child.remove()
   }
 
   pub(crate) fn owner_document(handle: Handle) -> Result<Option<Reference<Document>>> {

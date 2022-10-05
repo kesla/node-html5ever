@@ -7,7 +7,7 @@ use crate::{Comment, DocType, Document, Element, Handle, NodeReference, Text};
 
 pub(crate) struct ParentContext {
   pub(crate) node: Either<WeakReference<Document>, WeakReference<Element>>,
-  index: usize,
+  pub(crate) index: usize,
 }
 
 impl ParentContext {
@@ -19,43 +19,35 @@ impl ParentContext {
   }
 
   pub(crate) fn previous_iterator(&self, env: Env) -> Result<PreviousIterator> {
-    let child_nodes: Vec<Handle> = self.get_child_nodes(env)?;
-
     Ok(PreviousIterator {
-      child_nodes,
+      handle: self.get_handle(env)?,
       index: self.index,
     })
   }
 
   pub(crate) fn next_iterator(&self, env: Env) -> Result<NextIterator> {
-    let child_nodes: Vec<Handle> = self.get_child_nodes(env)?;
-
     Ok(NextIterator {
-      child_nodes,
+      handle: self.get_handle(env)?,
       index: self.index,
     })
   }
 
-  fn get_child_nodes(&self, env: Env) -> Result<Vec<Handle>> {
+  fn get_handle(&self, env: Env) -> Result<Handle> {
     match &self.node {
       Either::A(element) => {
         let handle = element.upgrade(env)?.unwrap().get_handle();
-        // TODO: don't clone
-        let vec = handle.get_children().clone();
-        Ok(vec)
+        Ok(handle)
       }
       Either::B(document) => {
         let handle = document.upgrade(env)?.unwrap().get_handle();
-        // TODO: don't clone
-        let vec = handle.get_children().clone();
-        Ok(vec)
+        Ok(handle)
       }
     }
   }
 }
 
 pub(crate) struct PreviousIterator {
-  child_nodes: Vec<Handle>,
+  handle: Handle,
   index: usize,
 }
 
@@ -72,8 +64,8 @@ impl Iterator for PreviousIterator {
       None
     } else {
       self.index -= 1;
-
-      let handle = &self.child_nodes[self.index];
+      let child_nodes = self.handle.get_children();
+      let handle = child_nodes.get(self.index).unwrap();
       let data: &NodeReference = handle.get_node_reference();
       match data {
         NodeReference::Comment(ref comment) => Some(Either4::A(comment.downgrade())),
@@ -87,7 +79,7 @@ impl Iterator for PreviousIterator {
 }
 
 pub(crate) struct NextIterator {
-  child_nodes: Vec<Handle>,
+  handle: Handle,
   index: usize,
 }
 
@@ -100,14 +92,15 @@ impl Iterator for NextIterator {
   >;
 
   fn next(&mut self) -> Option<Self::Item> {
-    let last = self.child_nodes.len() - 1;
+    let child_nodes = self.handle.get_children();
+    let last = child_nodes.len() - 1;
 
     if self.index == last {
       None
     } else {
       self.index += 1;
 
-      let handle = &self.child_nodes[self.index];
+      let handle = child_nodes.get(self.index).unwrap();
       let data: &NodeReference = handle.get_node_reference();
       match data {
         NodeReference::Comment(ref comment) => Some(Either4::A(comment.downgrade())),

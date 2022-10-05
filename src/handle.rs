@@ -77,11 +77,59 @@ impl Drop for NodeReference {
   }
 }
 
+#[derive(Default)]
+pub(crate) struct ChildNodeList(Vec<Handle>);
+
+impl ChildNodeList {
+  pub(crate) fn get(&self, index: usize) -> Option<&Handle> {
+    self.0.get(index)
+  }
+
+  pub(crate) fn len(&self) -> usize {
+    self.0.len()
+  }
+
+  pub(crate) fn iter(&self) -> std::slice::Iter<Handle> {
+    self.0.iter()
+  }
+
+  pub(crate) fn remove_handle(&mut self, handle: &Handle) {
+    self.0.retain(|h| h != handle);
+
+    let mut index = 0;
+    self.0.iter().for_each(|h| {
+      let mut borrow_mut = h.0.parent_context.borrow_mut();
+      borrow_mut.as_mut().unwrap().index = index;
+      index += 1;
+    });
+
+    self.sync_parent_context();
+  }
+
+  fn sync_parent_context(&mut self) {
+    for index in 0..self.0.len() {
+      let mut borrow_mut = self.0[index].0.parent_context.borrow_mut();
+      borrow_mut.as_mut().unwrap().index = index;
+    }
+  }
+
+  pub(crate) fn append_handle(&mut self, handle: Handle) {
+    self.0.push(handle);
+    self.sync_parent_context();
+  }
+}
+
+impl Into<Vec<Handle>> for ChildNodeList {
+  fn into(self) -> Vec<Handle> {
+    self.0
+  }
+}
+
 struct HandleInner {
   env: Env,
   id: usize,
   node: NodeReference,
-  list: RefCell<Vec<Handle>>,
+  list: RefCell<ChildNodeList>,
   parent_context: RefCell<Option<ParentContext>>,
 }
 
@@ -93,17 +141,17 @@ impl Handle {
     Handle(Rc::new(HandleInner {
       env,
       id: get_id(),
-      list: RefCell::new(vec![]),
+      list: Default::default(),
       node,
       parent_context: RefCell::new(None),
     }))
   }
 
-  pub(crate) fn get_children(&self) -> Ref<Vec<Handle>> {
+  pub(crate) fn get_children(&self) -> Ref<ChildNodeList> {
     self.0.list.borrow()
   }
 
-  pub(crate) fn get_children_mut(&self) -> RefMut<Vec<Handle>> {
+  pub(crate) fn get_children_mut(&self) -> RefMut<ChildNodeList> {
     self.0.list.borrow_mut()
   }
 
@@ -170,11 +218,14 @@ impl Handle {
     }
   }
 
-  pub(crate) fn append_handle(&self, child: Handle) {
+  pub(crate) fn append_handle(&self, child: &Handle) -> Result<()> {
+    // remove from old parent
+    child.remove()?;
+
     // TODO: concatenate already existing text node
 
     let mut children = self.get_children_mut();
-    children.push(child.clone());
+    children.append_handle(child.clone());
 
     let parent_reference = match &self.get_node_reference() {
       NodeReference::Document(r) => Either::A(r.downgrade()),
@@ -184,14 +235,26 @@ impl Handle {
     let parent_context = Some(ParentContext::new(parent_reference, children.len() - 1));
     let mut parent = child.get_parent_mut();
     *parent = parent_context;
+    Ok(())
   }
 
-  pub(crate) fn remove_handle(&self, child: Handle) {
+  pub(crate) fn remove_handle(&self, child: &Handle) {
     let mut children = self.get_children_mut();
-    let index = children.iter().position(|c| c == &child).unwrap();
-    children.remove(index);
+    children.remove_handle(child);
+
     let mut parent = child.get_parent_mut();
     *parent = None;
+  }
+
+  pub(crate) fn remove(&self) -> Result<()> {
+    let maybe_handle = self.get_parent_handle()?;
+
+    match maybe_handle {
+      Some(parent) => parent.remove_handle(self),
+      None => {}
+    }
+
+    Ok(())
   }
 
   pub(crate) fn downgrade(&self) -> WeakHandle {
