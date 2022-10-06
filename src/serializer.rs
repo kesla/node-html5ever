@@ -5,16 +5,16 @@ use html5ever::{
   QualName,
 };
 
-use crate::{Handle, NodeReference};
+use crate::{NodeHandler, NodeReference};
 
-struct SerializableHandle(Handle);
+struct SerializableNodeHandler(NodeHandler);
 
 enum SerializeOp {
-  Open(Handle),
+  Open(NodeHandler),
   Close(QualName),
 }
 
-impl html5ever::serialize::Serialize for SerializableHandle {
+impl html5ever::serialize::Serialize for SerializableNodeHandler {
   fn serialize<S>(
     &self,
     serializer: &mut S,
@@ -40,14 +40,14 @@ impl html5ever::serialize::Serialize for SerializableHandle {
 
     while let Some(op) = ops.pop_front() {
       match op {
-        SerializeOp::Open(handle) => {
-          let node_data: &NodeReference = handle.get_node_reference();
+        SerializeOp::Open(node_handler) => {
+          let node_data: &NodeReference = node_handler.get_node_reference();
           match node_data {
             NodeReference::Comment(comment) => serializer.write_comment(&comment.content)?,
             NodeReference::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
             NodeReference::Element(element) => {
-              let handle = element.get_handle();
-              let list = handle.get_child_nodes();
+              let node_handler = element.get_node_handler();
+              let list = node_handler.get_child_nodes();
               serializer.start_elem(
                 // TODO: Is this actually copying the data? Need to figure that out
                 element.name.clone(),
@@ -75,12 +75,12 @@ impl html5ever::serialize::Serialize for SerializableHandle {
   }
 }
 
-pub fn serialize(handle: Handle, traversal_scope: TraversalScope) -> String {
-  let serializable_handle: SerializableHandle = SerializableHandle(handle);
+pub fn serialize(node_handler: NodeHandler, traversal_scope: TraversalScope) -> String {
+  let serializable_node_handler: SerializableNodeHandler = SerializableNodeHandler(node_handler);
   let mut serialized = Vec::new();
   html5ever::serialize::serialize(
     &mut serialized,
-    &serializable_handle,
+    &serializable_node_handler,
     SerializeOpts {
       traversal_scope,
       ..Default::default()

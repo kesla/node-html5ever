@@ -10,7 +10,7 @@ pub struct Document {}
 impl Document {
   #[napi(getter)]
   pub fn get_doc_type(&self) -> Result<Option<Reference<DocType>>> {
-    if let Some(first) = self.get_handle().get_child_nodes().get(0) {
+    if let Some(first) = self.get_node_handler().get_child_nodes().get(0) {
       if let Ok(doc_type) = first.as_doc_type() {
         return Ok(Some(doc_type.clone(self.env)?));
       }
@@ -21,8 +21,8 @@ impl Document {
 
   #[napi(getter)]
   pub fn get_document_element(&self) -> Result<Reference<Element>> {
-    let handle = self.get_handle();
-    let list = handle.get_child_nodes();
+    let node_handler = self.get_node_handler();
+    let list = node_handler.get_child_nodes();
     let node = match list.len() {
       2 => list.get(1),
       _ => list.get(0),
@@ -37,8 +37,8 @@ impl Document {
   pub fn get_head(&mut self) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
-    let handle = document_element.get_handle();
-    let list = handle.get_child_nodes();
+    let node_handler = document_element.get_node_handler();
+    let list = node_handler.get_child_nodes();
     list.get(0).unwrap().as_element()?.clone(self.env)
   }
 
@@ -46,8 +46,8 @@ impl Document {
   pub fn get_body(&mut self) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
 
-    let handle = document_element.get_handle();
-    let list = handle.get_child_nodes();
+    let node_handler = document_element.get_node_handler();
+    let list = node_handler.get_child_nodes();
     list.get(1).unwrap().as_element()?.clone(self.env)
   }
 

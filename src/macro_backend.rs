@@ -5,10 +5,10 @@ pub(crate) mod children {
     Result,
   };
 
-  use crate::{Comment, DocType, Element, Handle, Text};
+  use crate::{Comment, DocType, Element, NodeHandler, Text};
 
   pub(crate) fn get_child_nodes(
-    handle: Handle,
+    node_handler: NodeHandler,
   ) -> Vec<
     Either4<
       WeakReference<Comment>,
@@ -17,42 +17,50 @@ pub(crate) mod children {
       WeakReference<Text>,
     >,
   > {
-    handle
+    node_handler
       .get_child_nodes()
       .iter()
       .map(|child| child.into())
       .collect()
   }
 
-  pub(crate) fn get_children(handle: Handle) -> Result<Vec<Reference<Element>>> {
-    handle
+  pub(crate) fn get_children(node_handler: NodeHandler) -> Result<Vec<Reference<Element>>> {
+    node_handler
       .get_child_nodes()
       .iter()
-      .filter_map(|handle| handle.as_element().ok().map(|r| r.clone(r.env)))
+      .filter_map(|node_handler| node_handler.as_element().ok().map(|r| r.clone(r.env)))
       .collect()
   }
 
-  pub(crate) fn append_child(parent_handle: Handle, child_handle: Handle) -> Result<()> {
-    parent_handle.append_handle(&child_handle)
+  pub(crate) fn append_child(
+    parent_node_handler: NodeHandler,
+    child_node_handler: NodeHandler,
+  ) -> Result<()> {
+    parent_node_handler.append_node_handler(&child_node_handler)
   }
 
-  pub(crate) fn remove_element(parent_handle: Handle, child_handle: Handle) {
-    parent_handle.remove_handle(&child_handle);
+  pub(crate) fn remove_element(parent_node_handler: NodeHandler, child_node_handler: NodeHandler) {
+    parent_node_handler.remove_node_handler(&child_node_handler);
   }
 
   pub(crate) fn get_element_by_id(
-    handle: Handle,
+    node_handler: NodeHandler,
     id: String,
   ) -> Result<Option<Reference<Element>>> {
-    let mut q: Vec<Handle> = handle.get_child_nodes().iter().rev().cloned().collect();
+    let mut q: Vec<NodeHandler> = node_handler
+      .get_child_nodes()
+      .iter()
+      .rev()
+      .cloned()
+      .collect();
 
-    while let Some(handle) = q.pop() {
-      if let Ok(element) = handle.as_element() {
+    while let Some(node_handler) = q.pop() {
+      if let Ok(element) = node_handler.as_element() {
         if element.get_id() == id {
           return Ok(Some(element.clone(element.env)?));
         }
 
-        q.extend(handle.get_child_nodes().iter().rev().cloned());
+        q.extend(node_handler.get_child_nodes().iter().rev().cloned());
       }
     }
 
@@ -60,19 +68,24 @@ pub(crate) mod children {
   }
 
   pub(crate) fn get_elements_by_class_name(
-    handle: Handle,
+    node_handler: NodeHandler,
     class_name: String,
   ) -> Result<Vec<Reference<Element>>> {
-    let mut q: Vec<Handle> = handle.get_child_nodes().iter().rev().cloned().collect();
+    let mut q: Vec<NodeHandler> = node_handler
+      .get_child_nodes()
+      .iter()
+      .rev()
+      .cloned()
+      .collect();
     let mut elements = vec![];
 
-    while let Some(handle) = q.pop() {
-      if let Ok(element) = handle.as_element() {
+    while let Some(node_handler) = q.pop() {
+      if let Ok(element) = node_handler.as_element() {
         if element.get_class_name() == class_name {
           elements.push(element.clone(element.env)?);
         }
 
-        q.extend(handle.get_child_nodes().iter().rev().cloned());
+        q.extend(node_handler.get_child_nodes().iter().rev().cloned());
       }
     }
 
@@ -81,14 +94,16 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::{Comment, DocType, Document, Element, Handle, ParentContext, Text};
+  use crate::{Comment, DocType, Document, Element, NodeHandler, ParentContext, Text};
   use napi::{
     bindgen_prelude::{Either4, Reference, WeakReference},
     Either, Env, Result,
   };
 
-  pub(crate) fn get_parent_element(handle: Handle) -> Result<Option<Reference<Element>>> {
-    let parent_node = handle.get_parent_node();
+  pub(crate) fn get_parent_element(
+    node_handler: NodeHandler,
+  ) -> Result<Option<Reference<Element>>> {
+    let parent_node = node_handler.get_parent_node();
 
     match parent_node {
       Ok(Some(Either::B(element))) => Ok(Some(element)),
@@ -97,17 +112,17 @@ pub(crate) mod parent {
   }
 
   pub(crate) fn get_parent_node(
-    handle: Handle,
+    node_handler: NodeHandler,
   ) -> Result<Option<Either<Reference<Document>, Reference<Element>>>> {
-    handle.get_parent_node()
+    node_handler.get_parent_node()
   }
 
-  pub(crate) fn remove(child: Handle) -> Result<()> {
+  pub(crate) fn remove(child: NodeHandler) -> Result<()> {
     child.remove()
   }
 
-  pub(crate) fn owner_document(handle: Handle) -> Result<Option<Reference<Document>>> {
-    let maybe_parent = handle.get_parent_node()?;
+  pub(crate) fn owner_document(node_handler: NodeHandler) -> Result<Option<Reference<Document>>> {
+    let maybe_parent = node_handler.get_parent_node()?;
 
     match maybe_parent {
       Some(Either::A(document)) => Ok(Some(document)),
@@ -117,7 +132,7 @@ pub(crate) mod parent {
   }
 
   pub(crate) fn get_previous_sibling(
-    handle: Handle,
+    node_handler: NodeHandler,
   ) -> Result<
     Option<
       Either4<
@@ -128,20 +143,20 @@ pub(crate) mod parent {
       >,
     >,
   > {
-    Ok(handle.previous_iterator()?.next())
+    Ok(node_handler.previous_iterator()?.next())
   }
 
   pub(crate) fn get_previous_element_sibling(
-    handle: Handle,
+    node_handler: NodeHandler,
   ) -> Result<Option<WeakReference<Element>>> {
-    Ok(handle.previous_iterator()?.find_map(|s| match s {
+    Ok(node_handler.previous_iterator()?.find_map(|s| match s {
       Either4::C(r) => Some(r),
       _ => None,
     }))
   }
 
   pub(crate) fn get_next_sibling(
-    handle: Handle,
+    node_handler: NodeHandler,
   ) -> Result<
     Option<
       Either4<
@@ -152,11 +167,13 @@ pub(crate) mod parent {
       >,
     >,
   > {
-    Ok(handle.next_iterator()?.next())
+    Ok(node_handler.next_iterator()?.next())
   }
 
-  pub(crate) fn get_next_element_sibling(handle: Handle) -> Result<Option<WeakReference<Element>>> {
-    Ok(handle.next_iterator()?.find_map(|s| match s {
+  pub(crate) fn get_next_element_sibling(
+    node_handler: NodeHandler,
+  ) -> Result<Option<WeakReference<Element>>> {
+    Ok(node_handler.next_iterator()?.find_map(|s| match s {
       Either4::C(r) => Some(r),
       _ => None,
     }))

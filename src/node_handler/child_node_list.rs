@@ -1,12 +1,12 @@
 use std;
 
-use crate::Handle;
+use crate::NodeHandler;
 
 #[derive(Default)]
-pub(crate) struct ChildNodeList(Vec<Handle>);
+pub(crate) struct ChildNodeList(Vec<NodeHandler>);
 
 impl ChildNodeList {
-  pub(crate) fn get(&self, index: usize) -> Option<&Handle> {
+  pub(crate) fn get(&self, index: usize) -> Option<&NodeHandler> {
     self.0.get(index)
   }
 
@@ -14,12 +14,12 @@ impl ChildNodeList {
     self.0.len()
   }
 
-  pub(crate) fn iter(&self) -> std::slice::Iter<Handle> {
+  pub(crate) fn iter(&self) -> std::slice::Iter<NodeHandler> {
     self.0.iter()
   }
 
-  pub(crate) fn remove_handle(&mut self, handle: &Handle) {
-    self.0.retain(|h| h != handle);
+  pub(crate) fn remove_node_handler(&mut self, node_handler: &NodeHandler) {
+    self.0.retain(|h| h != node_handler);
 
     let mut index = 0;
     self.0.iter().for_each(|h| {
@@ -38,13 +38,13 @@ impl ChildNodeList {
     }
   }
 
-  pub(crate) fn append_handle(&mut self, child: Handle) {
+  pub(crate) fn append_node_handler(&mut self, child: NodeHandler) {
     self.0.push(child);
   }
 }
 
-impl Into<Vec<Handle>> for ChildNodeList {
-  fn into(self) -> Vec<Handle> {
+impl Into<Vec<NodeHandler>> for ChildNodeList {
+  fn into(self) -> Vec<NodeHandler> {
     self.0
   }
 }

@@ -1,11 +1,14 @@
 use napi::bindgen_prelude::{Either4, WeakReference};
 
-use crate::{Comment, DocType, Element, Handle, Text};
+use crate::{Comment, DocType, Element, NodeHandler, Text};
 
 use super::NodeReference;
 
 pub(crate) enum PreviousIterator {
-  Data { handle: Handle, index: usize },
+  Data {
+    node_handler: NodeHandler,
+    index: usize,
+  },
   None,
 }
 
@@ -18,8 +21,11 @@ impl Iterator for PreviousIterator {
   >;
 
   fn next(&mut self) -> Option<Self::Item> {
-    let (handle, index) = match self {
-      PreviousIterator::Data { handle, index } => (handle, index),
+    let (node_handler, index) = match self {
+      PreviousIterator::Data {
+        node_handler,
+        index,
+      } => (node_handler, index),
       PreviousIterator::None => return None,
     };
 
@@ -27,9 +33,9 @@ impl Iterator for PreviousIterator {
       None
     } else {
       *index -= 1;
-      let child_nodes = handle.get_child_nodes();
-      let handle = child_nodes.get(*index).unwrap();
-      let data: &NodeReference = handle.get_node_reference();
+      let child_nodes = node_handler.get_child_nodes();
+      let node_handler = child_nodes.get(*index).unwrap();
+      let data: &NodeReference = node_handler.get_node_reference();
       match data {
         NodeReference::Comment(ref comment) => Some(Either4::A(comment.downgrade())),
         NodeReference::DocType(ref doc_type) => Some(Either4::B(doc_type.downgrade())),
@@ -42,7 +48,10 @@ impl Iterator for PreviousIterator {
 }
 
 pub(crate) enum NextIterator {
-  Data { handle: Handle, index: usize },
+  Data {
+    node_handler: NodeHandler,
+    index: usize,
+  },
   None,
 }
 
@@ -55,12 +64,15 @@ impl Iterator for NextIterator {
   >;
 
   fn next(&mut self) -> Option<Self::Item> {
-    let (handle, index) = match self {
-      Self::Data { handle, index } => (handle, index),
+    let (node_handler, index) = match self {
+      Self::Data {
+        node_handler,
+        index,
+      } => (node_handler, index),
       Self::None => return None,
     };
 
-    let child_nodes = handle.get_child_nodes();
+    let child_nodes = node_handler.get_child_nodes();
     let last = child_nodes.len() - 1;
 
     if *index == last {
@@ -68,8 +80,8 @@ impl Iterator for NextIterator {
     } else {
       *index += 1;
 
-      let handle = child_nodes.get(*index).unwrap();
-      let data: &NodeReference = handle.get_node_reference();
+      let node_handler = child_nodes.get(*index).unwrap();
+      let data: &NodeReference = node_handler.get_node_reference();
       match data {
         NodeReference::Comment(ref comment) => Some(Either4::A(comment.downgrade())),
         NodeReference::DocType(ref doc_type) => Some(Either4::B(doc_type.downgrade())),

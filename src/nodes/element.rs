@@ -49,7 +49,7 @@ impl Element {
   #[napi(getter)]
   pub fn inner_html(&self) -> String {
     serialize(
-      self.get_handle(),
+      self.get_node_handler(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     )
   }
@@ -57,7 +57,7 @@ impl Element {
   #[napi(getter)]
   pub fn outer_html(&self) -> String {
     serialize(
-      self.get_handle(),
+      self.get_node_handler(),
       html5ever::serialize::TraversalScope::IncludeNode,
     )
   }

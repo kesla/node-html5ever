@@ -17,7 +17,7 @@ mod parent_context;
 mod weak;
 
 pub(crate) use self::{
-  node_reference::NodeReference, parent_context::ParentContext, weak::WeakHandle,
+  node_reference::NodeReference, parent_context::ParentContext, weak::WeakNodeHandler,
 };
 
 use self::{
@@ -25,7 +25,7 @@ use self::{
   iterators::{NextIterator, PreviousIterator},
 };
 
-struct HandleInner {
+struct NodeHandlerInner {
   env: Env,
   id: usize,
   node: NodeReference,
@@ -33,7 +33,7 @@ struct HandleInner {
   parent_context: RefCell<Option<ParentContext>>,
 }
 
-impl Drop for HandleInner {
+impl Drop for NodeHandlerInner {
   fn drop(&mut self) {
     let node_type: String = match &self.node {
       NodeReference::Comment(_) => "Comment".to_string(),
@@ -43,16 +43,16 @@ impl Drop for HandleInner {
       NodeReference::Text(_) => "Text".to_string(),
     };
 
-    println!("Dropping HandleInner {:?}", node_type);
+    println!("Dropping NodeHandlerInner {:?}", node_type);
   }
 }
 
 #[derive(Clone)]
-pub struct Handle(Rc<HandleInner>);
+pub struct NodeHandler(Rc<NodeHandlerInner>);
 
-impl Handle {
+impl NodeHandler {
   pub(crate) fn new(env: Env, node: NodeReference) -> Self {
-    Handle(Rc::new(HandleInner {
+    NodeHandler(Rc::new(NodeHandlerInner {
       env,
       id: get_id(),
       list: Default::default(),
@@ -100,10 +100,10 @@ impl Handle {
     Ok(r)
   }
 
-  pub(crate) fn get_parent_handle(&self) -> Result<Option<Handle>> {
+  pub(crate) fn get_parent_node_handler(&self) -> Result<Option<NodeHandler>> {
     match self.get_parent_node()? {
-      Some(Either::A(element)) => Ok(Some(element.get_handle())),
-      Some(Either::B(document)) => Ok(Some(document.get_handle())),
+      Some(Either::A(element)) => Ok(Some(element.get_node_handler())),
+      Some(Either::B(document)) => Ok(Some(document.get_node_handler())),
       None => Ok(None),
     }
   }
@@ -132,14 +132,14 @@ impl Handle {
     }
   }
 
-  pub(crate) fn append_handle(&self, child: &Handle) -> Result<()> {
+  pub(crate) fn append_node_handler(&self, child: &NodeHandler) -> Result<()> {
     // remove from old parent
     child.remove()?;
 
     // TODO: concatenate already existing text node
 
     let mut children = self.get_child_nodes_mut();
-    children.append_handle(child.clone());
+    children.append_node_handler(child.clone());
 
     let parent_reference = match &self.get_node_reference() {
       NodeReference::Document(r) => Either::A(r.downgrade()),
@@ -156,26 +156,26 @@ impl Handle {
     Ok(())
   }
 
-  pub(crate) fn remove_handle(&self, child: &Handle) {
+  pub(crate) fn remove_node_handler(&self, child: &NodeHandler) {
     let mut children = self.get_child_nodes_mut();
-    children.remove_handle(child);
+    children.remove_node_handler(child);
 
     let mut parent = child.get_parent_mut();
     *parent = None;
   }
 
   pub(crate) fn remove(&self) -> Result<()> {
-    let maybe_handle = self.get_parent_handle()?;
+    let maybe_node_handler = self.get_parent_node_handler()?;
 
-    match maybe_handle {
-      Some(parent) => parent.remove_handle(self),
+    match maybe_node_handler {
+      Some(parent) => parent.remove_node_handler(self),
       None => {}
     }
 
     Ok(())
   }
 
-  pub(crate) fn downgrade(&self) -> WeakHandle {
+  pub(crate) fn downgrade(&self) -> WeakNodeHandler {
     self.into()
   }
 
@@ -185,7 +185,7 @@ impl Handle {
 
     match maybe_parent_context {
       Some(ctx) => Ok(PreviousIterator::Data {
-        handle: ctx.try_into()?,
+        node_handler: ctx.try_into()?,
         index: ctx.index,
       }),
       None => Ok(PreviousIterator::None),
@@ -198,7 +198,7 @@ impl Handle {
 
     match maybe_parent_context {
       Some(ctx) => Ok(NextIterator::Data {
-        handle: ctx.try_into()?,
+        node_handler: ctx.try_into()?,
         index: ctx.index,
       }),
       None => Ok(NextIterator::None),
@@ -206,7 +206,7 @@ impl Handle {
   }
 }
 
-impl TryFrom<&ParentContext> for Handle {
+impl TryFrom<&ParentContext> for NodeHandler {
   type Error = Error;
 
   fn try_from(parent_context: &ParentContext) -> Result<Self> {
@@ -215,19 +215,19 @@ impl TryFrom<&ParentContext> for Handle {
         let document = document
           .upgrade(parent_context.env)?
           .expect("Document is gone");
-        Ok(document.get_handle())
+        Ok(document.get_node_handler())
       }
       Either::B(element) => {
         let element = element
           .upgrade(parent_context.env)?
           .expect("Element is gone");
-        Ok(element.get_handle())
+        Ok(element.get_node_handler())
       }
     }
   }
 }
 
-impl From<Either<&Document, &Element>> for Handle {
+impl From<Either<&Document, &Element>> for NodeHandler {
   fn from(e: Either<&Document, &Element>) -> Self {
     match e {
       Either::A(r) => r.into(),
@@ -236,7 +236,7 @@ impl From<Either<&Document, &Element>> for Handle {
   }
 }
 
-impl From<Either4<&Comment, &DocType, &Element, &Text>> for Handle {
+impl From<Either4<&Comment, &DocType, &Element, &Text>> for NodeHandler {
   fn from(e: Either4<&Comment, &DocType, &Element, &Text>) -> Self {
     match e {
       Either4::A(r) => r.into(),
@@ -255,7 +255,7 @@ impl
       WeakReference<Element>,
       WeakReference<Text>,
     >,
-  > for &Handle
+  > for &NodeHandler
 {
   fn into(
     self,
@@ -294,10 +294,10 @@ impl
   // }
 }
 
-impl PartialEq for Handle {
+impl PartialEq for NodeHandler {
   fn eq(&self, other: &Self) -> bool {
     self.0.id == other.0.id
   }
 }
 
-impl Eq for Handle {}
+impl Eq for NodeHandler {}
