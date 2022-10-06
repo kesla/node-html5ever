@@ -1,4 +1,6 @@
-use crate::{serialize, Comment, DocType, Document, Element, NodeHandler, QuirksMode, Text};
+use crate::{
+  serialize, Comment, DocType, Document, Element, Handle, NodeHandler, QuirksMode, Text,
+};
 use html5ever::driver::parse_fragment_for_element;
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
@@ -10,7 +12,6 @@ use napi::{bindgen_prelude::Reference, Env, Result};
 #[napi]
 pub struct Html5everDom {
   document_reference: Reference<Document>,
-  document_node_handler: NodeHandler,
 
   #[napi(writable = false)]
   pub quirks_mode: QuirksMode,
@@ -40,7 +41,7 @@ impl Html5everDom {
     )
     .one(html);
 
-    println!("serialized: {}", dom.serialize());
+    println!("serialized: {}", dom.serialize()?);
     // println!("html: {}", html);
     println!(
       "fragment: {}",
@@ -54,7 +55,6 @@ impl Html5everDom {
   fn create_sink(env: Env) -> Result<Html5everDom> {
     let document_reference = Document::new_reference(env)?;
     let sink = Html5everDom {
-      document_node_handler: document_reference.get_node_handler(),
       document_reference,
       quirks_mode: QuirksMode::NoQuirks,
       errors: vec![],
@@ -70,18 +70,19 @@ impl Html5everDom {
   }
 
   #[napi]
-  #[must_use]
-  pub fn serialize(&self) -> String {
-    serialize(
-      self.document_node_handler.clone(),
+  pub fn serialize(&self) -> Result<String> {
+    let handle: Handle = self.document_reference.clone(self.env)?.into();
+
+    Ok(serialize(
+      handle,
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
-    )
+    ))
   }
 }
 
 #[allow(unused_variables)]
 impl TreeSink for Html5everDom {
-  type Handle = NodeHandler;
+  type Handle = Handle;
 
   type Output = Self;
 
@@ -94,7 +95,7 @@ impl TreeSink for Html5everDom {
   }
 
   fn get_document(&mut self) -> Self::Handle {
-    self.document_node_handler.clone()
+    self.document_reference.clone(self.env).unwrap().into()
   }
 
   fn elem_name<'a>(&'a self, target: &'a Self::Handle) -> html5ever::ExpandedName<'a> {
@@ -110,12 +111,12 @@ impl TreeSink for Html5everDom {
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
     let r = Element::new_reference(self.env, attrs.into(), name).unwrap();
-    r.get_node_handler()
+    r.into()
   }
 
   fn create_comment(&mut self, text: html5ever::tendril::StrTendril) -> Self::Handle {
     let r = Comment::new_reference(self.env, text.to_string()).unwrap();
-    r.get_node_handler()
+    r.into()
   }
 
   fn create_pi(
@@ -127,15 +128,15 @@ impl TreeSink for Html5everDom {
   }
 
   fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
-    let node_handler = match child {
-      NodeOrText::AppendNode(node_handler) => node_handler,
+    let child = match child {
+      NodeOrText::AppendNode(handle) => handle,
       NodeOrText::AppendText(content) => {
         let r = Text::new_reference(self.env, content.to_string()).unwrap();
-        r.get_node_handler()
+        r.into()
       }
     };
 
-    parent.append_node_handler(&node_handler).unwrap();
+    parent.append_handle(&child).unwrap();
   }
 
   fn append_based_on_parent_node(
@@ -160,10 +161,10 @@ impl TreeSink for Html5everDom {
       system_id.to_string(),
     )
     .unwrap();
-    let doc_type = r.get_node_handler();
+    let doc_type: Handle = r.into();
     let child = NodeOrText::AppendNode(doc_type);
-    let node_handler = self.get_document();
-    self.append(&node_handler, child);
+    let handle = self.get_document();
+    self.append(&handle, child);
   }
 
   fn get_template_contents(&mut self, target: &Self::Handle) -> Self::Handle {

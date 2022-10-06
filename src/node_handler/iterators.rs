@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::{Either4, WeakReference};
 
-use crate::{Comment, DocType, Element, Handle, NodeHandler, Text};
+use crate::{Comment, DocType, Element, NodeHandler, Text};
 
 pub(crate) enum PreviousIterator {
   Data {
@@ -32,9 +32,7 @@ impl Iterator for PreviousIterator {
     } else {
       *index -= 1;
       let child_nodes = node_handler.get_child_nodes();
-      let node_handler = child_nodes.get(*index).unwrap();
-      let handle = node_handler.get_handle();
-      let handle: &Handle = handle.as_ref();
+      let handle = child_nodes.get(*index).unwrap();
       Some(handle.into())
     }
   }
@@ -73,9 +71,7 @@ impl Iterator for NextIterator {
     } else {
       *index += 1;
 
-      let node_handler = child_nodes.get(*index).unwrap();
-      let handle = node_handler.get_handle();
-      let handle: &Handle = handle.as_ref();
+      let handle = child_nodes.get(*index).unwrap();
       Some(handle.into())
     }
   }

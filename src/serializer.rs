@@ -7,10 +7,10 @@ use html5ever::{
 
 use crate::{Handle, NodeHandler};
 
-struct SerializableNodeHandler(NodeHandler);
+struct SerializableNodeHandler(Handle);
 
 enum SerializeOp {
-  Open(NodeHandler),
+  Open(Handle),
   Close(QualName),
 }
 
@@ -29,7 +29,8 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
         ops.push_back(SerializeOp::Open(self.0.clone()))
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-        let children = self.0.get_child_nodes();
+        let node_handler: NodeHandler = (&self.0).into();
+        let children = node_handler.get_child_nodes();
         ops.extend(
           children
             .iter()
@@ -40,10 +41,8 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
 
     while let Some(op) = ops.pop_front() {
       match op {
-        SerializeOp::Open(node_handler) => {
-          let handle = node_handler.get_handle();
-          let node_data: &Handle = handle.as_ref();
-          match node_data {
+        SerializeOp::Open(handle) => {
+          match &handle {
             Handle::Comment(comment) => serializer.write_comment(&comment.content)?,
             Handle::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
             Handle::Element(element) => {
@@ -76,8 +75,8 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
   }
 }
 
-pub fn serialize(node_handler: NodeHandler, traversal_scope: TraversalScope) -> String {
-  let serializable_node_handler: SerializableNodeHandler = SerializableNodeHandler(node_handler);
+pub fn serialize(handle: Handle, traversal_scope: TraversalScope) -> String {
+  let serializable_node_handler: SerializableNodeHandler = SerializableNodeHandler(handle);
   let mut serialized = Vec::new();
   html5ever::serialize::serialize(
     &mut serialized,

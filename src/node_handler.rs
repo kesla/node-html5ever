@@ -5,7 +5,7 @@ use std::{
 
 use napi::{
   bindgen_prelude::{Either4, Reference, WeakReference},
-  Either, Env, Error, Result, Status,
+  Either, Env, Error, Result,
 };
 
 use crate::{get_id, Comment, DocType, Document, Element, Handle, Text};
@@ -25,30 +25,8 @@ use self::{
 struct NodeHandlerInner {
   env: Env,
   id: usize,
-  handle: RefCell<Weak<Handle>>,
   list: RefCell<ChildNodeList>,
   parent_context: RefCell<Option<ParentContext>>,
-}
-
-impl NodeHandlerInner {
-  fn get_handle(&self) -> Rc<Handle> {
-    let weak: Ref<Weak<Handle>> = self.handle.borrow();
-    weak.upgrade().unwrap()
-  }
-}
-
-impl Drop for NodeHandlerInner {
-  fn drop(&mut self) {
-    let node_type: String = match self.get_handle().as_ref() {
-      Handle::Comment(_) => "Comment".to_string(),
-      Handle::DocType(_) => "DocType".to_string(),
-      Handle::Document(_) => "Document".to_string(),
-      Handle::Element(element) => format!("Element <{}>", element.name.local),
-      Handle::Text(_) => "Text".to_string(),
-    };
-
-    println!("Dropping NodeHandlerInner {:?}", node_type);
-  }
 }
 
 #[derive(Clone)]
@@ -60,14 +38,12 @@ impl NodeHandler {
       env,
       id: get_id(),
       list: Default::default(),
-      handle: Default::default(),
       parent_context: RefCell::new(None),
     }))
   }
 
-  pub(crate) fn finalize(&mut self, handle: Handle) {
-    *self.0.handle.borrow_mut() = Rc::downgrade(&Rc::new(handle));
-    // = Rc::downgrade(&Rc::new(handle));
+  pub(crate) fn get_env(&self) -> Env {
+    self.0.env
   }
 
   pub(crate) fn get_child_nodes(&self) -> Ref<ChildNodeList> {
@@ -84,107 +60,6 @@ impl NodeHandler {
 
   pub(crate) fn get_parent_mut(&self) -> RefMut<Option<ParentContext>> {
     self.0.parent_context.borrow_mut()
-  }
-
-  pub(crate) fn get_parent_node(
-    &self,
-  ) -> Result<Option<Either<Reference<Document>, Reference<Element>>>> {
-    let parent = self.get_parent();
-    let maybe_reference = parent.as_ref();
-
-    let r = match maybe_reference {
-      Some(parent_context) => match parent_context.node {
-        Either::A(ref document) => {
-          let document = document.upgrade(self.0.env)?;
-          document.map(Either::A)
-        }
-        Either::B(ref element) => {
-          let element = element.upgrade(self.0.env)?;
-          element.map(Either::B)
-        }
-      },
-      None => None,
-    };
-
-    Ok(r)
-  }
-
-  pub(crate) fn get_parent_node_handler(&self) -> Result<Option<NodeHandler>> {
-    match self.get_parent_node()? {
-      Some(Either::A(element)) => Ok(Some(element.get_node_handler())),
-      Some(Either::B(document)) => Ok(Some(document.get_node_handler())),
-      None => Ok(None),
-    }
-  }
-
-  pub(crate) fn get_handle(&self) -> Rc<Handle> {
-    self.0.get_handle()
-  }
-
-  pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
-    todo!()
-    // let handle = self.get_handle();
-    // match handle.as_ref() {
-    //   Handle::Element(r) => Ok(r),
-    //   _ => Err(Error::new(
-    //     Status::InvalidArg,
-    //     "Node is not an Element".to_string(),
-    //   )),
-    // }
-  }
-
-  pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocType>> {
-    todo!()
-    // match self.get_handle().as_ref() {
-    //   Handle::DocType(r) => Ok(r),
-    //   _ => Err(Error::new(
-    //     Status::InvalidArg,
-    //     "Node is not a DocType".to_string(),
-    //   )),
-    // }
-  }
-
-  pub(crate) fn append_node_handler(&self, child: &NodeHandler) -> Result<()> {
-    // remove from old parent
-    child.remove()?;
-
-    // TODO: concatenate already existing text node
-
-    let mut children = self.get_child_nodes_mut();
-    children.append_node_handler(child.clone());
-
-    let parent_reference = match &self.get_handle().as_ref() {
-      Handle::Document(r) => Either::A(r.downgrade()),
-      Handle::Element(r) => Either::B(r.downgrade()),
-      _ => panic!("Wrong type"),
-    };
-    let parent_context = Some(ParentContext::new(
-      self.0.env,
-      parent_reference,
-      children.len() - 1,
-    ));
-    let mut parent = child.get_parent_mut();
-    *parent = parent_context;
-    Ok(())
-  }
-
-  pub(crate) fn remove_node_handler(&self, child: &NodeHandler) {
-    let mut children = self.get_child_nodes_mut();
-    children.remove_node_handler(child);
-
-    let mut parent = child.get_parent_mut();
-    *parent = None;
-  }
-
-  pub(crate) fn remove(&self) -> Result<()> {
-    let maybe_node_handler = self.get_parent_node_handler()?;
-
-    match maybe_node_handler {
-      Some(parent) => parent.remove_node_handler(self),
-      None => {}
-    }
-
-    Ok(())
   }
 
   pub(crate) fn previous_iterator(&self) -> Result<PreviousIterator> {
@@ -255,30 +130,26 @@ impl From<Either4<&Comment, &DocType, &Element, &Text>> for NodeHandler {
   }
 }
 
-impl
-  Into<
-    Either4<
-      WeakReference<Comment>,
-      WeakReference<DocType>,
-      WeakReference<Element>,
-      WeakReference<Text>,
-    >,
-  > for &NodeHandler
-{
-  fn into(
-    self,
-  ) -> Either4<
-    WeakReference<Comment>,
-    WeakReference<DocType>,
-    WeakReference<Element>,
-    WeakReference<Text>,
-  > {
-    match self.get_handle().as_ref() {
-      Handle::Comment(r) => Either4::A(r.downgrade()),
-      Handle::DocType(r) => Either4::B(r.downgrade()),
-      Handle::Element(r) => Either4::C(r.downgrade()),
-      Handle::Text(r) => Either4::D(r.downgrade()),
-      Handle::Document(_) => unreachable!("Document is not a Node"),
+impl From<Handle> for NodeHandler {
+  fn from(handle: Handle) -> Self {
+    match handle {
+      Handle::Comment(r) => r.get_node_handler(),
+      Handle::DocType(r) => r.get_node_handler(),
+      Handle::Document(r) => r.get_node_handler(),
+      Handle::Element(r) => r.get_node_handler(),
+      Handle::Text(r) => r.get_node_handler(),
+    }
+  }
+}
+
+impl From<&Handle> for NodeHandler {
+  fn from(handle: &Handle) -> Self {
+    match handle {
+      Handle::Comment(r) => r.get_node_handler(),
+      Handle::DocType(r) => r.get_node_handler(),
+      Handle::Document(r) => r.get_node_handler(),
+      Handle::Element(r) => r.get_node_handler(),
+      Handle::Text(r) => r.get_node_handler(),
     }
   }
 }
