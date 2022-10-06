@@ -184,7 +184,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     #[napi]
     pub struct #name {
       pub(crate) env: napi::Env,
-      pub(crate) lazy_weak_node_handler: crate::LazyWeakNodeHandler,
+      pub(crate) node_handler: crate::NodeHandler,
       pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
       pub(crate) id: usize,
 
@@ -201,22 +201,19 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
           #(#argument_fields)*
           env,
           id: crate::get_id(),
-          lazy_weak_node_handler: crate::LazyWeakNodeHandler::new(env),
+          node_handler: crate::NodeHandler::new(env),
           weak_reference: None,
         };
 
         let mut r = Self::into_reference(inner, env)?;
-        r.weak_reference = Some(r.clone(env)?.downgrade());
+        r.clone(env)?.weak_reference = Some(r.clone(env)?.downgrade());
+        // r.node_handler.handle = std::rc::Rc::downgrade(&std::rc::Rc::new());
+        r.clone(env)?.node_handler.finalize(r.clone(env)?.into());
         Ok(r)
       }
 
       pub(crate) fn get_node_handler(&self) -> crate::NodeHandler {
-        let reference = macro_backend::upgrade_weak_reference(
-          self.env,
-          &self.weak_reference
-        ).unwrap();
-
-        self.lazy_weak_node_handler.get_or_init(reference)
+        self.node_handler.clone()
       }
 
       #is_child_impl

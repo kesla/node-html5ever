@@ -1,6 +1,6 @@
 use std::{
   cell::{Ref, RefCell, RefMut},
-  rc::Rc,
+  rc::{Rc, Weak},
 };
 
 use napi::{
@@ -8,17 +8,14 @@ use napi::{
   Either, Env, Error, Result, Status,
 };
 
-use crate::{get_id, Comment, DocType, Document, Element, Text};
+use crate::{get_id, Comment, DocType, Document, Element, Handle, Text};
 
 mod child_node_list;
 mod iterators;
 mod node_reference;
 mod parent_context;
-mod weak;
 
-pub(crate) use self::{
-  node_reference::NodeReference, parent_context::ParentContext, weak::WeakNodeHandler,
-};
+pub(crate) use self::parent_context::ParentContext;
 
 use self::{
   child_node_list::ChildNodeList,
@@ -28,19 +25,26 @@ use self::{
 struct NodeHandlerInner {
   env: Env,
   id: usize,
-  node: NodeReference,
+  handle: RefCell<Weak<Handle>>,
   list: RefCell<ChildNodeList>,
   parent_context: RefCell<Option<ParentContext>>,
 }
 
+impl NodeHandlerInner {
+  fn get_handle(&self) -> Rc<Handle> {
+    let weak: Ref<Weak<Handle>> = self.handle.borrow();
+    weak.upgrade().unwrap()
+  }
+}
+
 impl Drop for NodeHandlerInner {
   fn drop(&mut self) {
-    let node_type: String = match &self.node {
-      NodeReference::Comment(_) => "Comment".to_string(),
-      NodeReference::DocType(_) => "DocType".to_string(),
-      NodeReference::Document(_) => "Document".to_string(),
-      NodeReference::Element(element) => format!("Element <{}>", element.name.local),
-      NodeReference::Text(_) => "Text".to_string(),
+    let node_type: String = match self.get_handle().as_ref() {
+      Handle::Comment(_) => "Comment".to_string(),
+      Handle::DocType(_) => "DocType".to_string(),
+      Handle::Document(_) => "Document".to_string(),
+      Handle::Element(element) => format!("Element <{}>", element.name.local),
+      Handle::Text(_) => "Text".to_string(),
     };
 
     println!("Dropping NodeHandlerInner {:?}", node_type);
@@ -51,14 +55,19 @@ impl Drop for NodeHandlerInner {
 pub struct NodeHandler(Rc<NodeHandlerInner>);
 
 impl NodeHandler {
-  pub(crate) fn new(env: Env, node: NodeReference) -> Self {
+  pub(crate) fn new(env: Env) -> Self {
     NodeHandler(Rc::new(NodeHandlerInner {
       env,
       id: get_id(),
       list: Default::default(),
-      node,
+      handle: Default::default(),
       parent_context: RefCell::new(None),
     }))
+  }
+
+  pub(crate) fn finalize(&mut self, handle: Handle) {
+    *self.0.handle.borrow_mut() = Rc::downgrade(&Rc::new(handle));
+    // = Rc::downgrade(&Rc::new(handle));
   }
 
   pub(crate) fn get_child_nodes(&self) -> Ref<ChildNodeList> {
@@ -108,28 +117,31 @@ impl NodeHandler {
     }
   }
 
-  pub(crate) fn get_node_reference(&self) -> &NodeReference {
-    &self.0.node
+  pub(crate) fn get_handle(&self) -> Rc<Handle> {
+    self.0.get_handle()
   }
 
   pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
-    match self.get_node_reference() {
-      NodeReference::Element(r) => Ok(r),
-      _ => Err(Error::new(
-        Status::InvalidArg,
-        "Node is not an Element".to_string(),
-      )),
-    }
+    todo!()
+    // let handle = self.get_handle();
+    // match handle.as_ref() {
+    //   Handle::Element(r) => Ok(r),
+    //   _ => Err(Error::new(
+    //     Status::InvalidArg,
+    //     "Node is not an Element".to_string(),
+    //   )),
+    // }
   }
 
   pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocType>> {
-    match self.get_node_reference() {
-      NodeReference::DocType(r) => Ok(r),
-      _ => Err(Error::new(
-        Status::InvalidArg,
-        "Node is not a DocType".to_string(),
-      )),
-    }
+    todo!()
+    // match self.get_handle().as_ref() {
+    //   Handle::DocType(r) => Ok(r),
+    //   _ => Err(Error::new(
+    //     Status::InvalidArg,
+    //     "Node is not a DocType".to_string(),
+    //   )),
+    // }
   }
 
   pub(crate) fn append_node_handler(&self, child: &NodeHandler) -> Result<()> {
@@ -141,9 +153,9 @@ impl NodeHandler {
     let mut children = self.get_child_nodes_mut();
     children.append_node_handler(child.clone());
 
-    let parent_reference = match &self.get_node_reference() {
-      NodeReference::Document(r) => Either::A(r.downgrade()),
-      NodeReference::Element(r) => Either::B(r.downgrade()),
+    let parent_reference = match &self.get_handle().as_ref() {
+      Handle::Document(r) => Either::A(r.downgrade()),
+      Handle::Element(r) => Either::B(r.downgrade()),
       _ => panic!("Wrong type"),
     };
     let parent_context = Some(ParentContext::new(
@@ -173,10 +185,6 @@ impl NodeHandler {
     }
 
     Ok(())
-  }
-
-  pub(crate) fn downgrade(&self) -> WeakNodeHandler {
-    self.into()
   }
 
   pub(crate) fn previous_iterator(&self) -> Result<PreviousIterator> {
@@ -265,33 +273,14 @@ impl
     WeakReference<Element>,
     WeakReference<Text>,
   > {
-    match self.get_node_reference() {
-      NodeReference::Comment(r) => Either4::A(r.downgrade()),
-      NodeReference::DocType(r) => Either4::B(r.downgrade()),
-      NodeReference::Element(r) => Either4::C(r.downgrade()),
-      NodeReference::Text(r) => Either4::D(r.downgrade()),
-      NodeReference::Document(_) => unreachable!("Document is not a Node"),
+    match self.get_handle().as_ref() {
+      Handle::Comment(r) => Either4::A(r.downgrade()),
+      Handle::DocType(r) => Either4::B(r.downgrade()),
+      Handle::Element(r) => Either4::C(r.downgrade()),
+      Handle::Text(r) => Either4::D(r.downgrade()),
+      Handle::Document(_) => unreachable!("Document is not a Node"),
     }
   }
-
-  // fn into(
-  //   self,
-  // ) ->
-  //   Either4<
-  //     WeakReference<Comment>,
-  //     WeakReference<DocType>,
-  //     WeakReference<Element>,
-  //     WeakReference<Text>,
-  //   >,
-  //  {
-  //   match self.get_node_reference() {
-  //     NodeReference::Comment(r) => Either4::A(r.downgrade()),
-  //     NodeReference::DocType(r) => Either4::B(r.downgrade()),
-  //     NodeReference::Element(r) => Either4::C(r.downgrade()),
-  //     NodeReference::Text(r) => Either4::D(r.downgrade()),
-  //     NodeReference::Document(_) => unreachable!("Document is not a Node"),
-  //   }
-  // }
 }
 
 impl PartialEq for NodeHandler {

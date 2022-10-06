@@ -5,7 +5,7 @@ use html5ever::{
   QualName,
 };
 
-use crate::{NodeHandler, NodeReference};
+use crate::{Handle, NodeHandler};
 
 struct SerializableNodeHandler(NodeHandler);
 
@@ -41,11 +41,12 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
     while let Some(op) = ops.pop_front() {
       match op {
         SerializeOp::Open(node_handler) => {
-          let node_data: &NodeReference = node_handler.get_node_reference();
+          let handle = node_handler.get_handle();
+          let node_data: &Handle = handle.as_ref();
           match node_data {
-            NodeReference::Comment(comment) => serializer.write_comment(&comment.content)?,
-            NodeReference::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
-            NodeReference::Element(element) => {
+            Handle::Comment(comment) => serializer.write_comment(&comment.content)?,
+            Handle::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+            Handle::Element(element) => {
               let node_handler = element.get_node_handler();
               let list = node_handler.get_child_nodes();
               serializer.start_elem(
@@ -63,8 +64,8 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
                 ops.push_front(SerializeOp::Open(child.clone()));
               }
             }
-            NodeReference::Document(_) => panic!("Can't serialize Document node itself"),
-            NodeReference::Text(text) => serializer.write_text(&text.content)?,
+            Handle::Document(_) => panic!("Can't serialize Document node itself"),
+            Handle::Text(text) => serializer.write_text(&text.content)?,
           }
         }
         SerializeOp::Close(name) => serializer.end_elem(name)?,
