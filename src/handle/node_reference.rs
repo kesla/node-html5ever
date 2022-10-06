@@ -64,6 +64,6 @@ impl Drop for NodeReference {
       NodeReference::Text(_) => "Text".to_string(),
     };
 
-    log::debug!("Dropping Node {:?}", node_type);
+    println!("Dropping NodeReference {:?}", node_type);
   }
 }

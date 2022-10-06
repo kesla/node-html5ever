@@ -4,7 +4,7 @@ use std::{
 };
 
 use napi::{
-  bindgen_prelude::{Either4, Reference},
+  bindgen_prelude::{Either4, Reference, WeakReference},
   Either, Env, Error, Result, Status,
 };
 
@@ -33,6 +33,20 @@ struct HandleInner {
   parent_context: RefCell<Option<ParentContext>>,
 }
 
+impl Drop for HandleInner {
+  fn drop(&mut self) {
+    let node_type: String = match &self.node {
+      NodeReference::Comment(_) => "Comment".to_string(),
+      NodeReference::DocType(_) => "DocType".to_string(),
+      NodeReference::Document(_) => "Document".to_string(),
+      NodeReference::Element(element) => format!("Element <{}>", element.name.local),
+      NodeReference::Text(_) => "Text".to_string(),
+    };
+
+    println!("Dropping HandleInner {:?}", node_type);
+  }
+}
+
 #[derive(Clone)]
 pub struct Handle(Rc<HandleInner>);
 
@@ -47,11 +61,11 @@ impl Handle {
     }))
   }
 
-  pub(crate) fn get_children(&self) -> Ref<ChildNodeList> {
+  pub(crate) fn get_child_nodes(&self) -> Ref<ChildNodeList> {
     self.0.list.borrow()
   }
 
-  pub(crate) fn get_children_mut(&self) -> RefMut<ChildNodeList> {
+  pub(crate) fn get_child_nodes_mut(&self) -> RefMut<ChildNodeList> {
     self.0.list.borrow_mut()
   }
 
@@ -124,7 +138,7 @@ impl Handle {
 
     // TODO: concatenate already existing text node
 
-    let mut children = self.get_children_mut();
+    let mut children = self.get_child_nodes_mut();
     children.append_handle(child.clone());
 
     let parent_reference = match &self.get_node_reference() {
@@ -143,7 +157,7 @@ impl Handle {
   }
 
   pub(crate) fn remove_handle(&self, child: &Handle) {
-    let mut children = self.get_children_mut();
+    let mut children = self.get_child_nodes_mut();
     children.remove_handle(child);
 
     let mut parent = child.get_parent_mut();
@@ -231,6 +245,53 @@ impl From<Either4<&Comment, &DocType, &Element, &Text>> for Handle {
       Either4::D(r) => r.into(),
     }
   }
+}
+
+impl
+  Into<
+    Either4<
+      WeakReference<Comment>,
+      WeakReference<DocType>,
+      WeakReference<Element>,
+      WeakReference<Text>,
+    >,
+  > for &Handle
+{
+  fn into(
+    self,
+  ) -> Either4<
+    WeakReference<Comment>,
+    WeakReference<DocType>,
+    WeakReference<Element>,
+    WeakReference<Text>,
+  > {
+    match self.get_node_reference() {
+      NodeReference::Comment(r) => Either4::A(r.downgrade()),
+      NodeReference::DocType(r) => Either4::B(r.downgrade()),
+      NodeReference::Element(r) => Either4::C(r.downgrade()),
+      NodeReference::Text(r) => Either4::D(r.downgrade()),
+      NodeReference::Document(_) => unreachable!("Document is not a Node"),
+    }
+  }
+
+  // fn into(
+  //   self,
+  // ) ->
+  //   Either4<
+  //     WeakReference<Comment>,
+  //     WeakReference<DocType>,
+  //     WeakReference<Element>,
+  //     WeakReference<Text>,
+  //   >,
+  //  {
+  //   match self.get_node_reference() {
+  //     NodeReference::Comment(r) => Either4::A(r.downgrade()),
+  //     NodeReference::DocType(r) => Either4::B(r.downgrade()),
+  //     NodeReference::Element(r) => Either4::C(r.downgrade()),
+  //     NodeReference::Text(r) => Either4::D(r.downgrade()),
+  //     NodeReference::Document(_) => unreachable!("Document is not a Node"),
+  //   }
+  // }
 }
 
 impl PartialEq for Handle {

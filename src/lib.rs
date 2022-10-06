@@ -15,7 +15,7 @@ mod serializer;
 
 pub use dom::Html5everDom;
 pub use handle::Handle;
-pub(crate) use handle::{NodeReference, ParentContext, WeakHandle};
+pub(crate) use handle::{NodeReference, ParentContext};
 pub(crate) use id::get_id;
 pub(crate) use lazy_weak_handle::LazyWeakHandle;
 pub(crate) use nodes::{Comment, DocType, Document, Element, Text};

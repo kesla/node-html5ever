@@ -27,7 +27,7 @@ impl Iterator for PreviousIterator {
       None
     } else {
       *index -= 1;
-      let child_nodes = handle.get_children();
+      let child_nodes = handle.get_child_nodes();
       let handle = child_nodes.get(*index).unwrap();
       let data: &NodeReference = handle.get_node_reference();
       match data {
@@ -60,7 +60,7 @@ impl Iterator for NextIterator {
       Self::None => return None,
     };
 
-    let child_nodes = handle.get_children();
+    let child_nodes = handle.get_child_nodes();
     let last = child_nodes.len() - 1;
 
     if *index == last {

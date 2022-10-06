@@ -51,6 +51,20 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
   let has_children_impl = match features.has_children {
     true => quote!(
       #[napi(getter)]
+      pub fn get_child_nodes(
+        &self,
+      ) -> Vec<
+        napi::bindgen_prelude::Either4<
+          napi::bindgen_prelude::WeakReference<crate::Comment>,
+          napi::bindgen_prelude::WeakReference<crate::DocType>,
+          napi::bindgen_prelude::WeakReference<crate::Element>,
+          napi::bindgen_prelude::WeakReference<crate::Text>,
+        >,
+      > {
+        macro_backend::children::get_child_nodes(self.get_handle())
+      }
+
+      #[napi(getter)]
       pub fn get_children(
         &self,
       ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {

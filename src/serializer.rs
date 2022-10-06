@@ -29,7 +29,7 @@ impl html5ever::serialize::Serialize for SerializableHandle {
         ops.push_back(SerializeOp::Open(self.0.clone()))
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-        let children = self.0.get_children();
+        let children = self.0.get_child_nodes();
         ops.extend(
           children
             .iter()
@@ -47,7 +47,7 @@ impl html5ever::serialize::Serialize for SerializableHandle {
             NodeReference::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
             NodeReference::Element(element) => {
               let handle = element.get_handle();
-              let list = handle.get_children();
+              let list = handle.get_child_nodes();
               serializer.start_elem(
                 // TODO: Is this actually copying the data? Need to figure that out
                 element.name.clone(),

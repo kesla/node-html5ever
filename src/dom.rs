@@ -2,7 +2,9 @@ use crate::{serialize, Comment, DocType, Document, Element, Handle, QuirksMode, 
 use html5ever::driver::parse_fragment_for_element;
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
-use html5ever::{local_name, namespace_url, ns, parse_document, Namespace, ParseOpts, QualName};
+use html5ever::{
+  local_name, namespace_url, ns, parse_document, parse_fragment, Namespace, ParseOpts, QualName,
+};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
 #[napi]
@@ -26,6 +28,27 @@ impl Html5everDom {
     let dom: Html5everDom = parse_document(Self::create_sink(env)?, ParseOpts::default()).one(html);
 
     Ok(dom)
+  }
+
+  #[napi]
+  pub fn create_document_fragment(env: Env, html: String) -> Result<Reference<Element>> {
+    let dom: Html5everDom = parse_fragment(
+      Self::create_sink(env)?,
+      ParseOpts::default(),
+      QualName::new(None, ns!(html), "#document-fragment".into()),
+      Vec::new(),
+    )
+    .one(html);
+
+    println!("serialized: {}", dom.serialize());
+    // println!("html: {}", html);
+    println!(
+      "fragment: {}",
+      dom.document_reference.get_document_element()?.inner_html()
+    );
+
+    // Ok(dom)
+    dom.document_reference.get_document_element()
   }
 
   fn create_sink(env: Env) -> Result<Html5everDom> {

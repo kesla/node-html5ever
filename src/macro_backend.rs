@@ -1,12 +1,32 @@
 pub(crate) mod children {
 
-  use napi::{bindgen_prelude::Reference, Result};
+  use napi::{
+    bindgen_prelude::{Either4, Reference, WeakReference},
+    Result,
+  };
 
-  use crate::{Element, Handle};
+  use crate::{Comment, DocType, Element, Handle, Text};
+
+  pub(crate) fn get_child_nodes(
+    handle: Handle,
+  ) -> Vec<
+    Either4<
+      WeakReference<Comment>,
+      WeakReference<DocType>,
+      WeakReference<Element>,
+      WeakReference<Text>,
+    >,
+  > {
+    handle
+      .get_child_nodes()
+      .iter()
+      .map(|child| child.into())
+      .collect()
+  }
 
   pub(crate) fn get_children(handle: Handle) -> Result<Vec<Reference<Element>>> {
     handle
-      .get_children()
+      .get_child_nodes()
       .iter()
       .filter_map(|handle| handle.as_element().ok().map(|r| r.clone(r.env)))
       .collect()
@@ -24,7 +44,7 @@ pub(crate) mod children {
     handle: Handle,
     id: String,
   ) -> Result<Option<Reference<Element>>> {
-    let mut q: Vec<Handle> = handle.get_children().iter().rev().cloned().collect();
+    let mut q: Vec<Handle> = handle.get_child_nodes().iter().rev().cloned().collect();
 
     while let Some(handle) = q.pop() {
       if let Ok(element) = handle.as_element() {
@@ -32,7 +52,7 @@ pub(crate) mod children {
           return Ok(Some(element.clone(element.env)?));
         }
 
-        q.extend(handle.get_children().iter().rev().cloned());
+        q.extend(handle.get_child_nodes().iter().rev().cloned());
       }
     }
 
@@ -43,7 +63,7 @@ pub(crate) mod children {
     handle: Handle,
     class_name: String,
   ) -> Result<Vec<Reference<Element>>> {
-    let mut q: Vec<Handle> = handle.get_children().iter().rev().cloned().collect();
+    let mut q: Vec<Handle> = handle.get_child_nodes().iter().rev().cloned().collect();
     let mut elements = vec![];
 
     while let Some(handle) = q.pop() {
@@ -52,7 +72,7 @@ pub(crate) mod children {
           elements.push(element.clone(element.env)?);
         }
 
-        q.extend(handle.get_children().iter().rev().cloned());
+        q.extend(handle.get_child_nodes().iter().rev().cloned());
       }
     }
 

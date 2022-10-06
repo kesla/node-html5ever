@@ -13,6 +13,7 @@ export class Html5EverDom {
   quirksMode: QuirksMode
   errors: Array<string>
   constructor(html: string)
+  static createDocumentFragment(html: string): Element
   get document(): Document
   serialize(): string
 }
@@ -40,6 +41,7 @@ export class DocType {
   get nextElementSibling(): Element | null
 }
 export class Document {
+  get childNodes(): Array<Comment | DocType | Element | Text>
   get children(): Array<Element>
   appendChild(child: Comment | DocType | Element | Text): void
   removeElement(child: Element): void
@@ -62,6 +64,7 @@ export class Element {
   get previousElementSibling(): Element | null
   get nextSibling(): Comment | DocType | Element | Text | null
   get nextElementSibling(): Element | null
+  get childNodes(): Array<Comment | DocType | Element | Text>
   get children(): Array<Element>
   appendChild(child: Comment | DocType | Element | Text): void
   removeElement(child: Element): void
