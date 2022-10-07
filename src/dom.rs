@@ -48,8 +48,29 @@ impl Html5everDom {
       dom.document_reference.get_document_element()?.inner_html()
     );
 
+    let fragment: Reference<Element> = dom
+      .document_reference
+      .create_element("#document-fragment".to_string())?;
+
+    let node_handler = dom
+      .document_reference
+      .get_document_element()?
+      .get_node_handler();
+    let tmp: Vec<Handle> = {
+      let get_child_nodes = node_handler.get_child_nodes();
+      let iter = get_child_nodes.iter();
+      iter.map(|x| x.clone()).collect()
+    };
+
+    let fragment_handle: Handle = fragment.clone(env)?.into();
+
+    for child in tmp {
+      fragment_handle.append_handle(&child.clone())?;
+    }
+
     // Ok(dom)
-    dom.document_reference.get_document_element()
+    // dom.document_reference.get_document_element()
+    Ok(fragment)
   }
 
   fn create_sink(env: Env) -> Result<Html5everDom> {

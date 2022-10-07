@@ -57,7 +57,7 @@ impl Document {
   }
 
   #[napi]
-  pub fn create_element(&mut self, name: String) -> Result<Reference<Element>> {
+  pub fn create_element(&self, name: String) -> Result<Reference<Element>> {
     Element::new_reference(
       self.env,
       vec![].into(),

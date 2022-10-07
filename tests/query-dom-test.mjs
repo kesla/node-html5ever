@@ -25,9 +25,8 @@ test("tagNames & nodeNames are upper case", (t) => {
   const fragment = parseFragment("<div>beep boop</div><DIV></DIV>hello, world");
   const actual = fragment.childNodes;
 
-  console.log("Hello, world", fragment.innerHtml);
-
-  t.strictSame(actual.length, 2);
+  t.strictSame(fragment.tagName, "#document-fragment");
+  t.strictSame(actual.length, 3);
   t.strictSame(actual[0].tagName, "DIV");
   t.strictSame(actual[0].nodeName, "DIV");
   t.strictSame(actual[1].tagName, "DIV");

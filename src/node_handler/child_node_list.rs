@@ -1,4 +1,4 @@
-use std;
+use std::{self, slice::Iter};
 
 use crate::{Handle, NodeHandler};
 
@@ -14,7 +14,7 @@ impl ChildNodeList {
     self.0.len()
   }
 
-  pub(crate) fn iter(&self) -> std::slice::Iter<Handle> {
+  pub(crate) fn iter(&self) -> Iter<Handle> {
     self.0.iter()
   }
 
