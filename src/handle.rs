@@ -1,6 +1,6 @@
 use std::cell::RefMut;
 
-use crate::{node_handler::ParentContext, Comment, DocType, Document, Element, NodeHandler, Text};
+use crate::{Comment, DocType, Document, Element, NodeHandler, ParentContext, Text};
 use napi::{
   bindgen_prelude::{Either4, Error, Reference, Result, WeakReference},
   Either, Status,
@@ -232,7 +232,7 @@ impl Handle {
 
   pub(crate) fn remove_handle(&self, child_handle: &Handle) {
     let child_node_handler: NodeHandler = child_handle.into();
-    let mut parent = child_node_handler.get_parent_mut();
+    let parent = child_node_handler.get_parent_mut();
 
     remove_handle(self, parent, child_handle);
   }
@@ -250,11 +250,11 @@ impl Handle {
   }
 }
 
-fn remove_handle(parent: &Handle, mut parent_ptr: RefMut<Option<ParentContext>>, child: &Handle) {
+fn remove_handle(parent: &Handle, mut parent_ref: RefMut<Option<ParentContext>>, child: &Handle) {
   let parent_node_handler: NodeHandler = parent.into();
 
   let mut children = parent_node_handler.get_child_nodes_mut();
   children.remove_handle(&child);
 
-  *parent_ptr = None;
+  *parent_ref = None;
 }

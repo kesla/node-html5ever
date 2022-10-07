@@ -24,11 +24,11 @@ pub(crate) mod children {
       .collect()
   }
 
-  pub(crate) fn get_children(node_handler: NodeHandler) -> Result<Vec<Reference<Element>>> {
+  pub(crate) fn get_children(node_handler: NodeHandler) -> Vec<WeakReference<Element>> {
     node_handler
       .get_child_nodes()
       .iter()
-      .filter_map(|node_handler| node_handler.as_element().ok().map(|r| r.clone(r.env)))
+      .filter_map(|node_handler| node_handler.as_element().ok().map(|r| r.downgrade()))
       .collect()
   }
 

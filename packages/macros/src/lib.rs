@@ -65,9 +65,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi(getter)]
-      pub fn get_children(
-        &self,
-      ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
+      pub fn get_children(&self) -> Vec<napi::bindgen_prelude::WeakReference<crate::Element>> {
         macro_backend::children::get_children(self.into())
       }
 

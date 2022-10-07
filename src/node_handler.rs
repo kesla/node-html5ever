@@ -1,12 +1,9 @@
 use std::{
   cell::{Ref, RefCell, RefMut},
-  rc::{Rc, Weak},
+  rc::Rc,
 };
 
-use napi::{
-  bindgen_prelude::{Either4, Reference, WeakReference},
-  Either, Env, Error, Result,
-};
+use napi::{bindgen_prelude::Either4, Either, Env, Error, Result};
 
 use crate::{get_id, Comment, DocType, Document, Element, Handle, Text};
 
@@ -15,7 +12,7 @@ mod iterators;
 mod node_reference;
 mod parent_context;
 
-pub(crate) use self::parent_context::ParentContext;
+pub use self::parent_context::ParentContext;
 
 use self::{
   child_node_list::ChildNodeList,

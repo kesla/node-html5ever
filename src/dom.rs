@@ -1,12 +1,7 @@
-use crate::{
-  serialize, Comment, DocType, Document, Element, Handle, NodeHandler, QuirksMode, Text,
-};
-use html5ever::driver::parse_fragment_for_element;
+use crate::{serialize, Comment, DocType, Document, Element, Handle, QuirksMode, Text};
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
-use html5ever::{
-  local_name, namespace_url, ns, parse_document, parse_fragment, Namespace, ParseOpts, QualName,
-};
+use html5ever::{namespace_url, ns, parse_document, parse_fragment, ParseOpts, QualName};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
 #[napi]

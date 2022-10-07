@@ -4,8 +4,8 @@ mod document;
 mod element;
 mod text;
 
-pub(crate) use comment::Comment;
-pub(crate) use doc_type::DocType;
-pub(crate) use document::Document;
-pub(crate) use element::Element;
-pub(crate) use text::Text;
+pub use comment::Comment;
+pub use doc_type::DocType;
+pub use document::Document;
+pub use element::Element;
+pub use text::Text;

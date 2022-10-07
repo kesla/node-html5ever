@@ -15,9 +15,8 @@ mod serializer;
 
 pub use dom::Html5everDom;
 pub use handle::Handle;
-pub(crate) use id::get_id;
-pub use node_handler::NodeHandler;
-pub(crate) use node_handler::ParentContext;
-pub(crate) use nodes::{Comment, DocType, Document, Element, Text};
-pub(crate) use quirks_mode::QuirksMode;
-pub(crate) use serializer::serialize;
+pub use id::get_id;
+pub use node_handler::{NodeHandler, ParentContext};
+pub use nodes::{Comment, DocType, Document, Element, Text};
+pub use quirks_mode::QuirksMode;
+pub use serializer::serialize;

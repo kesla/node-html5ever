@@ -38,7 +38,12 @@ impl Element {
 
   #[napi(getter)]
   pub fn node_name(&self) -> String {
-    self.name.local.to_string().to_uppercase()
+    let local = self.name.local.to_string();
+
+    match local.starts_with('#') {
+      true => local,
+      false => local.to_uppercase(),
+    }
   }
 
   #[napi(getter)]

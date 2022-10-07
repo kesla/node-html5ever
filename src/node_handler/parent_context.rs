@@ -5,7 +5,7 @@ use napi::{
 
 use crate::{Document, Element, Handle};
 
-pub(crate) struct ParentContext {
+pub struct ParentContext {
   pub(crate) node: Either<WeakReference<Document>, WeakReference<Element>>,
   pub(crate) index: usize,
   pub(crate) env: Env,
