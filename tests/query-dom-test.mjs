@@ -27,9 +27,9 @@ test("tagNames & nodeNames are upper case", (t) => {
 
   t.strictSame(fragment.nodeName, "#document-fragment", "fragment.nodeName");
   t.strictSame(actual.length, 3);
-  t.strictSame(actual[0].tagName, "DIV");
+  t.strictSame(actual[0] instanceof Element && actual[0].tagName, "DIV");
   t.strictSame(actual[0].nodeName, "DIV");
-  t.strictSame(actual[1].tagName, "DIV");
+  t.strictSame(actual[1] instanceof Element && actual[1].tagName, "DIV");
   t.strictSame(actual[1].nodeName, "DIV");
 });
 

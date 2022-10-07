@@ -1,5 +1,5 @@
 use crate::{
-  serialize, Comment, DocType, Document, DocumentFragment, Element, Handle, QuirksMode, Text,
+  serialize, Comment, Document, DocumentFragment, DocumentType, Element, Handle, QuirksMode, Text,
 };
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
@@ -170,7 +170,7 @@ impl TreeSink for Html5everDom {
     public_id: html5ever::tendril::StrTendril,
     system_id: html5ever::tendril::StrTendril,
   ) {
-    let r = DocType::new_reference(
+    let r = DocumentType::new_reference(
       self.env,
       name.to_string(),
       public_id.to_string(),

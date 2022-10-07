@@ -1,6 +1,6 @@
 import tap from "tap";
 
-import { Html5EverDom, QuirksMode, Element, Document } from "../index.js";
+import { Html5EverDom, QuirksMode, Element, Document, DocumentFragment, Comment, Text, DocumentType } from "../index.js";
 
 /**
  *
@@ -315,3 +315,19 @@ test("previousSibling & nextSibling", (t) => {
   t.strictSame(bar?.nextSibling, null);
   t.strictSame(bar?.nextElementSibling, null);
 });
+
+test("Instance of", (t) => {
+  let fragment = Html5EverDom.createDocumentFragment("text<div></div><!-- comment -->");
+
+  t.ok(fragment instanceof DocumentFragment);
+  t.ok(fragment.childNodes[0] instanceof Text);
+  t.ok(fragment.childNodes[1] instanceof Element);
+  t.ok(fragment.childNodes[2] instanceof Comment);
+
+  let { document } = new Html5EverDom("<!DOCTYPE html>");
+  t.ok(document instanceof Document);
+  t.ok(document.body instanceof Element);
+  t.ok(document.head instanceof Element);
+  t.ok(document.documentElement instanceof Element);
+  t.ok(document.docType instanceof DocumentType);
+})

@@ -23,34 +23,20 @@ export class Comment {
   get parentNode(): Document | DocumentFragment | Element | null
   remove(): void
   get ownerDocument(): Document | null
-  get previousSibling(): Comment | DocType | Element | Text | null
+  get previousSibling(): Comment | DocumentType | Element | Text | null
   get previousElementSibling(): Element | null
-  get nextSibling(): Comment | DocType | Element | Text | null
-  get nextElementSibling(): Element | null
-}
-export class DocType {
-  name: string
-  publicId: string
-  systemId: string
-  get nodeName(): string
-  get parentElement(): Element | null
-  get parentNode(): Document | DocumentFragment | Element | null
-  remove(): void
-  get ownerDocument(): Document | null
-  get previousSibling(): Comment | DocType | Element | Text | null
-  get previousElementSibling(): Element | null
-  get nextSibling(): Comment | DocType | Element | Text | null
+  get nextSibling(): Comment | DocumentType | Element | Text | null
   get nextElementSibling(): Element | null
 }
 export class Document {
   get nodeName(): string
-  get childNodes(): Array<Comment | DocType | Element | Text>
+  get childNodes(): Array<Comment | DocumentType | Element | Text>
   get children(): Array<Element>
-  appendChild(child: Comment | DocType | Element | Text): void
+  appendChild(child: Comment | DocumentType | Element | Text): void
   removeElement(child: Element): void
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
-  get docType(): DocType | null
+  get docType(): DocumentType | null
   get documentElement(): Element
   get head(): Element
   get body(): Element
@@ -60,12 +46,26 @@ export class Document {
 }
 export class DocumentFragment {
   get nodeName(): string
-  get childNodes(): Array<Comment | DocType | Element | Text>
+  get childNodes(): Array<Comment | DocumentType | Element | Text>
   get children(): Array<Element>
-  appendChild(child: Comment | DocType | Element | Text): void
+  appendChild(child: Comment | DocumentType | Element | Text): void
   removeElement(child: Element): void
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+}
+export class DocumentType {
+  name: string
+  publicId: string
+  systemId: string
+  get nodeName(): string
+  get parentElement(): Element | null
+  get parentNode(): Document | DocumentFragment | Element | null
+  remove(): void
+  get ownerDocument(): Document | null
+  get previousSibling(): Comment | DocumentType | Element | Text | null
+  get previousElementSibling(): Element | null
+  get nextSibling(): Comment | DocumentType | Element | Text | null
+  get nextElementSibling(): Element | null
 }
 export class Element {
   get nodeName(): string
@@ -73,13 +73,13 @@ export class Element {
   get parentNode(): Document | DocumentFragment | Element | null
   remove(): void
   get ownerDocument(): Document | null
-  get previousSibling(): Comment | DocType | Element | Text | null
+  get previousSibling(): Comment | DocumentType | Element | Text | null
   get previousElementSibling(): Element | null
-  get nextSibling(): Comment | DocType | Element | Text | null
+  get nextSibling(): Comment | DocumentType | Element | Text | null
   get nextElementSibling(): Element | null
-  get childNodes(): Array<Comment | DocType | Element | Text>
+  get childNodes(): Array<Comment | DocumentType | Element | Text>
   get children(): Array<Element>
-  appendChild(child: Comment | DocType | Element | Text): void
+  appendChild(child: Comment | DocumentType | Element | Text): void
   removeElement(child: Element): void
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
@@ -101,8 +101,8 @@ export class Text {
   get parentNode(): Document | DocumentFragment | Element | null
   remove(): void
   get ownerDocument(): Document | null
-  get previousSibling(): Comment | DocType | Element | Text | null
+  get previousSibling(): Comment | DocumentType | Element | Text | null
   get previousElementSibling(): Element | null
-  get nextSibling(): Comment | DocType | Element | Text | null
+  get nextSibling(): Comment | DocumentType | Element | Text | null
   get nextElementSibling(): Element | null
 }

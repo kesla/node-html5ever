@@ -44,7 +44,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
         SerializeOp::Open(handle) => {
           match &handle {
             Handle::Comment(comment) => serializer.write_comment(&comment.content)?,
-            Handle::DocType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+            Handle::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
             Handle::Element(element) => {
               let node_handler = element.get_node_handler();
               let list = node_handler.get_child_nodes();

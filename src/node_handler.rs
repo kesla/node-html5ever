@@ -8,7 +8,7 @@ use napi::{
   Either, Env, Error, Result,
 };
 
-use crate::{get_id, Comment, DocType, Document, Element, Handle, Text};
+use crate::{get_id, Comment, Document, DocumentType, Element, Handle, Text};
 
 mod child_node_list;
 mod iterators;
@@ -125,8 +125,8 @@ impl From<Either<&Document, &Element>> for NodeHandler {
   }
 }
 
-impl From<Either4<&Comment, &DocType, &Element, &Text>> for NodeHandler {
-  fn from(e: Either4<&Comment, &DocType, &Element, &Text>) -> Self {
+impl From<Either4<&Comment, &DocumentType, &Element, &Text>> for NodeHandler {
+  fn from(e: Either4<&Comment, &DocumentType, &Element, &Text>) -> Self {
     match e {
       Either4::A(r) => r.into(),
       Either4::B(r) => r.into(),
@@ -140,7 +140,7 @@ impl From<Handle> for NodeHandler {
   fn from(handle: Handle) -> Self {
     match handle {
       Handle::Comment(r) => r.get_node_handler(),
-      Handle::DocType(r) => r.get_node_handler(),
+      Handle::DocumentType(r) => r.get_node_handler(),
       Handle::Document(r) => r.get_node_handler(),
       Handle::DocumentFragment(r) => r.get_node_handler(),
       Handle::Element(r) => r.get_node_handler(),
@@ -153,7 +153,7 @@ impl From<&Handle> for NodeHandler {
   fn from(handle: &Handle) -> Self {
     match handle {
       Handle::Comment(r) => r.get_node_handler(),
-      Handle::DocType(r) => r.get_node_handler(),
+      Handle::DocumentType(r) => r.get_node_handler(),
       Handle::Document(r) => r.get_node_handler(),
       Handle::DocumentFragment(r) => r.get_node_handler(),
       Handle::Element(r) => r.get_node_handler(),

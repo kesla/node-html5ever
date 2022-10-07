@@ -1,7 +1,7 @@
 use std::cell::RefMut;
 
 use crate::{
-  Comment, DocType, Document, DocumentFragment, Element, NodeHandler, ParentContext, Text,
+  Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler, ParentContext, Text,
 };
 use napi::{
   bindgen_prelude::{Either3, Either4, Error, Reference, Result, WeakReference},
@@ -10,15 +10,15 @@ use napi::{
 
 pub enum Handle {
   Comment(Reference<Comment>),
-  DocType(Reference<DocType>),
+  DocumentType(Reference<DocumentType>),
   Document(Reference<Document>),
   DocumentFragment(Reference<DocumentFragment>),
   Element(Reference<Element>),
   Text(Reference<Text>),
 }
 
-impl From<Either4<&Comment, &DocType, &Element, &Text>> for Handle {
-  fn from(value: Either4<&Comment, &DocType, &Element, &Text>) -> Self {
+impl From<Either4<&Comment, &DocumentType, &Element, &Text>> for Handle {
+  fn from(value: Either4<&Comment, &DocumentType, &Element, &Text>) -> Self {
     match value {
       Either4::A(comment) => comment.into(),
       Either4::B(doc_type) => doc_type.into(),
@@ -47,7 +47,7 @@ impl
   Into<
     Either4<
       WeakReference<Comment>,
-      WeakReference<DocType>,
+      WeakReference<DocumentType>,
       WeakReference<Element>,
       WeakReference<Text>,
     >,
@@ -57,13 +57,13 @@ impl
     self,
   ) -> Either4<
     WeakReference<Comment>,
-    WeakReference<DocType>,
+    WeakReference<DocumentType>,
     WeakReference<Element>,
     WeakReference<Text>,
   > {
     match self {
       Handle::Comment(r) => Either4::A(r.downgrade()),
-      Handle::DocType(r) => Either4::B(r.downgrade()),
+      Handle::DocumentType(r) => Either4::B(r.downgrade()),
       Handle::Element(r) => Either4::C(r.downgrade()),
       Handle::Text(r) => Either4::D(r.downgrade()),
       Handle::Document(_) => panic!("Document is not a Node"),
@@ -110,15 +110,15 @@ impl From<&Element> for Handle {
   }
 }
 
-impl From<Reference<DocType>> for Handle {
-  fn from(r: Reference<DocType>) -> Self {
-    Self::DocType(r)
+impl From<Reference<DocumentType>> for Handle {
+  fn from(r: Reference<DocumentType>) -> Self {
+    Self::DocumentType(r)
   }
 }
 
-impl From<&DocType> for Handle {
-  fn from(r: &DocType) -> Self {
-    Self::DocType(
+impl From<&DocumentType> for Handle {
+  fn from(r: &DocumentType) -> Self {
+    Self::DocumentType(
       r.weak_reference
         .as_ref()
         .unwrap()
@@ -190,7 +190,7 @@ impl PartialEq for Handle {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
       (Self::Comment(left), Self::Comment(right)) => left.id == right.id,
-      (Self::DocType(left), Self::DocType(right)) => left.id == right.id,
+      (Self::DocumentType(left), Self::DocumentType(right)) => left.id == right.id,
       (Self::Document(left), Self::Document(right)) => left.id == right.id,
       (Self::DocumentFragment(left), Self::DocumentFragment(right)) => left.id == right.id,
       (Self::Element(left), Self::Element(right)) => left.id == right.id,
@@ -206,7 +206,7 @@ impl Clone for Handle {
   fn clone(&self) -> Self {
     match self {
       Self::Comment(arg0) => Self::Comment(arg0.clone(arg0.env).unwrap()),
-      Self::DocType(arg0) => Self::DocType(arg0.clone(arg0.env).unwrap()),
+      Self::DocumentType(arg0) => Self::DocumentType(arg0.clone(arg0.env).unwrap()),
       Self::Document(arg0) => Self::Document(arg0.clone(arg0.env).unwrap()),
       Self::DocumentFragment(arg0) => Self::DocumentFragment(arg0.clone(arg0.env).unwrap()),
       Self::Element(arg0) => Self::Element(arg0.clone(arg0.env).unwrap()),
@@ -226,12 +226,12 @@ impl Handle {
     }
   }
 
-  pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocType>> {
+  pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocumentType>> {
     match &self {
-      Handle::DocType(r) => Ok(r),
+      Handle::DocumentType(r) => Ok(r),
       _ => Err(Error::new(
         Status::InvalidArg,
-        "Node is not a DocType".to_string(),
+        "Node is not a DocumentType".to_string(),
       )),
     }
   }
@@ -286,7 +286,7 @@ impl Handle {
   pub(crate) fn get_node_name(&self) -> String {
     match self {
       Handle::Comment(_) => "#comment".to_string(),
-      Handle::DocType(_) => "#docType".to_string(),
+      Handle::DocumentType(_) => "#docType".to_string(),
       Handle::Document(_) => "#document".to_string(),
       Handle::DocumentFragment(_) => "#document-fragment".to_string(),
       Handle::Element(r) => r.name.local.to_string().to_uppercase(),

@@ -1,5 +1,5 @@
 #[create_node(is_child)]
-pub struct DocType {
+pub struct DocumentType {
   #[napi(writable = false)]
   pub name: String,
 

@@ -5,14 +5,14 @@ pub(crate) mod children {
     Result,
   };
 
-  use crate::{Comment, DocType, Element, Handle, NodeHandler, Text};
+  use crate::{Comment, DocumentType, Element, Handle, NodeHandler, Text};
 
   pub(crate) fn get_child_nodes(
     node_handler: NodeHandler,
   ) -> Vec<
     Either4<
       WeakReference<Comment>,
-      WeakReference<DocType>,
+      WeakReference<DocumentType>,
       WeakReference<Element>,
       WeakReference<Text>,
     >,
@@ -93,7 +93,9 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::{Comment, DocType, Document, DocumentFragment, Element, Handle, NodeHandler, Text};
+  use crate::{
+    Comment, Document, DocumentFragment, DocumentType, Element, Handle, NodeHandler, Text,
+  };
   use napi::{
     bindgen_prelude::{Either3, Either4, Reference, WeakReference},
     Result,
@@ -146,7 +148,7 @@ pub(crate) mod parent {
     Option<
       Either4<
         WeakReference<Comment>,
-        WeakReference<DocType>,
+        WeakReference<DocumentType>,
         WeakReference<Element>,
         WeakReference<Text>,
       >,
@@ -170,7 +172,7 @@ pub(crate) mod parent {
     Option<
       Either4<
         WeakReference<Comment>,
-        WeakReference<DocType>,
+        WeakReference<DocumentType>,
         WeakReference<Element>,
         WeakReference<Text>,
       >,

@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::{Either4, WeakReference};
 
-use crate::{Comment, DocType, Element, NodeHandler, Text};
+use crate::{Comment, DocumentType, Element, NodeHandler, Text};
 
 pub(crate) enum PreviousIterator {
   Data {
@@ -13,7 +13,7 @@ pub(crate) enum PreviousIterator {
 impl Iterator for PreviousIterator {
   type Item = Either4<
     WeakReference<Comment>,
-    WeakReference<DocType>,
+    WeakReference<DocumentType>,
     WeakReference<Element>,
     WeakReference<Text>,
   >;
@@ -49,7 +49,7 @@ pub(crate) enum NextIterator {
 impl Iterator for NextIterator {
   type Item = Either4<
     WeakReference<Comment>,
-    WeakReference<DocType>,
+    WeakReference<DocumentType>,
     WeakReference<Element>,
     WeakReference<Text>,
   >;

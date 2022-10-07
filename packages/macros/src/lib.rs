@@ -56,7 +56,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       ) -> Vec<
         napi::bindgen_prelude::Either4<
           napi::bindgen_prelude::WeakReference<crate::Comment>,
-          napi::bindgen_prelude::WeakReference<crate::DocType>,
+          napi::bindgen_prelude::WeakReference<crate::DocumentType>,
           napi::bindgen_prelude::WeakReference<crate::Element>,
           napi::bindgen_prelude::WeakReference<crate::Text>,
         >,
@@ -74,7 +74,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         child: napi::bindgen_prelude::Either4<
           &crate::Comment,
-          &crate::DocType,
+          &crate::DocumentType,
           &crate::Element,
           &crate::Text,
         >,
@@ -141,7 +141,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         napi::Result<Option<
           napi::bindgen_prelude::Either4<
             napi::bindgen_prelude::WeakReference<crate::Comment>,
-            napi::bindgen_prelude::WeakReference<crate::DocType>,
+            napi::bindgen_prelude::WeakReference<crate::DocumentType>,
             napi::bindgen_prelude::WeakReference<crate::Element>,
             napi::bindgen_prelude::WeakReference<crate::Text>
           >
@@ -160,7 +160,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         napi::Result<Option<
           napi::bindgen_prelude::Either4<
             napi::bindgen_prelude::WeakReference<crate::Comment>,
-            napi::bindgen_prelude::WeakReference<crate::DocType>,
+            napi::bindgen_prelude::WeakReference<crate::DocumentType>,
             napi::bindgen_prelude::WeakReference<crate::Element>,
             napi::bindgen_prelude::WeakReference<crate::Text>
           >

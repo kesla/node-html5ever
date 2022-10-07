@@ -1,7 +1,7 @@
 use html5ever::{Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Result};
 
-use crate::{DocType, Element, Text};
+use crate::{DocumentType, Element, Text};
 
 #[create_node(has_children)]
 pub struct Document {}
@@ -9,7 +9,7 @@ pub struct Document {}
 #[napi]
 impl Document {
   #[napi(getter)]
-  pub fn get_doc_type(&self) -> Result<Option<Reference<DocType>>> {
+  pub fn get_doc_type(&self) -> Result<Option<Reference<DocumentType>>> {
     if let Some(first) = self.get_node_handler().get_child_nodes().get(0) {
       if let Ok(doc_type) = first.as_doc_type() {
         return Ok(Some(doc_type.clone(self.env)?));
