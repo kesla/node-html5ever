@@ -116,8 +116,9 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
-          napi::Result<Option<napi::Either<
+          napi::Result<Option<napi::bindgen_prelude::Either3<
             napi::bindgen_prelude::Reference<crate::Document>,
+            napi::bindgen_prelude::Reference<crate::DocumentFragment>,
             napi::bindgen_prelude::Reference<crate::Element>,
           >>> {
         macro_backend::parent::get_parent_node(self.into())
@@ -210,6 +211,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       pub(crate) fn get_node_handler(&self) -> crate::NodeHandler {
         self.node_handler.clone()
+      }
+
+      #[napi(getter)]
+      pub fn get_node_name(&self) -> String {
+        crate::macro_backend::get_node_name(self.into())
       }
 
       #is_child_impl

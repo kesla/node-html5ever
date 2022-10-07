@@ -1,12 +1,13 @@
 use napi::{
-  bindgen_prelude::{Either, Reference, WeakReference},
+  bindgen_prelude::{Either3, Reference, WeakReference},
   Env, Error, Result,
 };
 
-use crate::{Document, Element, Handle};
+use crate::{Document, DocumentFragment, Element, Handle};
 
 pub struct ParentContext {
-  pub(crate) node: Either<WeakReference<Document>, WeakReference<Element>>,
+  pub(crate) node:
+    Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>>,
   pub(crate) index: usize,
   pub(crate) env: Env,
 }
@@ -14,7 +15,7 @@ pub struct ParentContext {
 impl ParentContext {
   pub(crate) fn new(
     env: Env,
-    node: Either<WeakReference<Document>, WeakReference<Element>>,
+    node: Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>>,
     index: usize,
   ) -> Self {
     ParentContext { env, node, index }
@@ -22,8 +23,9 @@ impl ParentContext {
 
   pub(crate) fn get_handle(&self) -> Result<Handle> {
     let handle: Handle = match &self.node {
-      Either::A(weak_reference) => weak_reference.upgrade(self.env)?.unwrap().into(),
-      Either::B(weak_reference) => weak_reference.upgrade(self.env)?.unwrap().into(),
+      Either3::A(weak_reference) => weak_reference.upgrade(self.env)?.unwrap().into(),
+      Either3::B(weak_reference) => weak_reference.upgrade(self.env)?.unwrap().into(),
+      Either3::C(weak_reference) => weak_reference.upgrade(self.env)?.unwrap().into(),
     };
     Ok(handle)
   }
@@ -37,16 +39,22 @@ impl TryInto<Handle> for &ParentContext {
   }
 }
 
-impl TryInto<Either<Reference<Document>, Reference<Element>>> for &ParentContext {
+impl TryInto<Either3<Reference<Document>, Reference<DocumentFragment>, Reference<Element>>>
+  for &ParentContext
+{
   type Error = Error;
 
-  fn try_into(self) -> Result<Either<Reference<Document>, Reference<Element>>> {
+  fn try_into(
+    self,
+  ) -> Result<Either3<Reference<Document>, Reference<DocumentFragment>, Reference<Element>>> {
     let handle = self.get_handle()?;
-    let reference: Either<Reference<Document>, Reference<Element>> = match handle {
-      Handle::Document(document) => Either::A(document),
-      Handle::Element(element) => Either::B(element),
-      _ => panic!("Invalid handle"),
-    };
+    let reference: Either3<Reference<Document>, Reference<DocumentFragment>, Reference<Element>> =
+      match handle {
+        Handle::Document(document) => Either3::A(document),
+        Handle::DocumentFragment(document_fragment) => Either3::B(document_fragment),
+        Handle::Element(element) => Either3::C(element),
+        _ => panic!("Invalid handle"),
+      };
     Ok(reference)
   }
 }

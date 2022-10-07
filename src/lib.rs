@@ -17,6 +17,6 @@ pub use dom::Html5everDom;
 pub use handle::Handle;
 pub use id::get_id;
 pub use node_handler::{NodeHandler, ParentContext};
-pub use nodes::{Comment, DocType, Document, Element, Text};
+pub use nodes::{Comment, DocType, Document, DocumentFragment, Element, Text};
 pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;

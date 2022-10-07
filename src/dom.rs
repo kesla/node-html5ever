@@ -1,4 +1,6 @@
-use crate::{serialize, Comment, DocType, Document, Element, Handle, QuirksMode, Text};
+use crate::{
+  serialize, Comment, DocType, Document, DocumentFragment, Element, Handle, QuirksMode, Text,
+};
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
 use html5ever::{namespace_url, ns, parse_document, parse_fragment, ParseOpts, QualName};
@@ -27,7 +29,7 @@ impl Html5everDom {
   }
 
   #[napi]
-  pub fn create_document_fragment(env: Env, html: String) -> Result<Reference<Element>> {
+  pub fn create_document_fragment(env: Env, html: String) -> Result<Reference<DocumentFragment>> {
     let dom: Html5everDom = parse_fragment(
       Self::create_sink(env)?,
       ParseOpts::default(),
@@ -43,9 +45,7 @@ impl Html5everDom {
       dom.document_reference.get_document_element()?.inner_html()
     );
 
-    let fragment: Reference<Element> = dom
-      .document_reference
-      .create_element("#document-fragment".to_string())?;
+    let fragment: Reference<DocumentFragment> = DocumentFragment::new_reference(env)?;
 
     let node_handler = dom
       .document_reference

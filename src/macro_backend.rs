@@ -93,10 +93,10 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::{Comment, DocType, Document, Element, Handle, NodeHandler, Text};
+  use crate::{Comment, DocType, Document, DocumentFragment, Element, Handle, NodeHandler, Text};
   use napi::{
-    bindgen_prelude::{Either4, Reference, WeakReference},
-    Either, Result,
+    bindgen_prelude::{Either3, Either4, Reference, WeakReference},
+    Result,
   };
 
   pub(crate) fn get_parent_element(
@@ -105,21 +105,23 @@ pub(crate) mod parent {
     let parent_node = get_parent_node(node_handler);
 
     match parent_node {
-      Ok(Some(Either::B(element))) => Ok(Some(element)),
+      Ok(Some(Either3::C(element))) => Ok(Some(element)),
       _ => Ok(None),
     }
   }
 
   pub(crate) fn get_parent_node(
     node_handler: NodeHandler,
-  ) -> Result<Option<Either<Reference<Document>, Reference<Element>>>> {
+  ) -> Result<Option<Either3<Reference<Document>, Reference<DocumentFragment>, Reference<Element>>>>
+  {
     let parent = node_handler.get_parent();
     let parent = parent.as_ref();
     let parent = match parent {
       Some(parent) => parent,
       None => return Ok(None),
     };
-    let parent: Either<Reference<Document>, Reference<Element>> = parent.try_into()?;
+    let parent: Either3<Reference<Document>, Reference<DocumentFragment>, Reference<Element>> =
+      parent.try_into()?;
     Ok(Some(parent))
   }
 
@@ -131,8 +133,9 @@ pub(crate) mod parent {
     let maybe_parent = get_parent_node(node_handler)?;
 
     match maybe_parent {
-      Some(Either::A(document)) => Ok(Some(document)),
-      Some(Either::B(element)) => element.owner_document(),
+      Some(Either3::A(document)) => Ok(Some(document)),
+      Some(Either3::B(_document_fragment)) => Ok(None),
+      Some(Either3::C(element)) => element.owner_document(),
       None => Ok(None),
     }
   }
@@ -185,3 +188,13 @@ pub(crate) mod parent {
     }))
   }
 }
+
+mod all_nodes {
+  use crate::Handle;
+
+  pub(crate) fn get_node_name(handle: Handle) -> String {
+    handle.get_node_name()
+  }
+}
+
+pub(crate) use all_nodes::*;

@@ -13,13 +13,14 @@ export class Html5EverDom {
   quirksMode: QuirksMode
   errors: Array<string>
   constructor(html: string)
-  static createDocumentFragment(html: string): Element
+  static createDocumentFragment(html: string): DocumentFragment
   get document(): Document
   serialize(): string
 }
 export class Comment {
+  get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | Element | null
+  get parentNode(): Document | DocumentFragment | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null
@@ -31,8 +32,9 @@ export class DocType {
   name: string
   publicId: string
   systemId: string
+  get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | Element | null
+  get parentNode(): Document | DocumentFragment | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null
@@ -41,6 +43,7 @@ export class DocType {
   get nextElementSibling(): Element | null
 }
 export class Document {
+  get nodeName(): string
   get childNodes(): Array<Comment | DocType | Element | Text>
   get children(): Array<Element>
   appendChild(child: Comment | DocType | Element | Text): void
@@ -55,9 +58,19 @@ export class Document {
   createElement(name: string): Element
   createTextNode(data: string): Text
 }
+export class DocumentFragment {
+  get nodeName(): string
+  get childNodes(): Array<Comment | DocType | Element | Text>
+  get children(): Array<Element>
+  appendChild(child: Comment | DocType | Element | Text): void
+  removeElement(child: Element): void
+  getElementById(id: string): Element | null
+  getElementsByClassName(className: string): Array<Element>
+}
 export class Element {
+  get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | Element | null
+  get parentNode(): Document | DocumentFragment | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null
@@ -74,7 +87,6 @@ export class Element {
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void
   hasAttribute(name: string): boolean
-  get nodeName(): string
   get tagName(): string
   get innerHtml(): string
   get outerHtml(): string
@@ -84,8 +96,9 @@ export class Element {
   set id(id: string)
 }
 export class Text {
+  get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | Element | null
+  get parentNode(): Document | DocumentFragment | Element | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): Comment | DocType | Element | Text | null

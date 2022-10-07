@@ -3,7 +3,10 @@ use std::{
   rc::Rc,
 };
 
-use napi::{bindgen_prelude::Either4, Either, Env, Error, Result};
+use napi::{
+  bindgen_prelude::{Either3, Either4},
+  Either, Env, Error, Result,
+};
 
 use crate::{get_id, Comment, DocType, Document, Element, Handle, Text};
 
@@ -91,13 +94,19 @@ impl TryFrom<&ParentContext> for NodeHandler {
 
   fn try_from(parent_context: &ParentContext) -> Result<Self> {
     match &parent_context.node {
-      Either::A(document) => {
+      Either3::A(document) => {
         let document = document
           .upgrade(parent_context.env)?
           .expect("Document is gone");
         Ok(document.get_node_handler())
       }
-      Either::B(element) => {
+      Either3::B(document_fragment) => {
+        let document_fragment = document_fragment
+          .upgrade(parent_context.env)?
+          .expect("DocumentFragment is gone");
+        Ok(document_fragment.get_node_handler())
+      }
+      Either3::C(element) => {
         let element = element
           .upgrade(parent_context.env)?
           .expect("Element is gone");
@@ -133,6 +142,7 @@ impl From<Handle> for NodeHandler {
       Handle::Comment(r) => r.get_node_handler(),
       Handle::DocType(r) => r.get_node_handler(),
       Handle::Document(r) => r.get_node_handler(),
+      Handle::DocumentFragment(r) => r.get_node_handler(),
       Handle::Element(r) => r.get_node_handler(),
       Handle::Text(r) => r.get_node_handler(),
     }
@@ -145,6 +155,7 @@ impl From<&Handle> for NodeHandler {
       Handle::Comment(r) => r.get_node_handler(),
       Handle::DocType(r) => r.get_node_handler(),
       Handle::Document(r) => r.get_node_handler(),
+      Handle::DocumentFragment(r) => r.get_node_handler(),
       Handle::Element(r) => r.get_node_handler(),
       Handle::Text(r) => r.get_node_handler(),
     }

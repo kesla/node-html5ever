@@ -64,6 +64,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
               }
             }
             Handle::Document(_) => panic!("Can't serialize Document node itself"),
+            Handle::DocumentFragment(_) => panic!("Can't serialize DocumentFragment node itself"),
             Handle::Text(text) => serializer.write_text(&text.content)?,
           }
         }

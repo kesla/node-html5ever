@@ -1,15 +1,18 @@
 use std::cell::RefMut;
 
-use crate::{Comment, DocType, Document, Element, NodeHandler, ParentContext, Text};
+use crate::{
+  Comment, DocType, Document, DocumentFragment, Element, NodeHandler, ParentContext, Text,
+};
 use napi::{
-  bindgen_prelude::{Either4, Error, Reference, Result, WeakReference},
-  Either, Status,
+  bindgen_prelude::{Either3, Either4, Error, Reference, Result, WeakReference},
+  Status,
 };
 
 pub enum Handle {
   Comment(Reference<Comment>),
   DocType(Reference<DocType>),
   Document(Reference<Document>),
+  DocumentFragment(Reference<DocumentFragment>),
   Element(Reference<Element>),
   Text(Reference<Text>),
 }
@@ -25,11 +28,16 @@ impl From<Either4<&Comment, &DocType, &Element, &Text>> for Handle {
   }
 }
 
-impl Into<Either<WeakReference<Document>, WeakReference<Element>>> for &Handle {
-  fn into(self) -> Either<WeakReference<Document>, WeakReference<Element>> {
+impl Into<Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>>>
+  for &Handle
+{
+  fn into(
+    self,
+  ) -> Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>> {
     match self {
-      Handle::Document(document) => Either::A(document.downgrade()),
-      Handle::Element(element) => Either::B(element.downgrade()),
+      Handle::Document(document) => Either3::A(document.downgrade()),
+      Handle::DocumentFragment(document_fragment) => Either3::B(document_fragment.downgrade()),
+      Handle::Element(element) => Either3::C(element.downgrade()),
       _ => panic!("Invalid handle"),
     }
   }
@@ -59,6 +67,7 @@ impl
       Handle::Element(r) => Either4::C(r.downgrade()),
       Handle::Text(r) => Either4::D(r.downgrade()),
       Handle::Document(_) => panic!("Document is not a Node"),
+      &Handle::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
     }
   }
 }
@@ -101,6 +110,25 @@ impl From<&Element> for Handle {
   }
 }
 
+impl From<Reference<DocType>> for Handle {
+  fn from(r: Reference<DocType>) -> Self {
+    Self::DocType(r)
+  }
+}
+
+impl From<&DocType> for Handle {
+  fn from(r: &DocType) -> Self {
+    Self::DocType(
+      r.weak_reference
+        .as_ref()
+        .unwrap()
+        .upgrade(r.env)
+        .unwrap()
+        .unwrap(),
+    )
+  }
+}
+
 impl From<Reference<Document>> for Handle {
   fn from(r: Reference<Document>) -> Self {
     Self::Document(r)
@@ -120,15 +148,15 @@ impl From<&Document> for Handle {
   }
 }
 
-impl From<Reference<DocType>> for Handle {
-  fn from(r: Reference<DocType>) -> Self {
-    Self::DocType(r)
+impl From<Reference<DocumentFragment>> for Handle {
+  fn from(r: Reference<DocumentFragment>) -> Self {
+    Self::DocumentFragment(r)
   }
 }
 
-impl From<&DocType> for Handle {
-  fn from(r: &DocType) -> Self {
-    Self::DocType(
+impl From<&DocumentFragment> for Handle {
+  fn from(r: &DocumentFragment) -> Self {
+    Self::DocumentFragment(
       r.weak_reference
         .as_ref()
         .unwrap()
@@ -164,6 +192,7 @@ impl PartialEq for Handle {
       (Self::Comment(left), Self::Comment(right)) => left.id == right.id,
       (Self::DocType(left), Self::DocType(right)) => left.id == right.id,
       (Self::Document(left), Self::Document(right)) => left.id == right.id,
+      (Self::DocumentFragment(left), Self::DocumentFragment(right)) => left.id == right.id,
       (Self::Element(left), Self::Element(right)) => left.id == right.id,
       (Self::Text(left), Self::Text(right)) => left.id == right.id,
       _ => false,
@@ -179,6 +208,7 @@ impl Clone for Handle {
       Self::Comment(arg0) => Self::Comment(arg0.clone(arg0.env).unwrap()),
       Self::DocType(arg0) => Self::DocType(arg0.clone(arg0.env).unwrap()),
       Self::Document(arg0) => Self::Document(arg0.clone(arg0.env).unwrap()),
+      Self::DocumentFragment(arg0) => Self::DocumentFragment(arg0.clone(arg0.env).unwrap()),
       Self::Element(arg0) => Self::Element(arg0.clone(arg0.env).unwrap()),
       Self::Text(arg0) => Self::Text(arg0.clone(arg0.env).unwrap()),
     }
@@ -217,7 +247,11 @@ impl Handle {
     let mut children = node_handler.get_child_nodes_mut();
     children.append_handle(child_handle);
 
-    let parent_reference: Either<WeakReference<Document>, WeakReference<Element>> = self.into();
+    let parent_reference: Either3<
+      WeakReference<Document>,
+      WeakReference<DocumentFragment>,
+      WeakReference<Element>,
+    > = self.into();
 
     let parent_context = Some(ParentContext::new(
       node_handler.get_env(),
@@ -247,6 +281,17 @@ impl Handle {
     }
 
     Ok(())
+  }
+
+  pub(crate) fn get_node_name(&self) -> String {
+    match self {
+      Handle::Comment(_) => "#comment".to_string(),
+      Handle::DocType(_) => "#docType".to_string(),
+      Handle::Document(_) => "#document".to_string(),
+      Handle::DocumentFragment(_) => "#document-fragment".to_string(),
+      Handle::Element(r) => r.name.local.to_string().to_uppercase(),
+      Handle::Text(_) => "#text".to_string(),
+    }
   }
 }
 

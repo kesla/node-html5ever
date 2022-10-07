@@ -37,18 +37,8 @@ impl Element {
   }
 
   #[napi(getter)]
-  pub fn node_name(&self) -> String {
-    let local = self.name.local.to_string();
-
-    match local.starts_with('#') {
-      true => local,
-      false => local.to_uppercase(),
-    }
-  }
-
-  #[napi(getter)]
-  pub fn tag_name(&self) -> String {
-    self.node_name()
+  pub fn get_tag_name(&self) -> String {
+    self.get_node_name()
   }
 
   #[napi(getter)]
