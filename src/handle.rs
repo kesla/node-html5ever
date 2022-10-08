@@ -72,119 +72,36 @@ impl
   }
 }
 
-impl From<Reference<Comment>> for Handle {
-  fn from(r: Reference<Comment>) -> Self {
-    Self::Comment(r)
-  }
+macro_rules! impl_from {
+  ($type:ty, $variant:ident) => {
+    impl From<&$type> for Handle {
+      fn from(value: &$type) -> Self {
+        Handle::$variant(
+          value
+            .weak_reference
+            .as_ref()
+            .unwrap()
+            .upgrade(value.env)
+            .unwrap()
+            .unwrap(),
+        )
+      }
+    }
+
+    impl From<Reference<$type>> for Handle {
+      fn from(value: Reference<$type>) -> Self {
+        Handle::$variant(value)
+      }
+    }
+  };
 }
 
-impl From<&Comment> for Handle {
-  fn from(r: &Comment) -> Self {
-    Self::Comment(
-      r.weak_reference
-        .as_ref()
-        .unwrap()
-        .upgrade(r.env)
-        .unwrap()
-        .unwrap(),
-    )
-  }
-}
-
-impl From<Reference<Element>> for Handle {
-  fn from(r: Reference<Element>) -> Self {
-    Self::Element(r)
-  }
-}
-
-impl From<&Element> for Handle {
-  fn from(r: &Element) -> Self {
-    Self::Element(
-      r.weak_reference
-        .as_ref()
-        .unwrap()
-        .upgrade(r.env)
-        .unwrap()
-        .unwrap(),
-    )
-  }
-}
-
-impl From<Reference<DocumentType>> for Handle {
-  fn from(r: Reference<DocumentType>) -> Self {
-    Self::DocumentType(r)
-  }
-}
-
-impl From<&DocumentType> for Handle {
-  fn from(r: &DocumentType) -> Self {
-    Self::DocumentType(
-      r.weak_reference
-        .as_ref()
-        .unwrap()
-        .upgrade(r.env)
-        .unwrap()
-        .unwrap(),
-    )
-  }
-}
-
-impl From<Reference<Document>> for Handle {
-  fn from(r: Reference<Document>) -> Self {
-    Self::Document(r)
-  }
-}
-
-impl From<&Document> for Handle {
-  fn from(r: &Document) -> Self {
-    Self::Document(
-      r.weak_reference
-        .as_ref()
-        .unwrap()
-        .upgrade(r.env)
-        .unwrap()
-        .unwrap(),
-    )
-  }
-}
-
-impl From<Reference<DocumentFragment>> for Handle {
-  fn from(r: Reference<DocumentFragment>) -> Self {
-    Self::DocumentFragment(r)
-  }
-}
-
-impl From<&DocumentFragment> for Handle {
-  fn from(r: &DocumentFragment) -> Self {
-    Self::DocumentFragment(
-      r.weak_reference
-        .as_ref()
-        .unwrap()
-        .upgrade(r.env)
-        .unwrap()
-        .unwrap(),
-    )
-  }
-}
-
-impl From<Reference<Text>> for Handle {
-  fn from(r: Reference<Text>) -> Self {
-    Self::Text(r)
-  }
-}
-
-impl From<&Text> for Handle {
-  fn from(r: &Text) -> Self {
-    Self::Text(
-      r.weak_reference
-        .as_ref()
-        .unwrap()
-        .upgrade(r.env)
-        .unwrap()
-        .unwrap(),
-    )
-  }
-}
+impl_from!(Comment, Comment);
+impl_from!(DocumentType, DocumentType);
+impl_from!(Document, Document);
+impl_from!(DocumentFragment, DocumentFragment);
+impl_from!(Element, Element);
+impl_from!(Text, Text);
 
 impl PartialEq for Handle {
   fn eq(&self, other: &Self) -> bool {
