@@ -13,6 +13,9 @@ napi = { version = "2.7.0", default-features = false, features = ["napi4"] }
 napi-derive = "2.7.0"
 html5ever = "0.26.0"
 node-html5ever-derive = { path = "./packages/macros" }
+selectors = "0.23.0"
+# use cssparser that selectrs use
+cssparser = "0.28.0"
 
 [build-dependencies]
 napi-build = "2.0.1"

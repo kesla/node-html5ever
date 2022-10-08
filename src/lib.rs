@@ -11,8 +11,10 @@ mod macro_backend;
 mod node_handler;
 mod nodes;
 mod quirks_mode;
+mod selectors;
 mod serializer;
 
+pub use crate::selectors::Selectors;
 pub use dom::Html5everDom;
 pub use handle::Handle;
 pub use id::get_id;

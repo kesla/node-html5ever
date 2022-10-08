@@ -1,4 +1,5 @@
 mod attributes_wrapper;
+mod impl_selectors;
 
 use html5ever::{LocalName, QualName};
 
