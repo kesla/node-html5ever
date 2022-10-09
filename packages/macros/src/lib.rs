@@ -140,10 +140,10 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       pub fn get_previous_sibling(&self) ->
         napi::Result<Option<
           napi::bindgen_prelude::Either4<
-            napi::bindgen_prelude::WeakReference<crate::Comment>,
-            napi::bindgen_prelude::WeakReference<crate::DocumentType>,
-            napi::bindgen_prelude::WeakReference<crate::Element>,
-            napi::bindgen_prelude::WeakReference<crate::Text>
+            napi::bindgen_prelude::Reference<crate::Comment>,
+            napi::bindgen_prelude::Reference<crate::DocumentType>,
+            napi::bindgen_prelude::Reference<crate::Element>,
+            napi::bindgen_prelude::Reference<crate::Text>
           >
         >> {
         macro_backend::parent::get_previous_sibling(self.into())
@@ -151,7 +151,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_previous_element_sibling(&self) ->
-        napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
+        napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
         macro_backend::parent::get_previous_element_sibling(self.into())
       }
 
@@ -159,10 +159,10 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       pub fn get_next_sibling(&self) ->
         napi::Result<Option<
           napi::bindgen_prelude::Either4<
-            napi::bindgen_prelude::WeakReference<crate::Comment>,
-            napi::bindgen_prelude::WeakReference<crate::DocumentType>,
-            napi::bindgen_prelude::WeakReference<crate::Element>,
-            napi::bindgen_prelude::WeakReference<crate::Text>
+            napi::bindgen_prelude::Reference<crate::Comment>,
+            napi::bindgen_prelude::Reference<crate::DocumentType>,
+            napi::bindgen_prelude::Reference<crate::Element>,
+            napi::bindgen_prelude::Reference<crate::Text>
           >
         >> {
         macro_backend::parent::get_next_sibling(self.into())
@@ -170,7 +170,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_next_element_sibling(&self) ->
-        napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
+        napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
         macro_backend::parent::get_next_element_sibling(self.into())
       }
     },

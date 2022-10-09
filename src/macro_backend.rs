@@ -96,6 +96,7 @@ pub(crate) mod parent {
   use crate::{
     Comment, Document, DocumentFragment, DocumentType, Element, Handle, NodeHandler, Text,
   };
+  use fallible_iterator::FallibleIterator;
   use napi::{
     bindgen_prelude::{Either3, Either4, Reference, WeakReference},
     Result,
@@ -146,48 +147,38 @@ pub(crate) mod parent {
     node_handler: NodeHandler,
   ) -> Result<
     Option<
-      Either4<
-        WeakReference<Comment>,
-        WeakReference<DocumentType>,
-        WeakReference<Element>,
-        WeakReference<Text>,
-      >,
+      Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
     >,
   > {
-    Ok(node_handler.previous_iterator()?.next())
+    node_handler.previous_iterator()?.next()
   }
 
   pub(crate) fn get_previous_element_sibling(
     node_handler: NodeHandler,
-  ) -> Result<Option<WeakReference<Element>>> {
-    Ok(node_handler.previous_iterator()?.find_map(|s| match s {
-      Either4::C(r) => Some(r),
-      _ => None,
-    }))
+  ) -> Result<Option<Reference<Element>>> {
+    node_handler.previous_iterator()?.find_map(|s| match s {
+      Either4::C(element) => Ok(Some(element)),
+      _ => Ok(None),
+    })
   }
 
   pub(crate) fn get_next_sibling(
     node_handler: NodeHandler,
   ) -> Result<
     Option<
-      Either4<
-        WeakReference<Comment>,
-        WeakReference<DocumentType>,
-        WeakReference<Element>,
-        WeakReference<Text>,
-      >,
+      Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
     >,
   > {
-    Ok(node_handler.next_iterator()?.next())
+    node_handler.next_iterator()?.next()
   }
 
   pub(crate) fn get_next_element_sibling(
     node_handler: NodeHandler,
-  ) -> Result<Option<WeakReference<Element>>> {
-    Ok(node_handler.next_iterator()?.find_map(|s| match s {
-      Either4::C(r) => Some(r),
-      _ => None,
-    }))
+  ) -> Result<Option<Reference<Element>>> {
+    node_handler.next_iterator()?.find_map(|s| match s {
+      Either4::C(element) => Ok(Some(element)),
+      _ => Ok(None),
+    })
   }
 }
 

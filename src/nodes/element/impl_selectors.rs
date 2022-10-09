@@ -1,9 +1,22 @@
 use std::fmt::Debug;
 
-use napi::bindgen_prelude::WeakReference;
+use napi::bindgen_prelude::Reference;
 
-#[derive(Clone)]
-struct ElementRef(WeakReference<crate::Element>);
+use crate::Element;
+
+struct ElementRef {
+  r: Reference<Element>,
+  env: napi::Env,
+}
+
+impl Clone for ElementRef {
+  fn clone(&self) -> Self {
+    Self {
+      r: self.r.clone(self.env).unwrap(),
+      env: self.env,
+    }
+  }
+}
 
 impl Debug for ElementRef {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -15,31 +28,49 @@ impl selectors::Element for ElementRef {
   type Impl = crate::Selectors;
 
   fn opaque(&self) -> selectors::OpaqueElement {
-    todo!()
+    selectors::OpaqueElement::new(self)
   }
 
   fn parent_element(&self) -> Option<Self> {
-    todo!()
+    self
+      .r
+      .get_parent_element()
+      .unwrap()
+      .map(|r| ElementRef { r, env: self.env })
   }
 
   fn parent_node_is_shadow_root(&self) -> bool {
-    todo!()
+    false
   }
 
   fn containing_shadow_host(&self) -> Option<Self> {
-    todo!()
+    None
   }
 
   fn is_pseudo_element(&self) -> bool {
-    todo!()
+    false
   }
 
   fn prev_sibling_element(&self) -> Option<Self> {
-    todo!()
+    self
+      .r
+      .get_previous_element_sibling()
+      .unwrap()
+      .map(|r| ElementRef { r, env: self.env })
+
+    // self.r.get_previous_element_sibling().unwrap();
+    // .map(|r| ElementRef {
+    //   r: r.upgrade(env).unwrap(),
+    //   env: self.env,
+    // })
   }
 
   fn next_sibling_element(&self) -> Option<Self> {
-    todo!()
+    self
+      .r
+      .get_next_element_sibling()
+      .unwrap()
+      .map(|r| ElementRef { r, env: self.env })
   }
 
   fn is_html_element_in_html_document(&self) -> bool {
