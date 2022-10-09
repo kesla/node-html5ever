@@ -18,6 +18,7 @@ export class Html5EverDom {
   serialize(): string
 }
 export class Comment {
+  data: string
   get nodeName(): string
   get parentElement(): Element | null
   get parentNode(): Document | DocumentFragment | Element | null
@@ -96,6 +97,7 @@ export class Element {
   set id(id: string)
 }
 export class Text {
+  data: string
   get nodeName(): string
   get parentElement(): Element | null
   get parentNode(): Document | DocumentFragment | Element | null

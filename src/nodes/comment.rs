@@ -1,4 +1,5 @@
 #[create_node(is_child)]
 pub struct Comment {
-  pub(crate) content: String,
+  #[napi(writable = false)]
+  pub data: String,
 }

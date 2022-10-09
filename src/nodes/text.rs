@@ -1,10 +1,11 @@
 #[create_node(is_child)]
 pub struct Text {
-  pub(crate) content: String,
+  #[napi(writable = false)]
+  pub data: String,
 }
 
 impl Drop for Text {
   fn drop(&mut self) {
-    println!("Dropping Text {:?}", self.content);
+    println!("Dropping Text {:?}", self.data);
   }
 }

@@ -43,7 +43,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
       match op {
         SerializeOp::Open(handle) => {
           match &handle {
-            Handle::Comment(comment) => serializer.write_comment(&comment.content)?,
+            Handle::Comment(comment) => serializer.write_comment(&comment.data)?,
             Handle::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
             Handle::Element(element) => {
               let node_handler = element.get_node_handler();
@@ -65,7 +65,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
             }
             Handle::Document(_) => panic!("Can't serialize Document node itself"),
             Handle::DocumentFragment(_) => panic!("Can't serialize DocumentFragment node itself"),
-            Handle::Text(text) => serializer.write_text(&text.content)?,
+            Handle::Text(text) => serializer.write_text(&text.data)?,
           }
         }
         SerializeOp::Close(name) => serializer.end_elem(name)?,
