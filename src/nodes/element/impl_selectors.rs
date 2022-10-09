@@ -1,5 +1,6 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 
+use html5ever::{ns, LocalName, Namespace};
 use napi::bindgen_prelude::Reference;
 
 use crate::Element;
@@ -24,6 +25,14 @@ impl Debug for ElementRef {
   }
 }
 
+impl Deref for ElementRef {
+  type Target = Element;
+
+  fn deref(&self) -> &Self::Target {
+    self.r.deref()
+  }
+}
+
 impl selectors::Element for ElementRef {
   type Impl = crate::Selectors;
 
@@ -33,7 +42,6 @@ impl selectors::Element for ElementRef {
 
   fn parent_element(&self) -> Option<Self> {
     self
-      .r
       .get_parent_element()
       .unwrap()
       .map(|r| ElementRef { r, env: self.env })
@@ -53,46 +61,38 @@ impl selectors::Element for ElementRef {
 
   fn prev_sibling_element(&self) -> Option<Self> {
     self
-      .r
       .get_previous_element_sibling()
       .unwrap()
       .map(|r| ElementRef { r, env: self.env })
-
-    // self.r.get_previous_element_sibling().unwrap();
-    // .map(|r| ElementRef {
-    //   r: r.upgrade(env).unwrap(),
-    //   env: self.env,
-    // })
   }
 
   fn next_sibling_element(&self) -> Option<Self> {
     self
-      .r
       .get_next_element_sibling()
       .unwrap()
       .map(|r| ElementRef { r, env: self.env })
   }
 
   fn is_html_element_in_html_document(&self) -> bool {
-    todo!()
+    self.name.ns == ns!(html)
   }
 
   fn has_local_name(
     &self,
     local_name: &<Self::Impl as selectors::SelectorImpl>::BorrowedLocalName,
   ) -> bool {
-    todo!()
+    self.name.local == LocalName::from(local_name.to_string())
   }
 
   fn has_namespace(
     &self,
     ns: &<Self::Impl as selectors::SelectorImpl>::BorrowedNamespaceUrl,
   ) -> bool {
-    todo!()
+    self.name.ns == Namespace::from(ns.to_string())
   }
 
   fn is_same_type(&self, other: &Self) -> bool {
-    todo!()
+    self.name == other.name
   }
 
   fn attr_matches(
@@ -105,7 +105,19 @@ impl selectors::Element for ElementRef {
       &<Self::Impl as selectors::SelectorImpl>::AttrValue,
     >,
   ) -> bool {
-    todo!()
+    match ns {
+      selectors::attr::NamespaceConstraint::Any => self.attributes_wrapper.iter().any(|attr| {
+        self.name.local == LocalName::from(local_name.to_string())
+          && operation.eval_str(&attr.value)
+      }),
+      selectors::attr::NamespaceConstraint::Specific(namespace_url) => {
+        self.attributes_wrapper.iter().any(|attr| {
+          self.name.ns == Namespace::from(namespace_url.to_string())
+            && self.name.local == LocalName::from(local_name.to_string())
+            && operation.eval_str(&attr.value)
+        })
+      }
+    }
   }
 
   fn match_non_ts_pseudo_class<F>(

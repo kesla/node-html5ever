@@ -20,8 +20,20 @@ impl<'a> From<&'a str> for AttrValue {
   }
 }
 
+impl AsRef<str> for AttrValue {
+  fn as_ref(&self) -> &str {
+    &self.0
+  }
+}
+
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct StringValue(String);
+
+impl ToString for StringValue {
+  fn to_string(&self) -> String {
+    self.0.clone()
+  }
+}
 
 impl ToCss for StringValue {
   fn to_css<W>(&self, dest: &mut W) -> std::fmt::Result
