@@ -98,7 +98,7 @@ pub(crate) mod parent {
   };
   use fallible_iterator::FallibleIterator;
   use napi::{
-    bindgen_prelude::{Either3, Either4, Reference, WeakReference},
+    bindgen_prelude::{Either3, Either4, Reference},
     Result,
   };
 

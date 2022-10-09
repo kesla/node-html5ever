@@ -1,6 +1,6 @@
-use std::{fmt::Debug, ops::Deref};
+use std::{borrow::Borrow, fmt::Debug, ops::Deref};
 
-use html5ever::{ns, LocalName, Namespace};
+use html5ever::{namespace_url, ns, LocalName, Namespace};
 use napi::bindgen_prelude::Reference;
 
 use crate::Element;
@@ -153,7 +153,9 @@ impl selectors::Element for ElementRef {
     id: &<Self::Impl as selectors::SelectorImpl>::Identifier,
     case_sensitivity: selectors::attr::CaseSensitivity,
   ) -> bool {
-    todo!()
+    let id_attr = self.get_id();
+
+    case_sensitivity.eq(id_attr.as_bytes(), id.as_bytes())
   }
 
   fn has_class(
@@ -161,18 +163,23 @@ impl selectors::Element for ElementRef {
     name: &<Self::Impl as selectors::SelectorImpl>::Identifier,
     case_sensitivity: selectors::attr::CaseSensitivity,
   ) -> bool {
-    todo!()
+    self
+      .get_class_name()
+      .split_ascii_whitespace()
+      .any(|class_name_attr| case_sensitivity.eq(class_name_attr.as_bytes(), name.as_bytes()))
   }
 
   fn imported_part(
     &self,
     name: &<Self::Impl as selectors::SelectorImpl>::Identifier,
   ) -> Option<<Self::Impl as selectors::SelectorImpl>::Identifier> {
-    todo!()
+    // TODO: Implement this (shadow DOM related)
+    None
   }
 
   fn is_part(&self, name: &<Self::Impl as selectors::SelectorImpl>::Identifier) -> bool {
-    todo!()
+    // TODO: Implement this (shadow DOM related)
+    false
   }
 
   fn is_empty(&self) -> bool {
@@ -180,6 +187,11 @@ impl selectors::Element for ElementRef {
   }
 
   fn is_root(&self) -> bool {
-    todo!()
+    self
+      .node_handler
+      .get_parent()
+      .borrow()
+      .as_ref()
+      .map_or(false, |parent| parent.is_document())
   }
 }

@@ -1,6 +1,6 @@
 use cssparser::{serialize_identifier, ToCss};
 use selectors::{parser::NonTSPseudoClass, SelectorImpl};
-use std::fmt::Write;
+use std::{fmt::Write, ops::Deref};
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct AttrValue(String);
@@ -47,6 +47,14 @@ impl ToCss for StringValue {
 impl<'a> From<&'a str> for StringValue {
   fn from(value: &'a str) -> Self {
     Self(value.into())
+  }
+}
+
+impl Deref for StringValue {
+  type Target = String;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
   }
 }
 

@@ -29,6 +29,10 @@ impl ParentContext {
     };
     Ok(handle)
   }
+
+  pub(crate) fn is_document(&self) -> bool {
+    matches!(&self.node, Either3::A(_))
+  }
 }
 
 impl TryInto<Handle> for &ParentContext {
