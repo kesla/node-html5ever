@@ -1,4 +1,11 @@
 {
   "editor.tabSize": 4,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "rust-analyzer.checkOnSave.overrideCommand": [
+    "yarn",
+    "napi",
+    "build",
+    "--platform",
+    "--cargo-flags=\"--message-format=json\""
+  ]
 }
