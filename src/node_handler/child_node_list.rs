@@ -37,8 +37,8 @@ impl ChildNodeList {
   }
 }
 
-impl Into<Vec<Handle>> for ChildNodeList {
-  fn into(self) -> Vec<Handle> {
-    self.0
+impl From<ChildNodeList> for Vec<Handle> {
+  fn from(child_node_list: ChildNodeList) -> Self {
+    child_node_list.0
   }
 }

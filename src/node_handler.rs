@@ -68,7 +68,7 @@ impl NodeHandler {
 
     match maybe_parent_context {
       Some(ctx) => Ok(PreviousIterator::Data {
-        env: self.get_env().clone(),
+        env: self.get_env(),
         node_handler: ctx.try_into()?,
         index: ctx.index,
       }),
@@ -82,7 +82,7 @@ impl NodeHandler {
 
     match maybe_parent_context {
       Some(ctx) => Ok(NextIterator::Data {
-        env: self.get_env().clone(),
+        env: self.get_env(),
         node_handler: ctx.try_into()?,
         index: ctx.index,
       }),

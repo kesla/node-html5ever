@@ -54,7 +54,7 @@ impl Html5everDom {
     let tmp: Vec<Handle> = {
       let get_child_nodes = node_handler.get_child_nodes();
       let iter = get_child_nodes.iter();
-      iter.map(|x| x.clone()).collect()
+      iter.cloned().collect()
     };
 
     let fragment_handle: Handle = fragment.clone(env)?.into();

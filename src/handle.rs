@@ -28,13 +28,11 @@ impl From<Either4<&Comment, &DocumentType, &Element, &Text>> for Handle {
   }
 }
 
-impl Into<Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>>>
-  for &Handle
+impl From<&Handle>
+  for Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>>
 {
-  fn into(
-    self,
-  ) -> Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>> {
-    match self {
+  fn from(val: &Handle) -> Self {
+    match val {
       Handle::Document(document) => Either3::A(document.downgrade()),
       Handle::DocumentFragment(document_fragment) => Either3::B(document_fragment.downgrade()),
       Handle::Element(element) => Either3::C(element.downgrade()),
@@ -43,25 +41,16 @@ impl Into<Either3<WeakReference<Document>, WeakReference<DocumentFragment>, Weak
   }
 }
 
-impl
-  Into<
-    Either4<
-      WeakReference<Comment>,
-      WeakReference<DocumentType>,
-      WeakReference<Element>,
-      WeakReference<Text>,
-    >,
-  > for &Handle
-{
-  fn into(
-    self,
-  ) -> Either4<
+impl From<&Handle>
+  for Either4<
     WeakReference<Comment>,
     WeakReference<DocumentType>,
     WeakReference<Element>,
     WeakReference<Text>,
-  > {
-    match self {
+  >
+{
+  fn from(val: &Handle) -> Self {
+    match val {
       Handle::Comment(r) => Either4::A(r.downgrade()),
       Handle::DocumentType(r) => Either4::B(r.downgrade()),
       Handle::Element(r) => Either4::C(r.downgrade()),
@@ -216,7 +205,7 @@ fn remove_handle(parent: &Handle, mut parent_ref: RefMut<Option<ParentContext>>,
   let parent_node_handler: NodeHandler = parent.into();
 
   let mut children = parent_node_handler.get_child_nodes_mut();
-  children.remove_handle(&child);
+  children.remove_handle(child);
 
   *parent_ref = None;
 }

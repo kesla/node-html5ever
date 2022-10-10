@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, fmt::Debug, ops::Deref};
 
-use html5ever::{namespace_url, ns, LocalName, Namespace};
+use html5ever::{namespace_url, ns};
 use napi::bindgen_prelude::{Either4, Reference};
 
 use crate::Element;
@@ -81,14 +81,14 @@ impl selectors::Element for ElementRef {
     &self,
     local_name: &<Self::Impl as selectors::SelectorImpl>::BorrowedLocalName,
   ) -> bool {
-    self.name.local == LocalName::from(local_name.to_string())
+    self.name.local == local_name.to_string()
   }
 
   fn has_namespace(
     &self,
     ns: &<Self::Impl as selectors::SelectorImpl>::BorrowedNamespaceUrl,
   ) -> bool {
-    self.name.ns == Namespace::from(ns.to_string())
+    self.name.ns == ns.to_string()
   }
 
   fn is_same_type(&self, other: &Self) -> bool {
@@ -107,13 +107,13 @@ impl selectors::Element for ElementRef {
   ) -> bool {
     match ns {
       selectors::attr::NamespaceConstraint::Any => self.attributes_wrapper.iter().any(|attr| {
-        self.name.local == LocalName::from(local_name.to_string())
+        self.name.local == local_name.to_string()
           && operation.eval_str(&attr.value)
       }),
       selectors::attr::NamespaceConstraint::Specific(namespace_url) => {
         self.attributes_wrapper.iter().any(|attr| {
-          self.name.ns == Namespace::from(namespace_url.to_string())
-            && self.name.local == LocalName::from(local_name.to_string())
+          self.name.ns == namespace_url.to_string()
+            && self.name.local == local_name.to_string()
             && operation.eval_str(&attr.value)
         })
       }
@@ -122,9 +122,9 @@ impl selectors::Element for ElementRef {
 
   fn match_non_ts_pseudo_class<F>(
     &self,
-    pc: &<Self::Impl as selectors::SelectorImpl>::NonTSPseudoClass,
-    context: &mut selectors::matching::MatchingContext<Self::Impl>,
-    flags_setter: &mut F,
+    _pc: &<Self::Impl as selectors::SelectorImpl>::NonTSPseudoClass,
+    _context: &mut selectors::matching::MatchingContext<Self::Impl>,
+    _flags_setter: &mut F,
   ) -> bool
   where
     F: FnMut(&Self, selectors::matching::ElementSelectorFlags),
@@ -134,8 +134,8 @@ impl selectors::Element for ElementRef {
 
   fn match_pseudo_element(
     &self,
-    pe: &<Self::Impl as selectors::SelectorImpl>::PseudoElement,
-    context: &mut selectors::matching::MatchingContext<Self::Impl>,
+    _pe: &<Self::Impl as selectors::SelectorImpl>::PseudoElement,
+    _context: &mut selectors::matching::MatchingContext<Self::Impl>,
   ) -> bool {
     todo!()
   }
@@ -171,13 +171,13 @@ impl selectors::Element for ElementRef {
 
   fn imported_part(
     &self,
-    name: &<Self::Impl as selectors::SelectorImpl>::Identifier,
+    _name: &<Self::Impl as selectors::SelectorImpl>::Identifier,
   ) -> Option<<Self::Impl as selectors::SelectorImpl>::Identifier> {
     // TODO: Implement this (shadow DOM related)
     None
   }
 
-  fn is_part(&self, name: &<Self::Impl as selectors::SelectorImpl>::Identifier) -> bool {
+  fn is_part(&self, _name: &<Self::Impl as selectors::SelectorImpl>::Identifier) -> bool {
     // TODO: Implement this (shadow DOM related)
     false
   }

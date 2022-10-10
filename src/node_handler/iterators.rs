@@ -26,7 +26,7 @@ impl FallibleIterator for PreviousIterator {
         env,
         node_handler,
         index,
-      } => (env.clone(), node_handler, index),
+      } => (*env, node_handler, index),
       Self::None => return Ok(None),
     };
 
@@ -69,7 +69,7 @@ impl FallibleIterator for NextIterator {
         env,
         node_handler,
         index,
-      } => (env.clone(), node_handler, index),
+      } => (*env, node_handler, index),
       Self::None => return Ok(None),
     };
 
