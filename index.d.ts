@@ -37,6 +37,10 @@ export class Document {
   removeElement(child: Element): void
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  get firstChild(): Comment | DocumentType | Element | Text | null
+  get lastChild(): Comment | DocumentType | Element | Text | null
+  get firstElementChild(): Element | null
+  get lastElementChild(): Element | null
   get docType(): DocumentType | null
   get documentElement(): Element
   get head(): Element
@@ -53,6 +57,10 @@ export class DocumentFragment {
   removeElement(child: Element): void
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  get firstChild(): Comment | DocumentType | Element | Text | null
+  get lastChild(): Comment | DocumentType | Element | Text | null
+  get firstElementChild(): Element | null
+  get lastElementChild(): Element | null
 }
 export class DocumentType {
   name: string
@@ -84,6 +92,10 @@ export class Element {
   removeElement(child: Element): void
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  get firstChild(): Comment | DocumentType | Element | Text | null
+  get lastChild(): Comment | DocumentType | Element | Text | null
+  get firstElementChild(): Element | null
+  get lastElementChild(): Element | null
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void

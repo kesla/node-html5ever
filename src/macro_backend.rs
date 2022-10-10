@@ -1,7 +1,7 @@
 pub(crate) mod children {
 
   use napi::{
-    bindgen_prelude::{Either4, Reference, WeakReference},
+    bindgen_prelude::{Either4, Reference},
     Result,
   };
 
@@ -9,27 +9,13 @@ pub(crate) mod children {
 
   pub(crate) fn get_child_nodes(
     node_handler: NodeHandler,
-  ) -> Vec<
-    Either4<
-      WeakReference<Comment>,
-      WeakReference<DocumentType>,
-      WeakReference<Element>,
-      WeakReference<Text>,
-    >,
-  > {
-    node_handler
-      .get_child_nodes()
-      .iter()
-      .map(|child| child.into())
-      .collect()
+  ) -> Vec<Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>>
+  {
+    node_handler.child_nodes_iter(false).collect()
   }
 
-  pub(crate) fn get_children(node_handler: NodeHandler) -> Vec<WeakReference<Element>> {
-    node_handler
-      .get_child_nodes()
-      .iter()
-      .filter_map(|node_handler| node_handler.as_element().ok().map(|r| r.downgrade()))
-      .collect()
+  pub(crate) fn get_children(node_handler: NodeHandler) -> Vec<Reference<Element>> {
+    node_handler.children_iter(false).collect()
   }
 
   pub(crate) fn append_child(parent_handle: Handle, child_handle: Handle) -> Result<()> {
@@ -43,52 +29,42 @@ pub(crate) mod children {
   pub(crate) fn get_element_by_id(
     node_handler: NodeHandler,
     id: String,
-  ) -> Result<Option<Reference<Element>>> {
-    let mut q: Vec<Handle> = node_handler
-      .get_child_nodes()
-      .iter()
-      .rev()
-      .cloned()
-      .collect();
-
-    while let Some(handle) = q.pop() {
-      if let Ok(element) = handle.as_element() {
-        if element.get_id() == id {
-          return Ok(Some(element.clone(element.env)?));
-        }
-
-        let node_handler: NodeHandler = handle.into();
-        q.extend(node_handler.get_child_nodes().iter().rev().cloned());
-      }
-    }
-
-    Ok(None)
+  ) -> Option<Reference<Element>> {
+    node_handler.children_iter(true).find(|e| e.get_id() == id)
   }
 
   pub(crate) fn get_elements_by_class_name(
     node_handler: NodeHandler,
     class_name: String,
-  ) -> Result<Vec<Reference<Element>>> {
-    let mut q: Vec<Handle> = node_handler
-      .get_child_nodes()
-      .iter()
-      .rev()
-      .cloned()
-      .collect();
-    let mut elements = vec![];
+  ) -> Vec<Reference<Element>> {
+    node_handler
+      .children_iter(true)
+      .filter(|e| e.get_class_name() == class_name)
+      .collect()
+  }
 
-    while let Some(handle) = q.pop() {
-      if let Ok(element) = handle.as_element() {
-        if element.get_class_name() == class_name {
-          elements.push(element.clone(element.env)?);
-        }
+  pub(crate) fn get_first_child(
+    node_handler: NodeHandler,
+  ) -> Option<
+    Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
+  > {
+    node_handler.child_nodes_iter(false).next()
+  }
 
-        let node_handler: NodeHandler = handle.into();
-        q.extend(node_handler.get_child_nodes().iter().rev().cloned());
-      }
-    }
+  pub(crate) fn get_last_child(
+    node_handler: NodeHandler,
+  ) -> Option<
+    Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
+  > {
+    node_handler.child_nodes_iter(false).last()
+  }
 
-    Ok(elements)
+  pub(crate) fn get_first_element_child(node_handler: NodeHandler) -> Option<Reference<Element>> {
+    node_handler.children_iter(false).next()
+  }
+
+  pub(crate) fn get_last_element_child(node_handler: NodeHandler) -> Option<Reference<Element>> {
+    node_handler.children_iter(false).last()
   }
 }
 

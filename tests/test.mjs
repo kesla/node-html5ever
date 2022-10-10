@@ -331,3 +331,24 @@ test("Instance of", (t) => {
   t.ok(document.documentElement instanceof Element);
   t.ok(document.docType instanceof DocumentType);
 })
+
+test(".firstChild & .lastChild", (t) => {
+  let { document } = new Html5EverDom(
+    `<div id="foo"></div>
+    <div id="bar">First text<div id="hello"></div><div id="world"></div>End text</div>
+    `.trim()
+  );
+
+  let foo = document.getElementById("foo");
+  let bar = document.getElementById("bar");
+
+  t.strictSame(foo?.firstChild, null);
+  t.strictSame(foo?.lastChild, null);
+  t.strictSame(foo?.firstElementChild, null);
+  t.strictSame(foo?.lastElementChild, null);
+
+  t.strictSame(bar?.firstChild, bar?.childNodes[0]);
+  t.strictSame(bar?.lastChild, bar?.childNodes[bar.childNodes.length - 1]);
+  t.strictSame(bar?.firstElementChild, bar?.children[0]);
+  t.strictSame(bar?.lastElementChild, bar?.children[bar.children.length - 1]);
+});

@@ -185,9 +185,7 @@ impl selectors::Element for ElementRef {
   fn is_empty(&self) -> bool {
     self.get_child_nodes().iter().all(|child| match child {
       napi::bindgen_prelude::Either4::C(_element) => false,
-      napi::bindgen_prelude::Either4::D(text) => {
-        text.upgrade(self.env).unwrap().unwrap().data.is_empty()
-      }
+      napi::bindgen_prelude::Either4::D(text) => text.data.is_empty(),
       _ => true,
     })
   }

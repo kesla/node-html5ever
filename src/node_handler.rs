@@ -19,7 +19,7 @@ pub use self::parent_context::ParentContext;
 
 use self::{
   child_node_list::ChildNodeList,
-  iterators::{NextIterator, PreviousIterator},
+  iterators::{ChildNodesIterator, ChildrenIterator, NextIterator, PreviousIterator},
 };
 
 struct NodeHandlerInner {
@@ -88,6 +88,14 @@ impl NodeHandler {
       }),
       None => Ok(NextIterator::None),
     }
+  }
+
+  pub(crate) fn child_nodes_iter(&self, deep: bool) -> ChildNodesIterator {
+    ChildNodesIterator::new(self, deep)
+  }
+
+  pub(crate) fn children_iter(&self, deep: bool) -> ChildrenIterator {
+    ChildrenIterator::new(self, deep)
   }
 }
 

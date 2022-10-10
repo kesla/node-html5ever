@@ -55,17 +55,17 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
       ) -> Vec<
         napi::bindgen_prelude::Either4<
-          napi::bindgen_prelude::WeakReference<crate::Comment>,
-          napi::bindgen_prelude::WeakReference<crate::DocumentType>,
-          napi::bindgen_prelude::WeakReference<crate::Element>,
-          napi::bindgen_prelude::WeakReference<crate::Text>,
+          napi::bindgen_prelude::Reference<crate::Comment>,
+          napi::bindgen_prelude::Reference<crate::DocumentType>,
+          napi::bindgen_prelude::Reference<crate::Element>,
+          napi::bindgen_prelude::Reference<crate::Text>,
         >,
       > {
         macro_backend::children::get_child_nodes(self.into())
       }
 
       #[napi(getter)]
-      pub fn get_children(&self) -> Vec<napi::bindgen_prelude::WeakReference<crate::Element>> {
+      pub fn get_children(&self) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
         macro_backend::children::get_children(self.into())
       }
 
@@ -91,7 +91,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       pub fn get_element_by_id(
         &self,
         id: String,
-      ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
+      ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
         macro_backend::children::get_element_by_id(self.into(), id)
       }
 
@@ -99,8 +99,50 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       pub fn get_elements_by_class_name(
         &self,
         class_name: String,
-      ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
+      ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
         macro_backend::children::get_elements_by_class_name(self.into(), class_name)
+      }
+
+      #[napi(getter)]
+      pub fn get_first_child(
+        &self,
+      ) -> Option<
+        napi::bindgen_prelude::Either4<
+          napi::bindgen_prelude::Reference<crate::Comment>,
+          napi::bindgen_prelude::Reference<crate::DocumentType>,
+          napi::bindgen_prelude::Reference<crate::Element>,
+          napi::bindgen_prelude::Reference<crate::Text>,
+        >,
+      > {
+        macro_backend::children::get_first_child(self.into())
+      }
+
+      #[napi(getter)]
+      pub fn get_last_child(
+        &self,
+      ) -> Option<
+        napi::bindgen_prelude::Either4<
+          napi::bindgen_prelude::Reference<crate::Comment>,
+          napi::bindgen_prelude::Reference<crate::DocumentType>,
+          napi::bindgen_prelude::Reference<crate::Element>,
+          napi::bindgen_prelude::Reference<crate::Text>,
+        >,
+      > {
+        macro_backend::children::get_last_child(self.into())
+      }
+
+      #[napi(getter)]
+      pub fn get_first_element_child(
+        &self,
+      ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
+        macro_backend::children::get_first_element_child(self.into())
+      }
+
+      #[napi(getter)]
+      pub fn get_last_element_child(
+        &self,
+      ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
+        macro_backend::children::get_last_element_child(self.into())
       }
     ),
     false => quote!(),
