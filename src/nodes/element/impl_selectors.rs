@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, fmt::Debug, ops::Deref};
 
 use html5ever::{namespace_url, ns, LocalName, Namespace};
-use napi::bindgen_prelude::Reference;
+use napi::bindgen_prelude::{Either4, Reference};
 
 use crate::Element;
 
@@ -183,11 +183,14 @@ impl selectors::Element for ElementRef {
   }
 
   fn is_empty(&self) -> bool {
-    self.get_child_nodes().iter().all(|child| match child {
-      napi::bindgen_prelude::Either4::C(_element) => false,
-      napi::bindgen_prelude::Either4::D(text) => text.data.is_empty(),
-      _ => true,
-    })
+    self
+      .get_node_handler()
+      .child_nodes_iter(false)
+      .all(|ref child| match child {
+        Either4::C(ref _element) => false,
+        Either4::D(ref text) => text.data.is_empty(),
+        _ => true,
+      })
   }
 
   fn is_root(&self) -> bool {
