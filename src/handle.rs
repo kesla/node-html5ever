@@ -4,7 +4,7 @@ use crate::{
   Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler, ParentContext, Text,
 };
 use napi::{
-  bindgen_prelude::{Either3, Either4, Error, Reference, Result, WeakReference},
+  bindgen_prelude::{Either3, Either4, Error, Reference, Result, ToNapiValue, WeakReference},
   Status,
 };
 
@@ -15,6 +15,24 @@ pub enum Handle {
   DocumentFragment(Reference<DocumentFragment>),
   Element(Reference<Element>),
   Text(Reference<Text>),
+}
+
+pub enum ChildNode {
+  Comment(Reference<Comment>),
+  DocumentType(Reference<DocumentType>),
+  Element(Reference<Element>),
+  Text(Reference<Text>),
+}
+
+impl ToNapiValue for ChildNode {
+  unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
+    match val {
+      ChildNode::Comment(r) => Reference::<Comment>::to_napi_value(env, r),
+      ChildNode::DocumentType(r) => Reference::<DocumentType>::to_napi_value(env, r),
+      ChildNode::Element(r) => Reference::<Element>::to_napi_value(env, r),
+      ChildNode::Text(r) => Reference::<Text>::to_napi_value(env, r),
+    }
+  }
 }
 
 impl From<Either4<&Comment, &DocumentType, &Element, &Text>> for Handle {

@@ -120,4 +120,3 @@ export class Text {
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
 }
-type ChildNode = Comment | DocumentType | Element | Text

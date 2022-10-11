@@ -1,9 +1,9 @@
 use std::{borrow::Borrow, fmt::Debug, ops::Deref};
 
 use html5ever::{namespace_url, ns};
-use napi::bindgen_prelude::{Either4, Reference};
+use napi::bindgen_prelude::Reference;
 
-use crate::Element;
+use crate::{ChildNode, Element};
 
 struct ElementRef {
   r: Reference<Element>,
@@ -106,10 +106,10 @@ impl selectors::Element for ElementRef {
     >,
   ) -> bool {
     match ns {
-      selectors::attr::NamespaceConstraint::Any => self.attributes_wrapper.iter().any(|attr| {
-        self.name.local == local_name.to_string()
-          && operation.eval_str(&attr.value)
-      }),
+      selectors::attr::NamespaceConstraint::Any => self
+        .attributes_wrapper
+        .iter()
+        .any(|attr| self.name.local == local_name.to_string() && operation.eval_str(&attr.value)),
       selectors::attr::NamespaceConstraint::Specific(namespace_url) => {
         self.attributes_wrapper.iter().any(|attr| {
           self.name.ns == namespace_url.to_string()
@@ -187,8 +187,8 @@ impl selectors::Element for ElementRef {
       .get_node_handler()
       .child_nodes_iter(false)
       .all(|ref child| match child {
-        Either4::C(ref _element) => false,
-        Either4::D(ref text) => text.data.is_empty(),
+        ChildNode::Element(ref _element) => false,
+        ChildNode::Text(ref text) => text.data.is_empty(),
         _ => true,
       })
   }

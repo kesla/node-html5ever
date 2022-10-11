@@ -51,16 +51,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
   let has_children_impl = match features.has_children {
     true => quote!(
       #[napi(getter)]
-      pub fn get_child_nodes(
-        &self,
-      ) -> Vec<
-        napi::bindgen_prelude::Either4<
-          napi::bindgen_prelude::Reference<crate::Comment>,
-          napi::bindgen_prelude::Reference<crate::DocumentType>,
-          napi::bindgen_prelude::Reference<crate::Element>,
-          napi::bindgen_prelude::Reference<crate::Text>,
-        >,
-      > {
+      pub fn get_child_nodes(&self) -> Vec<crate::ChildNode> {
         macro_backend::children::get_child_nodes(self.into())
       }
 
@@ -104,30 +95,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi(getter)]
-      pub fn get_first_child(
-        &self,
-      ) -> Option<
-        napi::bindgen_prelude::Either4<
-          napi::bindgen_prelude::Reference<crate::Comment>,
-          napi::bindgen_prelude::Reference<crate::DocumentType>,
-          napi::bindgen_prelude::Reference<crate::Element>,
-          napi::bindgen_prelude::Reference<crate::Text>,
-        >,
-      > {
+      pub fn get_first_child(&self) -> Option<crate::ChildNode> {
         macro_backend::children::get_first_child(self.into())
       }
 
       #[napi(getter)]
-      pub fn get_last_child(
-        &self,
-      ) -> Option<
-        napi::bindgen_prelude::Either4<
-          napi::bindgen_prelude::Reference<crate::Comment>,
-          napi::bindgen_prelude::Reference<crate::DocumentType>,
-          napi::bindgen_prelude::Reference<crate::Element>,
-          napi::bindgen_prelude::Reference<crate::Text>,
-        >,
-      > {
+      pub fn get_last_child(&self) -> Option<crate::ChildNode> {
         macro_backend::children::get_last_child(self.into())
       }
 
@@ -180,14 +153,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_previous_sibling(&self) ->
-        napi::Result<Option<
-          napi::bindgen_prelude::Either4<
-            napi::bindgen_prelude::Reference<crate::Comment>,
-            napi::bindgen_prelude::Reference<crate::DocumentType>,
-            napi::bindgen_prelude::Reference<crate::Element>,
-            napi::bindgen_prelude::Reference<crate::Text>
-          >
-        >> {
+        napi::Result<Option<crate::ChildNode>> {
         macro_backend::parent::get_previous_sibling(self.into())
       }
 
@@ -199,14 +165,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_next_sibling(&self) ->
-        napi::Result<Option<
-          napi::bindgen_prelude::Either4<
-            napi::bindgen_prelude::Reference<crate::Comment>,
-            napi::bindgen_prelude::Reference<crate::DocumentType>,
-            napi::bindgen_prelude::Reference<crate::Element>,
-            napi::bindgen_prelude::Reference<crate::Text>
-          >
-        >> {
+        napi::Result<Option<crate::ChildNode>> {
         macro_backend::parent::get_next_sibling(self.into())
       }
 

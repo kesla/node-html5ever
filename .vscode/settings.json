@@ -3,9 +3,6 @@
   "editor.formatOnSave": true,
   "rust-analyzer.checkOnSave.overrideCommand": [
     "yarn",
-    "napi",
-    "build",
-    "--platform",
-    "--cargo-flags=\"--message-format=json\""
+    "build:json-debug",
   ]
 }

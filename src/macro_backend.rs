@@ -1,16 +1,10 @@
 pub(crate) mod children {
 
-  use napi::{
-    bindgen_prelude::{Either4, Reference},
-    Result,
-  };
+  use napi::{bindgen_prelude::Reference, Result};
 
-  use crate::{Comment, DocumentType, Element, Handle, NodeHandler, Text};
+  use crate::{ChildNode, Element, Handle, NodeHandler};
 
-  pub(crate) fn get_child_nodes(
-    node_handler: NodeHandler,
-  ) -> Vec<Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>>
-  {
+  pub(crate) fn get_child_nodes(node_handler: NodeHandler) -> Vec<ChildNode> {
     node_handler.child_nodes_iter(false).collect()
   }
 
@@ -43,19 +37,11 @@ pub(crate) mod children {
       .collect()
   }
 
-  pub(crate) fn get_first_child(
-    node_handler: NodeHandler,
-  ) -> Option<
-    Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
-  > {
+  pub(crate) fn get_first_child(node_handler: NodeHandler) -> Option<ChildNode> {
     node_handler.child_nodes_iter(false).next()
   }
 
-  pub(crate) fn get_last_child(
-    node_handler: NodeHandler,
-  ) -> Option<
-    Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
-  > {
+  pub(crate) fn get_last_child(node_handler: NodeHandler) -> Option<ChildNode> {
     node_handler.child_nodes_iter(false).last()
   }
 
@@ -69,12 +55,10 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::{
-    Comment, Document, DocumentFragment, DocumentType, Element, Handle, NodeHandler, Text,
-  };
+  use crate::{ChildNode, Document, DocumentFragment, Element, Handle, NodeHandler};
   use fallible_iterator::FallibleIterator;
   use napi::{
-    bindgen_prelude::{Either3, Either4, Reference},
+    bindgen_prelude::{Either3, Reference},
     Result,
   };
 
@@ -119,13 +103,7 @@ pub(crate) mod parent {
     }
   }
 
-  pub(crate) fn get_previous_sibling(
-    node_handler: NodeHandler,
-  ) -> Result<
-    Option<
-      Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
-    >,
-  > {
+  pub(crate) fn get_previous_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {
     node_handler.previous_iterator()?.next()
   }
 
@@ -133,18 +111,12 @@ pub(crate) mod parent {
     node_handler: NodeHandler,
   ) -> Result<Option<Reference<Element>>> {
     node_handler.previous_iterator()?.find_map(|s| match s {
-      Either4::C(element) => Ok(Some(element)),
+      ChildNode::Element(element) => Ok(Some(element)),
       _ => Ok(None),
     })
   }
 
-  pub(crate) fn get_next_sibling(
-    node_handler: NodeHandler,
-  ) -> Result<
-    Option<
-      Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>,
-    >,
-  > {
+  pub(crate) fn get_next_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {
     node_handler.next_iterator()?.next()
   }
 
@@ -152,7 +124,7 @@ pub(crate) mod parent {
     node_handler: NodeHandler,
   ) -> Result<Option<Reference<Element>>> {
     node_handler.next_iterator()?.find_map(|s| match s {
-      Either4::C(element) => Ok(Some(element)),
+      ChildNode::Element(element) => Ok(Some(element)),
       _ => Ok(None),
     })
   }

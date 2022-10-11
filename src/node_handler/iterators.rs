@@ -1,14 +1,10 @@
 use fallible_iterator::FallibleIterator;
-use napi::{
-  bindgen_prelude::{Either4, Reference},
-  Env, Error, Result,
-};
+use napi::{bindgen_prelude::Reference, Error, Result};
 
-use crate::{Comment, DocumentType, Element, Handle, NodeHandler, Text};
+use crate::{ChildNode, Element, Handle, NodeHandler};
 
 pub(crate) enum PreviousIterator {
   Data {
-    env: Env,
     node_handler: NodeHandler,
     index: usize,
   },
@@ -16,17 +12,15 @@ pub(crate) enum PreviousIterator {
 }
 
 impl FallibleIterator for PreviousIterator {
-  type Item =
-    Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>;
+  type Item = ChildNode;
   type Error = Error;
 
   fn next(&mut self) -> Result<Option<Self::Item>> {
-    let (env, node_handler, index) = match self {
+    let (node_handler, index) = match self {
       Self::Data {
-        env,
         node_handler,
         index,
-      } => (*env, node_handler, index),
+      } => (node_handler, index),
       Self::None => return Ok(None),
     };
 
@@ -38,20 +32,24 @@ impl FallibleIterator for PreviousIterator {
 
     let child_nodes = node_handler.get_child_nodes();
     let handle = child_nodes.get(*index).unwrap();
-    let e = match handle {
-      Handle::Comment(r) => Either4::A(r.clone(env)?),
-      Handle::DocumentType(r) => Either4::B(r.clone(env)?),
-      Handle::Element(r) => Either4::C(r.clone(env)?),
-      Handle::Text(r) => Either4::D(r.clone(env)?),
-      _ => panic!("Invalid handle"),
-    };
+    let e = handle_to_child_node(handle)?;
     Ok(Some(e))
   }
 }
 
+fn handle_to_child_node(handle: &Handle) -> Result<ChildNode> {
+  let e = match handle {
+    Handle::Comment(r) => ChildNode::Comment(r.clone(r.env)?),
+    Handle::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env)?),
+    Handle::Element(r) => ChildNode::Element(r.clone(r.env)?),
+    Handle::Text(r) => ChildNode::Text(r.clone(r.env)?),
+    _ => panic!("Invalid handle"),
+  };
+  Ok(e)
+}
+
 pub(crate) enum NextIterator {
   Data {
-    env: Env,
     node_handler: NodeHandler,
     index: usize,
   },
@@ -59,17 +57,15 @@ pub(crate) enum NextIterator {
 }
 
 impl FallibleIterator for NextIterator {
-  type Item =
-    Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>;
+  type Item = ChildNode;
   type Error = Error;
 
   fn next(&mut self) -> Result<Option<Self::Item>> {
-    let (env, node_handler, index) = match self {
+    let (node_handler, index) = match self {
       Self::Data {
-        env,
         node_handler,
         index,
-      } => (*env, node_handler, index),
+      } => (node_handler, index),
       Self::None => return Ok(None),
     };
 
@@ -84,14 +80,8 @@ impl FallibleIterator for NextIterator {
 
     let child_nodes = node_handler.get_child_nodes();
     let handle = child_nodes.get(*index).unwrap();
-    let e = match handle {
-      Handle::Comment(r) => Either4::A(r.clone(env)?),
-      Handle::DocumentType(r) => Either4::B(r.clone(env)?),
-      Handle::Element(r) => Either4::C(r.clone(env)?),
-      Handle::Text(r) => Either4::D(r.clone(env)?),
-      _ => panic!("Invalid handle"),
-    };
-    Ok(Some(e))
+
+    Ok(Some(handle_to_child_node(handle)?))
   }
 }
 
@@ -113,8 +103,7 @@ impl ChildNodesIterator {
 }
 
 impl Iterator for ChildNodesIterator {
-  type Item =
-    Either4<Reference<Comment>, Reference<DocumentType>, Reference<Element>, Reference<Text>>;
+  type Item = ChildNode;
 
   fn next(&mut self) -> Option<Self::Item> {
     let handle = match self.queue.pop() {
@@ -122,22 +111,15 @@ impl Iterator for ChildNodesIterator {
       None => return None,
     };
 
-    let e = match handle {
-      Handle::Comment(r) => Either4::A(r),
-      Handle::DocumentType(r) => Either4::B(r),
-      Handle::Element(r) => {
-        if self.deep {
-          let node_handler = r.get_node_handler();
-          let child_nodes = node_handler.get_child_nodes();
-          self.queue.extend(child_nodes.iter().rev().cloned());
-        }
-
-        Either4::C(r.clone(r.env).unwrap())
+    if self.deep {
+      if let Handle::Element(r) = &handle {
+        let node_handler = r.get_node_handler();
+        let child_nodes = node_handler.get_child_nodes();
+        self.queue.extend(child_nodes.iter().rev().cloned());
       }
-      Handle::Text(r) => Either4::D(r),
-      _ => panic!("Invalid handle"),
-    };
-    Some(e)
+    }
+
+    Some(handle_to_child_node(&handle).unwrap())
   }
 }
 
@@ -154,7 +136,7 @@ impl Iterator for ChildrenIterator {
 
   fn next(&mut self) -> Option<Self::Item> {
     self.0.find_map(|e| match e {
-      Either4::C(e) => Some(e),
+      ChildNode::Element(e) => Some(e),
       _ => None,
     })
   }
