@@ -3,12 +3,11 @@ use std::{
   rc::Rc,
 };
 
-use napi::{
-  bindgen_prelude::{Either3, Either4},
-  Either, Env, Error, Result,
-};
+use napi::{bindgen_prelude::Either3, Either, Env, Error, Result};
 
-use crate::{get_id, Comment, Document, DocumentType, Element, Handle, Text};
+use crate::{
+  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Handle, Text,
+};
 
 mod child_node_list;
 mod iterators;
@@ -127,19 +126,19 @@ impl TryFrom<&ParentContext> for NodeHandler {
 impl From<Either<&Document, &Element>> for NodeHandler {
   fn from(e: Either<&Document, &Element>) -> Self {
     match e {
-      Either::A(r) => r.into(),
-      Either::B(r) => r.into(),
+      Either::A(r) => r.get_node_handler(),
+      Either::B(r) => r.get_node_handler(),
     }
   }
 }
 
-impl From<Either4<&Comment, &DocumentType, &Element, &Text>> for NodeHandler {
-  fn from(e: Either4<&Comment, &DocumentType, &Element, &Text>) -> Self {
+impl From<ChildNode> for NodeHandler {
+  fn from(e: ChildNode) -> Self {
     match e {
-      Either4::A(r) => r.into(),
-      Either4::B(r) => r.into(),
-      Either4::C(r) => r.into(),
-      Either4::D(r) => r.into(),
+      ChildNode::Comment(r) => r.get_node_handler(),
+      ChildNode::DocumentType(r) => r.get_node_handler(),
+      ChildNode::Element(r) => r.get_node_handler(),
+      ChildNode::Text(r) => r.get_node_handler(),
     }
   }
 }
@@ -177,3 +176,20 @@ impl PartialEq for NodeHandler {
 }
 
 impl Eq for NodeHandler {}
+
+macro_rules! impl_from {
+  ($type:ty) => {
+    impl From<&$type> for NodeHandler {
+      fn from(value: &$type) -> Self {
+        value.get_node_handler()
+      }
+    }
+  };
+}
+
+impl_from!(Comment);
+impl_from!(Document);
+impl_from!(DocumentFragment);
+impl_from!(DocumentType);
+impl_from!(Element);
+impl_from!(Text);

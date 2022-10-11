@@ -1,10 +1,14 @@
-use std::cell::RefMut;
+use std::{
+  cell::RefMut,
+  fmt::{Debug, Formatter},
+  ops::Deref,
+};
 
 use crate::{
   Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler, ParentContext, Text,
 };
 use napi::{
-  bindgen_prelude::{Either3, Either4, Error, Reference, Result, ToNapiValue, WeakReference},
+  bindgen_prelude::{Either3, Error, FromNapiValue, Reference, Result, ToNapiValue, WeakReference},
   Status,
 };
 
@@ -35,13 +39,80 @@ impl ToNapiValue for ChildNode {
   }
 }
 
-impl From<Either4<&Comment, &DocumentType, &Element, &Text>> for Handle {
-  fn from(value: Either4<&Comment, &DocumentType, &Element, &Text>) -> Self {
+impl FromNapiValue for ChildNode {
+  unsafe fn from_napi_value(
+    env: napi::sys::napi_env,
+    napi_val: napi::sys::napi_value,
+  ) -> Result<Self> {
+    println!("from_napi_value");
+    use napi::bindgen_prelude::ValidateNapiValue;
+    if <&Element>::validate(env, napi_val).is_ok() {
+      <&Element>::from_napi_value(env, napi_val).map(|r| r.into())
+    } else if <&Text>::validate(env, napi_val).is_ok() {
+      <&Text>::from_napi_value(env, napi_val).map(|r| r.into())
+    } else if <&Comment>::validate(env, napi_val).is_ok() {
+      <&Comment>::from_napi_value(env, napi_val).map(|r| r.into())
+    } else if <&DocumentType>::validate(env, napi_val).is_ok() {
+      <&DocumentType>::from_napi_value(env, napi_val).map(|r| r.into())
+    } else {
+      Err(Error::new(
+        Status::InvalidArg,
+        "Could not convert napi_value to ChildNode (Element, Text, Comment or DocumentType)"
+          .to_string(),
+      ))
+    }
+  }
+}
+
+impl Debug for ChildNode {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "ChildNode(")?;
+    match self {
+      ChildNode::Comment(r) => write!(f, "{:?}", r.deref()),
+      ChildNode::DocumentType(r) => write!(f, "{:?}", r.deref()),
+      ChildNode::Element(r) => write!(f, "{:?}", r.deref()),
+      ChildNode::Text(r) => write!(f, "{:?}", r.deref()),
+    }?;
+    write!(f, ")")
+  }
+}
+
+macro_rules! impl_from_child_node {
+  ($type:ty, $variant:ident) => {
+    impl From<&$type> for ChildNode {
+      fn from(value: &$type) -> Self {
+        ChildNode::$variant(
+          value
+            .weak_reference
+            .as_ref()
+            .unwrap()
+            .upgrade(value.env)
+            .unwrap()
+            .unwrap(),
+        )
+      }
+    }
+
+    impl From<Reference<$type>> for ChildNode {
+      fn from(value: Reference<$type>) -> Self {
+        ChildNode::$variant(value)
+      }
+    }
+  };
+}
+
+impl_from_child_node!(Comment, Comment);
+impl_from_child_node!(DocumentType, DocumentType);
+impl_from_child_node!(Element, Element);
+impl_from_child_node!(Text, Text);
+
+impl From<ChildNode> for Handle {
+  fn from(value: ChildNode) -> Self {
     match value {
-      Either4::A(comment) => comment.into(),
-      Either4::B(doc_type) => doc_type.into(),
-      Either4::C(element) => element.into(),
-      Either4::D(text) => text.into(),
+      ChildNode::Comment(r) => Handle::Comment(r),
+      ChildNode::DocumentType(r) => Handle::DocumentType(r),
+      ChildNode::Element(r) => Handle::Element(r),
+      ChildNode::Text(r) => Handle::Text(r),
     }
   }
 }
@@ -59,20 +130,13 @@ impl From<&Handle>
   }
 }
 
-impl From<&Handle>
-  for Either4<
-    WeakReference<Comment>,
-    WeakReference<DocumentType>,
-    WeakReference<Element>,
-    WeakReference<Text>,
-  >
-{
+impl From<&Handle> for ChildNode {
   fn from(val: &Handle) -> Self {
     match val {
-      Handle::Comment(r) => Either4::A(r.downgrade()),
-      Handle::DocumentType(r) => Either4::B(r.downgrade()),
-      Handle::Element(r) => Either4::C(r.downgrade()),
-      Handle::Text(r) => Either4::D(r.downgrade()),
+      Handle::Comment(r) => ChildNode::Comment(r.clone(r.env).unwrap()),
+      Handle::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env).unwrap()),
+      Handle::Element(r) => ChildNode::Element(r.clone(r.env).unwrap()),
+      Handle::Text(r) => ChildNode::Text(r.clone(r.env).unwrap()),
       Handle::Document(_) => panic!("Document is not a Node"),
       &Handle::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
     }

@@ -61,15 +61,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi]
-      pub fn append_child(
-        &self,
-        child: napi::bindgen_prelude::Either4<
-          &crate::Comment,
-          &crate::DocumentType,
-          &crate::Element,
-          &crate::Text,
-        >,
-      ) -> napi::Result<()> {
+      pub fn append_child(&self, child: crate::ChildNode) -> napi::Result<()> {
         macro_backend::children::append_child(self.into(), child.into())
       }
 
@@ -191,6 +183,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #(#fields)*
     }
 
+    impl std::fmt::Debug for #name {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "#name {{ id: {} }}", self.id)
+      }
+    }
+
     #[napi]
     #[automatically_derived]
     impl #name {
@@ -221,18 +219,6 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #is_child_impl
       #has_children_impl
-    }
-
-    impl From<#name> for crate::NodeHandler {
-      fn from(value: #name) -> Self {
-        value.get_node_handler()
-      }
-    }
-
-    impl From<&#name> for crate::NodeHandler {
-      fn from(value: &#name) -> Self {
-        value.get_node_handler()
-      }
     }
   }
   .into();
