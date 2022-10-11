@@ -3,7 +3,7 @@ mod impl_selectors;
 
 use html5ever::{LocalName, QualName};
 
-use crate::{serialize, ChildNode};
+use crate::serialize;
 
 use attributes_wrapper::AttributesWrapper;
 

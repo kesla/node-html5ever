@@ -117,17 +117,13 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     true => quote! {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
-          napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
+          Option<napi::bindgen_prelude::WeakReference<crate::Element>> {
         macro_backend::parent::get_parent_element(self.into())
       }
 
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
-          napi::Result<Option<napi::bindgen_prelude::Either3<
-            napi::bindgen_prelude::Reference<crate::Document>,
-            napi::bindgen_prelude::Reference<crate::DocumentFragment>,
-            napi::bindgen_prelude::Reference<crate::Element>,
-          >>> {
+          Option<crate::ParentNode> {
         macro_backend::parent::get_parent_node(self.into())
       }
 
@@ -139,7 +135,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #[napi(getter)]
       pub fn owner_document(
         &self,
-      ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Document>>> {
+      ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
         macro_backend::parent::owner_document(self.into())
       }
 

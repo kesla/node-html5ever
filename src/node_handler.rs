@@ -3,10 +3,11 @@ use std::{
   rc::Rc,
 };
 
-use napi::{bindgen_prelude::Either3, Either, Env, Error, Result};
+use napi::{Env, Error, Result};
 
 use crate::{
-  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Handle, Text,
+  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Handle,
+  ParentNode, Text,
 };
 
 mod child_node_list;
@@ -101,33 +102,24 @@ impl TryFrom<&ParentContext> for NodeHandler {
 
   fn try_from(parent_context: &ParentContext) -> Result<Self> {
     match &parent_context.node {
-      Either3::A(document) => {
+      ParentNode::Document(document) => {
         let document = document
           .upgrade(parent_context.env)?
           .expect("Document is gone");
         Ok(document.get_node_handler())
       }
-      Either3::B(document_fragment) => {
+      ParentNode::DocumentFragment(document_fragment) => {
         let document_fragment = document_fragment
           .upgrade(parent_context.env)?
           .expect("DocumentFragment is gone");
         Ok(document_fragment.get_node_handler())
       }
-      Either3::C(element) => {
+      ParentNode::Element(element) => {
         let element = element
           .upgrade(parent_context.env)?
           .expect("Element is gone");
         Ok(element.get_node_handler())
       }
-    }
-  }
-}
-
-impl From<Either<&Document, &Element>> for NodeHandler {
-  fn from(e: Either<&Document, &Element>) -> Self {
-    match e {
-      Either::A(r) => r.get_node_handler(),
-      Either::B(r) => r.get_node_handler(),
     }
   }
 }

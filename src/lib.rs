@@ -16,7 +16,7 @@ mod serializer;
 
 pub use crate::selectors::Selectors;
 pub use dom::Html5everDom;
-pub use handle::{ChildNode, Handle};
+pub use handle::{ChildNode, Handle, ParentNode};
 pub use id::get_id;
 pub use node_handler::{NodeHandler, ParentContext};
 pub use nodes::{Comment, Document, DocumentFragment, DocumentType, Element, Text};

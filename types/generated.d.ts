@@ -21,7 +21,7 @@ export class Comment {
   data: string
   get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | DocumentFragment | Element | null
+  get parentNode(): ParentNode | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): ChildNode | null
@@ -68,7 +68,7 @@ export class DocumentType {
   systemId: string
   get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | DocumentFragment | Element | null
+  get parentNode(): ParentNode | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): ChildNode | null
@@ -79,7 +79,7 @@ export class DocumentType {
 export class Element {
   get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | DocumentFragment | Element | null
+  get parentNode(): ParentNode | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): ChildNode | null
@@ -112,7 +112,7 @@ export class Text {
   data: string
   get nodeName(): string
   get parentElement(): Element | null
-  get parentNode(): Document | DocumentFragment | Element | null
+  get parentNode(): ParentNode | null
   remove(): void
   get ownerDocument(): Document | null
   get previousSibling(): ChildNode | null

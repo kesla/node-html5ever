@@ -55,51 +55,48 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::{ChildNode, Document, DocumentFragment, Element, Handle, NodeHandler};
+  use crate::{ChildNode, Document, Element, Handle, NodeHandler, ParentNode};
   use fallible_iterator::FallibleIterator;
   use napi::{
-    bindgen_prelude::{Either3, Reference},
+    bindgen_prelude::{Reference, WeakReference},
     Result,
   };
 
-  pub(crate) fn get_parent_element(
-    node_handler: NodeHandler,
-  ) -> Result<Option<Reference<Element>>> {
+  pub(crate) fn get_parent_element(node_handler: NodeHandler) -> Option<WeakReference<Element>> {
     let parent_node = get_parent_node(node_handler);
 
     match parent_node {
-      Ok(Some(Either3::C(element))) => Ok(Some(element)),
-      _ => Ok(None),
+      Some(ParentNode::Element(element)) => Some(element),
+      _ => None,
     }
   }
 
-  pub(crate) fn get_parent_node(
-    node_handler: NodeHandler,
-  ) -> Result<Option<Either3<Reference<Document>, Reference<DocumentFragment>, Reference<Element>>>>
-  {
+  pub(crate) fn get_parent_node(node_handler: NodeHandler) -> Option<ParentNode> {
     let parent = node_handler.get_parent();
     let parent = parent.as_ref();
-    let parent = match parent {
-      Some(parent) => parent,
-      None => return Ok(None),
-    };
-    let parent: Either3<Reference<Document>, Reference<DocumentFragment>, Reference<Element>> =
-      parent.try_into()?;
-    Ok(Some(parent))
+    parent.map(|ctx| ctx.node.clone())
   }
 
   pub(crate) fn remove(child: Handle) -> Result<()> {
     child.remove()
   }
 
-  pub(crate) fn owner_document(node_handler: NodeHandler) -> Result<Option<Reference<Document>>> {
-    let maybe_parent = get_parent_node(node_handler)?;
+  pub(crate) fn owner_document(
+    node_handler: NodeHandler,
+  ) -> Result<Option<WeakReference<Document>>> {
+    let env = node_handler.get_env();
+    let maybe_parent = get_parent_node(node_handler);
 
     match maybe_parent {
-      Some(Either3::A(document)) => Ok(Some(document)),
-      Some(Either3::B(_document_fragment)) => Ok(None),
-      Some(Either3::C(element)) => element.owner_document(),
-      None => Ok(None),
+      Some(ParentNode::Document(document)) => Ok(Some(document)),
+      Some(ParentNode::Element(element)) => {
+        let maybe_elment = element.upgrade(env)?;
+        match maybe_elment {
+          Some(element) => element.owner_document(),
+          None => Ok(None),
+        }
+      }
+      _ => Ok(None),
     }
   }
 

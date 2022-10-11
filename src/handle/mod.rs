@@ -1,16 +1,18 @@
-use std::{
-  cell::RefMut,
-  fmt::{Debug, Formatter},
-  ops::Deref,
-};
+mod child_node;
+mod parent_node;
+
+use std::cell::RefMut;
 
 use crate::{
   Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler, ParentContext, Text,
 };
 use napi::{
-  bindgen_prelude::{Either3, Error, FromNapiValue, Reference, Result, ToNapiValue, WeakReference},
+  bindgen_prelude::{Error, Reference, Result},
   Status,
 };
+
+pub use child_node::ChildNode;
+pub use parent_node::ParentNode;
 
 pub enum Handle {
   Comment(Reference<Comment>),
@@ -21,91 +23,6 @@ pub enum Handle {
   Text(Reference<Text>),
 }
 
-pub enum ChildNode {
-  Comment(Reference<Comment>),
-  DocumentType(Reference<DocumentType>),
-  Element(Reference<Element>),
-  Text(Reference<Text>),
-}
-
-impl ToNapiValue for ChildNode {
-  unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
-    match val {
-      ChildNode::Comment(r) => Reference::<Comment>::to_napi_value(env, r),
-      ChildNode::DocumentType(r) => Reference::<DocumentType>::to_napi_value(env, r),
-      ChildNode::Element(r) => Reference::<Element>::to_napi_value(env, r),
-      ChildNode::Text(r) => Reference::<Text>::to_napi_value(env, r),
-    }
-  }
-}
-
-impl FromNapiValue for ChildNode {
-  unsafe fn from_napi_value(
-    env: napi::sys::napi_env,
-    napi_val: napi::sys::napi_value,
-  ) -> Result<Self> {
-    println!("from_napi_value");
-    use napi::bindgen_prelude::ValidateNapiValue;
-    if <&Element>::validate(env, napi_val).is_ok() {
-      <&Element>::from_napi_value(env, napi_val).map(|r| r.into())
-    } else if <&Text>::validate(env, napi_val).is_ok() {
-      <&Text>::from_napi_value(env, napi_val).map(|r| r.into())
-    } else if <&Comment>::validate(env, napi_val).is_ok() {
-      <&Comment>::from_napi_value(env, napi_val).map(|r| r.into())
-    } else if <&DocumentType>::validate(env, napi_val).is_ok() {
-      <&DocumentType>::from_napi_value(env, napi_val).map(|r| r.into())
-    } else {
-      Err(Error::new(
-        Status::InvalidArg,
-        "Could not convert napi_value to ChildNode (Element, Text, Comment or DocumentType)"
-          .to_string(),
-      ))
-    }
-  }
-}
-
-impl Debug for ChildNode {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    write!(f, "ChildNode(")?;
-    match self {
-      ChildNode::Comment(r) => write!(f, "{:?}", r.deref()),
-      ChildNode::DocumentType(r) => write!(f, "{:?}", r.deref()),
-      ChildNode::Element(r) => write!(f, "{:?}", r.deref()),
-      ChildNode::Text(r) => write!(f, "{:?}", r.deref()),
-    }?;
-    write!(f, ")")
-  }
-}
-
-macro_rules! impl_from_child_node {
-  ($type:ty, $variant:ident) => {
-    impl From<&$type> for ChildNode {
-      fn from(value: &$type) -> Self {
-        ChildNode::$variant(
-          value
-            .weak_reference
-            .as_ref()
-            .unwrap()
-            .upgrade(value.env)
-            .unwrap()
-            .unwrap(),
-        )
-      }
-    }
-
-    impl From<Reference<$type>> for ChildNode {
-      fn from(value: Reference<$type>) -> Self {
-        ChildNode::$variant(value)
-      }
-    }
-  };
-}
-
-impl_from_child_node!(Comment, Comment);
-impl_from_child_node!(DocumentType, DocumentType);
-impl_from_child_node!(Element, Element);
-impl_from_child_node!(Text, Text);
-
 impl From<ChildNode> for Handle {
   fn from(value: ChildNode) -> Self {
     match value {
@@ -113,32 +30,6 @@ impl From<ChildNode> for Handle {
       ChildNode::DocumentType(r) => Handle::DocumentType(r),
       ChildNode::Element(r) => Handle::Element(r),
       ChildNode::Text(r) => Handle::Text(r),
-    }
-  }
-}
-
-impl From<&Handle>
-  for Either3<WeakReference<Document>, WeakReference<DocumentFragment>, WeakReference<Element>>
-{
-  fn from(val: &Handle) -> Self {
-    match val {
-      Handle::Document(document) => Either3::A(document.downgrade()),
-      Handle::DocumentFragment(document_fragment) => Either3::B(document_fragment.downgrade()),
-      Handle::Element(element) => Either3::C(element.downgrade()),
-      _ => panic!("Invalid handle"),
-    }
-  }
-}
-
-impl From<&Handle> for ChildNode {
-  fn from(val: &Handle) -> Self {
-    match val {
-      Handle::Comment(r) => ChildNode::Comment(r.clone(r.env).unwrap()),
-      Handle::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env).unwrap()),
-      Handle::Element(r) => ChildNode::Element(r.clone(r.env).unwrap()),
-      Handle::Text(r) => ChildNode::Text(r.clone(r.env).unwrap()),
-      Handle::Document(_) => panic!("Document is not a Node"),
-      &Handle::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
     }
   }
 }
@@ -235,15 +126,11 @@ impl Handle {
     let mut children = node_handler.get_child_nodes_mut();
     children.append_handle(child_handle);
 
-    let parent_reference: Either3<
-      WeakReference<Document>,
-      WeakReference<DocumentFragment>,
-      WeakReference<Element>,
-    > = self.into();
+    let parent_node: ParentNode = self.into();
 
     let parent_context = Some(ParentContext::new(
       node_handler.get_env(),
-      parent_reference,
+      parent_node,
       children.len() - 1,
     ));
     let node_handler = NodeHandler::from(child_handle);

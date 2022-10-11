@@ -41,10 +41,10 @@ impl selectors::Element for ElementRef {
   }
 
   fn parent_element(&self) -> Option<Self> {
-    self
-      .get_parent_element()
-      .unwrap()
-      .map(|r| ElementRef { r, env: self.env })
+    self.get_parent_element().map(|r| ElementRef {
+      r: r.upgrade(self.env).unwrap().unwrap(),
+      env: self.env,
+    })
   }
 
   fn parent_node_is_shadow_root(&self) -> bool {
