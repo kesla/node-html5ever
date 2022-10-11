@@ -32,7 +32,6 @@ impl FromNapiValue for ChildNode {
     env: napi::sys::napi_env,
     napi_val: napi::sys::napi_value,
   ) -> Result<Self> {
-    println!("from_napi_value");
     use napi::bindgen_prelude::ValidateNapiValue;
     if <&Element>::validate(env, napi_val).is_ok() {
       <&Element>::from_napi_value(env, napi_val).map(|r| r.into())
