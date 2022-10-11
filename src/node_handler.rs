@@ -6,8 +6,8 @@ use std::{
 use napi::{Env, Error, Result};
 
 use crate::{
-  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Handle,
-  ParentNode, Text,
+  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Node, ParentNode,
+  Text,
 };
 
 mod child_node_list;
@@ -135,28 +135,28 @@ impl From<ChildNode> for NodeHandler {
   }
 }
 
-impl From<Handle> for NodeHandler {
-  fn from(handle: Handle) -> Self {
-    match handle {
-      Handle::Comment(r) => r.get_node_handler(),
-      Handle::DocumentType(r) => r.get_node_handler(),
-      Handle::Document(r) => r.get_node_handler(),
-      Handle::DocumentFragment(r) => r.get_node_handler(),
-      Handle::Element(r) => r.get_node_handler(),
-      Handle::Text(r) => r.get_node_handler(),
+impl From<Node> for NodeHandler {
+  fn from(node: Node) -> Self {
+    match node {
+      Node::Comment(r) => r.get_node_handler(),
+      Node::DocumentType(r) => r.get_node_handler(),
+      Node::Document(r) => r.get_node_handler(),
+      Node::DocumentFragment(r) => r.get_node_handler(),
+      Node::Element(r) => r.get_node_handler(),
+      Node::Text(r) => r.get_node_handler(),
     }
   }
 }
 
-impl From<&Handle> for NodeHandler {
-  fn from(handle: &Handle) -> Self {
-    match handle {
-      Handle::Comment(r) => r.get_node_handler(),
-      Handle::DocumentType(r) => r.get_node_handler(),
-      Handle::Document(r) => r.get_node_handler(),
-      Handle::DocumentFragment(r) => r.get_node_handler(),
-      Handle::Element(r) => r.get_node_handler(),
-      Handle::Text(r) => r.get_node_handler(),
+impl From<&Node> for NodeHandler {
+  fn from(node: &Node) -> Self {
+    match node {
+      Node::Comment(r) => r.get_node_handler(),
+      Node::DocumentType(r) => r.get_node_handler(),
+      Node::Document(r) => r.get_node_handler(),
+      Node::DocumentFragment(r) => r.get_node_handler(),
+      Node::Element(r) => r.get_node_handler(),
+      Node::Text(r) => r.get_node_handler(),
     }
   }
 }

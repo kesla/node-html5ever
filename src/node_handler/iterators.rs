@@ -1,7 +1,7 @@
 use fallible_iterator::FallibleIterator;
 use napi::{bindgen_prelude::Reference, Error, Result};
 
-use crate::{ChildNode, Element, Handle, NodeHandler};
+use crate::{ChildNode, Element, Node, NodeHandler};
 
 pub(crate) enum PreviousIterator {
   Data {
@@ -31,18 +31,18 @@ impl FallibleIterator for PreviousIterator {
     *index -= 1;
 
     let child_nodes = node_handler.get_child_nodes();
-    let handle = child_nodes.get(*index).unwrap();
-    let e = handle_to_child_node(handle)?;
+    let node = child_nodes.get(*index).unwrap();
+    let e = handle_to_child_node(node)?;
     Ok(Some(e))
   }
 }
 
-fn handle_to_child_node(handle: &Handle) -> Result<ChildNode> {
-  let e = match handle {
-    Handle::Comment(r) => ChildNode::Comment(r.clone(r.env)?),
-    Handle::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env)?),
-    Handle::Element(r) => ChildNode::Element(r.clone(r.env)?),
-    Handle::Text(r) => ChildNode::Text(r.clone(r.env)?),
+fn handle_to_child_node(node: &Node) -> Result<ChildNode> {
+  let e = match node {
+    Node::Comment(r) => ChildNode::Comment(r.clone(r.env)?),
+    Node::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env)?),
+    Node::Element(r) => ChildNode::Element(r.clone(r.env)?),
+    Node::Text(r) => ChildNode::Text(r.clone(r.env)?),
     _ => panic!("Invalid handle"),
   };
   Ok(e)
@@ -79,14 +79,14 @@ impl FallibleIterator for NextIterator {
     *index += 1;
 
     let child_nodes = node_handler.get_child_nodes();
-    let handle = child_nodes.get(*index).unwrap();
+    let node = child_nodes.get(*index).unwrap();
 
-    Ok(Some(handle_to_child_node(handle)?))
+    Ok(Some(handle_to_child_node(node)?))
   }
 }
 
 pub(crate) struct ChildNodesIterator {
-  queue: Vec<Handle>,
+  queue: Vec<Node>,
   deep: bool,
 }
 
@@ -106,20 +106,20 @@ impl Iterator for ChildNodesIterator {
   type Item = ChildNode;
 
   fn next(&mut self) -> Option<Self::Item> {
-    let handle = match self.queue.pop() {
+    let node = match self.queue.pop() {
       Some(handle) => handle,
       None => return None,
     };
 
     if self.deep {
-      if let Handle::Element(r) = &handle {
+      if let Node::Element(r) = &node {
         let node_handler = r.get_node_handler();
         let child_nodes = node_handler.get_child_nodes();
         self.queue.extend(child_nodes.iter().rev().cloned());
       }
     }
 
-    Some(handle_to_child_node(&handle).unwrap())
+    Some(handle_to_child_node(&node).unwrap())
   }
 }
 

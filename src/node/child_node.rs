@@ -3,7 +3,7 @@ use std::{
   ops::Deref,
 };
 
-use crate::{Comment, DocumentType, Element, Handle, Text};
+use crate::{Comment, DocumentType, Element, Node, Text};
 use napi::{
   bindgen_prelude::{Error, FromNapiValue, Reference, Result, ToNapiValue},
   Status,
@@ -93,15 +93,15 @@ impl_from!(DocumentType, DocumentType);
 impl_from!(Element, Element);
 impl_from!(Text, Text);
 
-impl From<&Handle> for ChildNode {
-  fn from(val: &Handle) -> Self {
+impl From<&Node> for ChildNode {
+  fn from(val: &Node) -> Self {
     match val {
-      Handle::Comment(r) => ChildNode::Comment(r.clone(r.env).unwrap()),
-      Handle::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env).unwrap()),
-      Handle::Element(r) => ChildNode::Element(r.clone(r.env).unwrap()),
-      Handle::Text(r) => ChildNode::Text(r.clone(r.env).unwrap()),
-      Handle::Document(_) => panic!("Document is not a Node"),
-      Handle::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
+      Node::Comment(r) => ChildNode::Comment(r.clone(r.env).unwrap()),
+      Node::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env).unwrap()),
+      Node::Element(r) => ChildNode::Element(r.clone(r.env).unwrap()),
+      Node::Text(r) => ChildNode::Text(r.clone(r.env).unwrap()),
+      Node::Document(_) => panic!("Document is not a Node"),
+      Node::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
     }
   }
 }

@@ -1,20 +1,15 @@
-mod child_node;
-mod parent_node;
-
 use std::cell::RefMut;
 
 use crate::{
-  Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler, ParentContext, Text,
+  ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler,
+  ParentContext, ParentNode, Text,
 };
 use napi::{
   bindgen_prelude::{Error, Reference, Result},
   Status,
 };
 
-pub use child_node::ChildNode;
-pub use parent_node::ParentNode;
-
-pub enum Handle {
+pub enum Node {
   Comment(Reference<Comment>),
   DocumentType(Reference<DocumentType>),
   Document(Reference<Document>),
@@ -23,22 +18,22 @@ pub enum Handle {
   Text(Reference<Text>),
 }
 
-impl From<ChildNode> for Handle {
+impl From<ChildNode> for Node {
   fn from(value: ChildNode) -> Self {
     match value {
-      ChildNode::Comment(r) => Handle::Comment(r),
-      ChildNode::DocumentType(r) => Handle::DocumentType(r),
-      ChildNode::Element(r) => Handle::Element(r),
-      ChildNode::Text(r) => Handle::Text(r),
+      ChildNode::Comment(r) => Node::Comment(r),
+      ChildNode::DocumentType(r) => Node::DocumentType(r),
+      ChildNode::Element(r) => Node::Element(r),
+      ChildNode::Text(r) => Node::Text(r),
     }
   }
 }
 
 macro_rules! impl_from {
   ($type:ty, $variant:ident) => {
-    impl From<&$type> for Handle {
+    impl From<&$type> for Node {
       fn from(value: &$type) -> Self {
-        Handle::$variant(
+        Node::$variant(
           value
             .weak_reference
             .as_ref()
@@ -50,9 +45,9 @@ macro_rules! impl_from {
       }
     }
 
-    impl From<Reference<$type>> for Handle {
+    impl From<Reference<$type>> for Node {
       fn from(value: Reference<$type>) -> Self {
-        Handle::$variant(value)
+        Node::$variant(value)
       }
     }
   };
@@ -65,7 +60,7 @@ impl_from!(DocumentFragment, DocumentFragment);
 impl_from!(Element, Element);
 impl_from!(Text, Text);
 
-impl PartialEq for Handle {
+impl PartialEq for Node {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
       (Self::Comment(left), Self::Comment(right)) => left.id == right.id,
@@ -79,9 +74,9 @@ impl PartialEq for Handle {
   }
 }
 
-impl Eq for Handle {}
+impl Eq for Node {}
 
-impl Clone for Handle {
+impl Clone for Node {
   fn clone(&self) -> Self {
     match self {
       Self::Comment(arg0) => Self::Comment(arg0.clone(arg0.env).unwrap()),
@@ -94,10 +89,10 @@ impl Clone for Handle {
   }
 }
 
-impl Handle {
+impl Node {
   pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
     match &self {
-      Handle::Element(r) => Ok(r),
+      Node::Element(r) => Ok(r),
       _ => Err(Error::new(
         Status::InvalidArg,
         "Node is not an Element".to_string(),
@@ -107,7 +102,7 @@ impl Handle {
 
   pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocumentType>> {
     match &self {
-      Handle::DocumentType(r) => Ok(r),
+      Node::DocumentType(r) => Ok(r),
       _ => Err(Error::new(
         Status::InvalidArg,
         "Node is not a DocumentType".to_string(),
@@ -115,16 +110,16 @@ impl Handle {
     }
   }
 
-  pub(crate) fn append_handle(&self, child_handle: &Handle) -> Result<()> {
+  pub(crate) fn append_node(&self, child_node: &Node) -> Result<()> {
     // remove from old parent
     {
-      child_handle.remove()?;
+      child_node.remove()?;
     }
     // TODO: concatenate already existing text node
 
     let node_handler = NodeHandler::from(self);
     let mut children = node_handler.get_child_nodes_mut();
-    children.append_handle(child_handle);
+    children.append_node(child_node);
 
     let parent_node: ParentNode = self.into();
 
@@ -133,17 +128,17 @@ impl Handle {
       parent_node,
       children.len() - 1,
     ));
-    let node_handler = NodeHandler::from(child_handle);
+    let node_handler = NodeHandler::from(child_node);
     let mut parent = node_handler.get_parent_mut();
     *parent = parent_context;
     Ok(())
   }
 
-  pub(crate) fn remove_handle(&self, child_handle: &Handle) {
-    let child_node_handler: NodeHandler = child_handle.into();
+  pub(crate) fn remove_node(&self, child_node: &Node) {
+    let child_node_handler: NodeHandler = child_node.into();
     let parent = child_node_handler.get_parent_mut();
 
-    remove_handle(self, parent, child_handle);
+    remove_node(self, parent, child_node);
   }
 
   pub(crate) fn remove(&self) -> Result<()> {
@@ -151,7 +146,7 @@ impl Handle {
     let maybe_parent = node_handler.get_parent_mut();
 
     match maybe_parent.as_ref() {
-      Some(parent) => remove_handle(&parent.try_into()?, maybe_parent, self),
+      Some(parent) => remove_node(&parent.try_into()?, maybe_parent, self),
       None => {}
     }
 
@@ -160,21 +155,21 @@ impl Handle {
 
   pub(crate) fn get_node_name(&self) -> String {
     match self {
-      Handle::Comment(_) => "#comment".to_string(),
-      Handle::DocumentType(_) => "#docType".to_string(),
-      Handle::Document(_) => "#document".to_string(),
-      Handle::DocumentFragment(_) => "#document-fragment".to_string(),
-      Handle::Element(r) => r.name.local.to_string().to_uppercase(),
-      Handle::Text(_) => "#text".to_string(),
+      Node::Comment(_) => "#comment".to_string(),
+      Node::DocumentType(_) => "#docType".to_string(),
+      Node::Document(_) => "#document".to_string(),
+      Node::DocumentFragment(_) => "#document-fragment".to_string(),
+      Node::Element(r) => r.name.local.to_string().to_uppercase(),
+      Node::Text(_) => "#text".to_string(),
     }
   }
 }
 
-fn remove_handle(parent: &Handle, mut parent_ref: RefMut<Option<ParentContext>>, child: &Handle) {
+fn remove_node(parent: &Node, mut parent_ref: RefMut<Option<ParentContext>>, child: &Node) {
   let parent_node_handler: NodeHandler = parent.into();
 
   let mut children = parent_node_handler.get_child_nodes_mut();
-  children.remove_handle(child);
+  children.remove_node(child);
 
   *parent_ref = None;
 }

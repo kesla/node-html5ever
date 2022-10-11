@@ -5,12 +5,12 @@ use html5ever::{
   QualName,
 };
 
-use crate::{Handle, NodeHandler};
+use crate::{Node, NodeHandler};
 
-struct SerializableNodeHandler(Handle);
+struct SerializableNodeHandler(Node);
 
 enum SerializeOp {
-  Open(Handle),
+  Open(Node),
   Close(QualName),
 }
 
@@ -41,11 +41,11 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
 
     while let Some(op) = ops.pop_front() {
       match op {
-        SerializeOp::Open(handle) => {
-          match &handle {
-            Handle::Comment(comment) => serializer.write_comment(&comment.data)?,
-            Handle::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
-            Handle::Element(element) => {
+        SerializeOp::Open(node) => {
+          match &node {
+            Node::Comment(comment) => serializer.write_comment(&comment.data)?,
+            Node::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+            Node::Element(element) => {
               let node_handler = element.get_node_handler();
               let list = node_handler.get_child_nodes();
               serializer.start_elem(
@@ -63,9 +63,9 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
                 ops.push_front(SerializeOp::Open(child.clone()));
               }
             }
-            Handle::Document(_) => panic!("Can't serialize Document node itself"),
-            Handle::DocumentFragment(_) => panic!("Can't serialize DocumentFragment node itself"),
-            Handle::Text(text) => serializer.write_text(&text.data)?,
+            Node::Document(_) => panic!("Can't serialize Document node itself"),
+            Node::DocumentFragment(_) => panic!("Can't serialize DocumentFragment node itself"),
+            Node::Text(text) => serializer.write_text(&text.data)?,
           }
         }
         SerializeOp::Close(name) => serializer.end_elem(name)?,
@@ -76,7 +76,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
   }
 }
 
-pub fn serialize(handle: Handle, traversal_scope: TraversalScope) -> String {
+pub fn serialize(handle: Node, traversal_scope: TraversalScope) -> String {
   let serializable_node_handler: SerializableNodeHandler = SerializableNodeHandler(handle);
   let mut serialized = Vec::new();
   html5ever::serialize::serialize(

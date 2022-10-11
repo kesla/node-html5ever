@@ -2,7 +2,7 @@ pub(crate) mod children {
 
   use napi::{bindgen_prelude::Reference, Result};
 
-  use crate::{ChildNode, Element, Handle, NodeHandler};
+  use crate::{ChildNode, Element, Node, NodeHandler};
 
   pub(crate) fn get_child_nodes(node_handler: NodeHandler) -> Vec<ChildNode> {
     node_handler.child_nodes_iter(false).collect()
@@ -12,12 +12,12 @@ pub(crate) mod children {
     node_handler.children_iter(false).collect()
   }
 
-  pub(crate) fn append_child(parent_handle: Handle, child_handle: Handle) -> Result<()> {
-    parent_handle.append_handle(&child_handle)
+  pub(crate) fn append_child(parent_node: Node, child_node: Node) -> Result<()> {
+    parent_node.append_node(&child_node)
   }
 
-  pub(crate) fn remove_element(parent_handle: Handle, child_handle: Handle) {
-    parent_handle.remove_handle(&child_handle);
+  pub(crate) fn remove_element(parent_node: Node, child_node: Node) {
+    parent_node.remove_node(&child_node);
   }
 
   pub(crate) fn get_element_by_id(
@@ -55,7 +55,7 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::{ChildNode, Document, Element, Handle, NodeHandler, ParentNode};
+  use crate::{ChildNode, Document, Element, Node, NodeHandler, ParentNode};
   use fallible_iterator::FallibleIterator;
   use napi::{
     bindgen_prelude::{Reference, WeakReference},
@@ -77,7 +77,7 @@ pub(crate) mod parent {
     parent.map(|ctx| ctx.node.clone())
   }
 
-  pub(crate) fn remove(child: Handle) -> Result<()> {
+  pub(crate) fn remove(child: Node) -> Result<()> {
     child.remove()
   }
 
@@ -128,9 +128,9 @@ pub(crate) mod parent {
 }
 
 mod all_nodes {
-  use crate::Handle;
+  use crate::Node;
 
-  pub(crate) fn get_node_name(handle: Handle) -> String {
+  pub(crate) fn get_node_name(handle: Node) -> String {
     handle.get_node_name()
   }
 }

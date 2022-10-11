@@ -1,5 +1,5 @@
 use crate::{
-  serialize, Comment, Document, DocumentFragment, DocumentType, Element, Handle, QuirksMode, Text,
+  serialize, Comment, Document, DocumentFragment, DocumentType, Element, Node, QuirksMode, Text,
 };
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
@@ -51,16 +51,16 @@ impl Html5everDom {
       .document_reference
       .get_document_element()?
       .get_node_handler();
-    let tmp: Vec<Handle> = {
+    let tmp: Vec<Node> = {
       let get_child_nodes = node_handler.get_child_nodes();
       let iter = get_child_nodes.iter();
       iter.cloned().collect()
     };
 
-    let fragment_handle: Handle = fragment.clone(env)?.into();
+    let fragment_node: Node = fragment.clone(env)?.into();
 
     for child in tmp {
-      fragment_handle.append_handle(&child.clone())?;
+      fragment_node.append_node(&child.clone())?;
     }
 
     // Ok(dom)
@@ -87,10 +87,10 @@ impl Html5everDom {
 
   #[napi]
   pub fn serialize(&self) -> Result<String> {
-    let handle: Handle = self.document_reference.clone(self.env)?.into();
+    let node: Node = self.document_reference.clone(self.env)?.into();
 
     Ok(serialize(
-      handle,
+      node,
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
     ))
   }
@@ -98,7 +98,7 @@ impl Html5everDom {
 
 #[allow(unused_variables)]
 impl TreeSink for Html5everDom {
-  type Handle = Handle;
+  type Handle = Node;
 
   type Output = Self;
 
@@ -152,7 +152,7 @@ impl TreeSink for Html5everDom {
       }
     };
 
-    parent.append_handle(&child).unwrap();
+    parent.append_node(&child).unwrap();
   }
 
   fn append_based_on_parent_node(
@@ -177,10 +177,10 @@ impl TreeSink for Html5everDom {
       system_id.to_string(),
     )
     .unwrap();
-    let doc_type: Handle = r.into();
+    let doc_type: Node = r.into();
     let child = NodeOrText::AppendNode(doc_type);
-    let handle = self.get_document();
-    self.append(&handle, child);
+    let node = self.get_document();
+    self.append(&node, child);
   }
 
   fn get_template_contents(&mut self, target: &Self::Handle) -> Self::Handle {

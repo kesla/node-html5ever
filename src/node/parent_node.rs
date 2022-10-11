@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Formatter};
 
-use crate::{Document, DocumentFragment, Element, Handle};
+use crate::{Document, DocumentFragment, Element, Node};
 use napi::{
   bindgen_prelude::{Error, FromNapiValue, Result, ToNapiValue, WeakReference},
   Status,
@@ -77,15 +77,15 @@ impl_from!(Document, Document);
 impl_from!(DocumentFragment, DocumentFragment);
 impl_from!(Element, Element);
 
-impl From<&Handle> for ParentNode {
-  fn from(val: &Handle) -> Self {
+impl From<&Node> for ParentNode {
+  fn from(val: &Node) -> Self {
     match val {
-      Handle::Comment(_) => panic!("Comment cannot be a parent node"),
-      Handle::DocumentType(_) => panic!("DocumentType cannot be a parent node"),
-      Handle::Element(r) => ParentNode::Element(r.downgrade()),
-      Handle::Text(_) => panic!("Text nodes cannot be a parent node"),
-      Handle::Document(r) => ParentNode::Document(r.downgrade()),
-      Handle::DocumentFragment(r) => ParentNode::DocumentFragment(r.downgrade()),
+      Node::Comment(_) => panic!("Comment cannot be a parent node"),
+      Node::DocumentType(_) => panic!("DocumentType cannot be a parent node"),
+      Node::Element(r) => ParentNode::Element(r.downgrade()),
+      Node::Text(_) => panic!("Text nodes cannot be a parent node"),
+      Node::Document(r) => ParentNode::Document(r.downgrade()),
+      Node::DocumentFragment(r) => ParentNode::DocumentFragment(r.downgrade()),
     }
   }
 }
