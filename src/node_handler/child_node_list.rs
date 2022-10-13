@@ -29,7 +29,11 @@ impl ChildNodeList {
       let node_handler: NodeHandler = (&self.0[index]).into();
       let mut parent_context = node_handler.parent_context.take();
       assert!(parent_context.is_some());
-      parent_context.as_mut().map(|mut ctx| ctx.index = index);
+
+      if let Some(mut ctx) = parent_context.as_mut() {
+        ctx.index = index;
+      }
+
       node_handler.parent_context.set(parent_context);
     }
   }

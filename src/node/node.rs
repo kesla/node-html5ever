@@ -105,7 +105,7 @@ impl Node {
 
     let node_handler = NodeHandler::from(self);
     let mut children = node_handler.get_child_nodes_mut();
-    children.append_node(&child_node);
+    children.append_node(child_node);
 
     let parent_node: ParentNode = self.into();
 

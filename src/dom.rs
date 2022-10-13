@@ -61,7 +61,7 @@ impl Html5everDom {
     let fragment_node: Node = fragment.clone(env)?.into();
 
     for child in tmp {
-      fragment_node.append_node(&child.clone().into())?;
+      fragment_node.append_node(&child.clone())?;
     }
 
     // Ok(dom)
