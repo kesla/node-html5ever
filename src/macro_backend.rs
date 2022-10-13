@@ -107,7 +107,7 @@ pub(crate) mod parent {
   pub(crate) fn get_previous_element_sibling(
     node_handler: NodeHandler,
   ) -> Result<Option<Reference<Element>>> {
-    Ok(node_handler.previous_iterator()?.element_iterator().next())
+    Ok(node_handler.previous_iterator()?.next())
   }
 
   pub(crate) fn get_next_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {
@@ -117,7 +117,7 @@ pub(crate) mod parent {
   pub(crate) fn get_next_element_sibling(
     node_handler: NodeHandler,
   ) -> Result<Option<Reference<Element>>> {
-    Ok(node_handler.next_iterator()?.element_iterator().next())
+    Ok(node_handler.next_iterator()?.next())
   }
 }
 

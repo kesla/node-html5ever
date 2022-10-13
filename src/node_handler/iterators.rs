@@ -55,56 +55,79 @@ impl Iterator for SiblingIterator {
   }
 }
 
-pub struct NextIterator(Option<SiblingIterator>);
+pub struct NextIterator<T> {
+  inner: Option<SiblingIterator>,
+  _phantom: PhantomData<T>,
+}
 
-impl NextIterator {
+impl<T> NextIterator<T> {
   pub fn new(input: Option<(NodeHandler, usize)>) -> Self {
-    NextIterator(input.map(|(node_handler, index)| SiblingIterator {
-      node_handler,
-      index,
-      next_index: &|index: usize| index.checked_add(1),
-    }))
-  }
-
-  pub fn element_iterator(self) -> ElementIterator<Reference<Element>> {
-    ElementIterator {
-      data: self.0,
+    NextIterator {
+      inner: input.map(|(node_handler, index)| SiblingIterator {
+        node_handler,
+        index,
+        next_index: &|index: usize| index.checked_add(1),
+      }),
       _phantom: PhantomData,
     }
   }
 }
 
-impl Iterator for NextIterator {
-  type Item = ChildNode;
+impl<T> Iterator for NextIterator<T>
+where
+  ChildNode: TryInto<T>,
+{
+  type Item = T;
 
   fn next(&mut self) -> Option<Self::Item> {
-    (&mut self.0).as_mut().map(|iter| iter.next()).flatten()
+    self
+      .inner
+      .as_mut()
+      .map(|i| {
+        i.find_map(|child| match child.try_into() {
+          Ok(v) => Some(v),
+          Err(_) => None,
+        })
+      })
+      .flatten()
   }
 }
 
-pub struct PrevIterator(Option<SiblingIterator>);
-impl PrevIterator {
-  pub fn new(input: Option<(NodeHandler, usize)>) -> Self {
-    PrevIterator(input.map(|(node_handler, index)| SiblingIterator {
-      node_handler,
-      index,
-      next_index: &|index: usize| index.checked_sub(1),
-    }))
-  }
+pub struct PrevIterator<T> {
+  inner: Option<SiblingIterator>,
+  _phantom: PhantomData<T>,
+}
 
-  pub fn element_iterator(self) -> ElementIterator<Reference<Element>> {
-    ElementIterator {
-      data: self.0,
+impl<T> PrevIterator<T> {
+  pub fn new(input: Option<(NodeHandler, usize)>) -> Self {
+    PrevIterator {
+      inner: input.map(|(node_handler, index)| SiblingIterator {
+        node_handler,
+        index,
+        next_index: &|index: usize| index.checked_sub(1),
+      }),
       _phantom: PhantomData,
     }
   }
 }
 
-impl Iterator for PrevIterator {
-  type Item = ChildNode;
+impl<T> Iterator for PrevIterator<T>
+where
+  ChildNode: TryInto<T>,
+{
+  type Item = T;
 
   fn next(&mut self) -> Option<Self::Item> {
-    (&mut self.0).as_mut().map(|iter| iter.next()).flatten()
+    self
+      .inner
+      .as_mut()
+      .map(|i| {
+        i.find_map(|child| match child.try_into() {
+          Ok(v) => Some(v),
+          Err(_) => None,
+        })
+      })
+      .flatten()
   }
 }
 

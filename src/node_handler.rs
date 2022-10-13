@@ -62,7 +62,7 @@ impl NodeHandler {
     self.0.list.borrow_mut()
   }
 
-  pub(crate) fn previous_iterator(&self) -> Result<PrevIterator> {
+  pub(crate) fn previous_iterator<T>(&self) -> Result<PrevIterator<T>> {
     let maybe_parent = self.parent_context.take();
     let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
       Some(parent) => Some((parent.try_into()?, parent.index)),
@@ -73,7 +73,7 @@ impl NodeHandler {
     Ok(PrevIterator::new(input))
   }
 
-  pub(crate) fn next_iterator(&self) -> Result<NextIterator> {
+  pub(crate) fn next_iterator<T>(&self) -> Result<NextIterator<T>> {
     let maybe_parent = self.parent_context.take();
     let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
       Some(parent) => Some((parent.try_into()?, parent.index)),
