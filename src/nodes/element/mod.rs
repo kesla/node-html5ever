@@ -97,6 +97,11 @@ impl Element {
 
 impl Drop for Element {
   fn drop(&mut self) {
-    println!("Dropping element <{}>", self.name.local);
+    println!(
+      "Dropping element <{} id=\"{}\" class=\"{}\">",
+      self.name.local,
+      self.get_id(),
+      self.get_class_name()
+    );
   }
 }
