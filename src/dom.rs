@@ -1,5 +1,6 @@
 use crate::{
-  serialize, Comment, Document, DocumentFragment, DocumentType, Element, Node, QuirksMode, Text,
+  serialize, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Node,
+  QuirksMode, Text,
 };
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
@@ -51,7 +52,7 @@ impl Html5everDom {
       .document_reference
       .get_document_element()?
       .get_node_handler();
-    let tmp: Vec<Node> = {
+    let tmp: Vec<ChildNode> = {
       let get_child_nodes = node_handler.get_child_nodes();
       let iter = get_child_nodes.iter();
       iter.cloned().collect()
@@ -60,7 +61,7 @@ impl Html5everDom {
     let fragment_node: Node = fragment.clone(env)?.into();
 
     for child in tmp {
-      fragment_node.append_node(&child.clone())?;
+      fragment_node.append_node(&child.clone().into())?;
     }
 
     // Ok(dom)

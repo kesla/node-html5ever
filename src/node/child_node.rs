@@ -16,6 +16,53 @@ pub enum ChildNode {
   Text(Reference<Text>),
 }
 
+impl ChildNode {
+  pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
+    match &self {
+      Self::Element(r) => Ok(r),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        "Node is not an Element".to_string(),
+      )),
+    }
+  }
+
+  pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocumentType>> {
+    match &self {
+      Self::DocumentType(r) => Ok(r),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        "Node is not a DocumentType".to_string(),
+      )),
+    }
+  }
+}
+
+impl PartialEq for ChildNode {
+  fn eq(&self, other: &Self) -> bool {
+    match (self, other) {
+      (Self::Comment(left), Self::Comment(right)) => left.id == right.id,
+      (Self::DocumentType(left), Self::DocumentType(right)) => left.id == right.id,
+      (Self::Element(left), Self::Element(right)) => left.id == right.id,
+      (Self::Text(left), Self::Text(right)) => left.id == right.id,
+      _ => false,
+    }
+  }
+}
+
+impl Eq for ChildNode {}
+
+impl Clone for ChildNode {
+  fn clone(&self) -> Self {
+    match self {
+      Self::Comment(arg0) => Self::Comment(arg0.clone(arg0.env).unwrap()),
+      Self::DocumentType(arg0) => Self::DocumentType(arg0.clone(arg0.env).unwrap()),
+      Self::Element(arg0) => Self::Element(arg0.clone(arg0.env).unwrap()),
+      Self::Text(arg0) => Self::Text(arg0.clone(arg0.env).unwrap()),
+    }
+  }
+}
+
 impl ToNapiValue for ChildNode {
   unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
     match val {
@@ -106,6 +153,19 @@ impl_into_from!(Comment, Comment);
 impl_into_from!(DocumentType, DocumentType);
 impl_into_from!(Element, Element);
 impl_into_from!(Text, Text);
+
+impl From<Node> for ChildNode {
+  fn from(val: Node) -> Self {
+    match val {
+      Node::Comment(r) => ChildNode::Comment(r.clone(r.env).unwrap()),
+      Node::DocumentType(r) => ChildNode::DocumentType(r.clone(r.env).unwrap()),
+      Node::Element(r) => ChildNode::Element(r.clone(r.env).unwrap()),
+      Node::Text(r) => ChildNode::Text(r.clone(r.env).unwrap()),
+      Node::Document(_) => panic!("Document is not a Node"),
+      Node::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
+    }
+  }
+}
 
 impl From<&Node> for ChildNode {
   fn from(val: &Node) -> Self {

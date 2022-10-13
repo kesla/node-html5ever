@@ -98,16 +98,6 @@ impl Node {
     }
   }
 
-  pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocumentType>> {
-    match &self {
-      Node::DocumentType(r) => Ok(r),
-      _ => Err(Error::new(
-        Status::InvalidArg,
-        "Node is not a DocumentType".to_string(),
-      )),
-    }
-  }
-
   pub(crate) fn append_node(&self, child_node: &Node) -> Result<()> {
     // remove from old parent
     child_node.remove()?;
@@ -115,7 +105,7 @@ impl Node {
 
     let node_handler = NodeHandler::from(self);
     let mut children = node_handler.get_child_nodes_mut();
-    children.append_node(child_node);
+    children.append_node(&child_node.into());
 
     let parent_node: ParentNode = self.into();
 
@@ -136,7 +126,7 @@ impl Node {
 
     let parent_node_handler: NodeHandler = self.into();
     let mut children = parent_node_handler.get_child_nodes_mut();
-    children.remove_node(child_node);
+    children.remove_node(&child_node.into());
   }
 
   pub(crate) fn remove(&self) -> Result<()> {
@@ -151,7 +141,7 @@ impl Node {
     let parent_node_handler: NodeHandler = parent_node.into();
 
     let mut children = parent_node_handler.get_child_nodes_mut();
-    children.remove_node(self);
+    children.remove_node(&self.into());
 
     Ok(())
   }

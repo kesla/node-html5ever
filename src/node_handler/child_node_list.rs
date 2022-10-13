@@ -1,12 +1,12 @@
 use std::{self, slice::Iter};
 
-use crate::{Node, NodeHandler};
+use crate::{ChildNode, NodeHandler};
 
 #[derive(Default)]
-pub(crate) struct ChildNodeList(Vec<Node>);
+pub(crate) struct ChildNodeList(Vec<ChildNode>);
 
 impl ChildNodeList {
-  pub(crate) fn get(&self, index: usize) -> Option<&Node> {
+  pub(crate) fn get(&self, index: usize) -> Option<&ChildNode> {
     self.0.get(index)
   }
 
@@ -14,11 +14,11 @@ impl ChildNodeList {
     self.0.len()
   }
 
-  pub(crate) fn iter(&self) -> Iter<Node> {
+  pub(crate) fn iter(&self) -> Iter<ChildNode> {
     self.0.iter()
   }
 
-  pub(crate) fn remove_node(&mut self, node: &Node) {
+  pub(crate) fn remove_node(&mut self, node: &ChildNode) {
     self.0.retain(|h| h != node);
 
     self.sync_parent_context();
@@ -34,12 +34,12 @@ impl ChildNodeList {
     }
   }
 
-  pub(crate) fn append_node(&mut self, child: &Node) {
+  pub(crate) fn append_node(&mut self, child: &ChildNode) {
     self.0.push(child.to_owned());
   }
 }
 
-impl From<ChildNodeList> for Vec<Node> {
+impl From<ChildNodeList> for Vec<ChildNode> {
   fn from(child_node_list: ChildNodeList) -> Self {
     child_node_list.0
   }

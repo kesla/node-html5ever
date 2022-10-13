@@ -131,6 +131,17 @@ impl From<ChildNode> for NodeHandler {
   }
 }
 
+impl From<&ChildNode> for NodeHandler {
+  fn from(e: &ChildNode) -> Self {
+    match e {
+      ChildNode::Comment(r) => r.get_node_handler(),
+      ChildNode::DocumentType(r) => r.get_node_handler(),
+      ChildNode::Element(r) => r.get_node_handler(),
+      ChildNode::Text(r) => r.get_node_handler(),
+    }
+  }
+}
+
 impl From<Node> for NodeHandler {
   fn from(node: Node) -> Self {
     match node {

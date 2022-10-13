@@ -5,12 +5,12 @@ use html5ever::{
   QualName,
 };
 
-use crate::{Node, NodeHandler};
+use crate::{ChildNode, Node, NodeHandler};
 
 struct SerializableNodeHandler(Node);
 
 enum SerializeOp {
-  Open(Node),
+  Open(ChildNode),
   Close(QualName),
 }
 
@@ -26,7 +26,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
     let mut ops = VecDeque::new();
     match traversal_scope {
       html5ever::serialize::TraversalScope::IncludeNode => {
-        ops.push_back(SerializeOp::Open(self.0.clone()))
+        ops.push_back(SerializeOp::Open((&self.0).into()))
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
         let node_handler: NodeHandler = (&self.0).into();
@@ -43,9 +43,9 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
       match op {
         SerializeOp::Open(node) => {
           match &node {
-            Node::Comment(comment) => serializer.write_comment(&comment.data)?,
-            Node::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
-            Node::Element(element) => {
+            ChildNode::Comment(comment) => serializer.write_comment(&comment.data)?,
+            ChildNode::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+            ChildNode::Element(element) => {
               let node_handler = element.get_node_handler();
               let list = node_handler.get_child_nodes();
               serializer.start_elem(
@@ -63,9 +63,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
                 ops.push_front(SerializeOp::Open(child.clone()));
               }
             }
-            Node::Document(_) => panic!("Can't serialize Document node itself"),
-            Node::DocumentFragment(_) => panic!("Can't serialize DocumentFragment node itself"),
-            Node::Text(text) => serializer.write_text(&text.data)?,
+            ChildNode::Text(text) => serializer.write_text(&text.data)?,
           }
         }
         SerializeOp::Close(name) => serializer.end_elem(name)?,

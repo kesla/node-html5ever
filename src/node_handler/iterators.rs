@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use napi::bindgen_prelude::Reference;
 
-use crate::{ChildNode, Element, Node, NodeHandler};
+use crate::{ChildNode, Element, NodeHandler};
 
 pub enum SiblingIteratorType {
   Next,
@@ -45,7 +45,7 @@ impl<T> SiblingIterator<T> {
     };
     *index = next_index;
 
-    Some(node.into())
+    Some(node.clone())
   }
 }
 
@@ -67,7 +67,7 @@ where
 }
 
 pub(crate) struct ChildNodesIterator {
-  queue: Vec<Node>,
+  queue: Vec<ChildNode>,
   deep: bool,
 }
 
@@ -93,14 +93,14 @@ impl Iterator for ChildNodesIterator {
     };
 
     if self.deep {
-      if let Node::Element(r) = &node {
+      if let ChildNode::Element(r) = &node {
         let node_handler = r.get_node_handler();
         let child_nodes = node_handler.get_child_nodes();
         self.queue.extend(child_nodes.iter().rev().cloned());
       }
     }
 
-    Some((&node).into())
+    Some(node)
   }
 }
 
