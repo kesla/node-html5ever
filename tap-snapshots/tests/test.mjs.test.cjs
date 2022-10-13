@@ -5,7 +5,7 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
-exports[`tests/test.mjs TAP Element.id & Element.className > div.outerHtml 1`] = `
+exports[`tests/test.mjs TAP Element.id & Element.className > div.outerHTML 1`] = `
 <div id="foo" class="bar baz"></div>
 `
 
@@ -13,19 +13,19 @@ exports[`tests/test.mjs TAP Text node > Text node in body 1`] = `
 <html><head></head><body>Hello, world</body></html>
 `
 
-exports[`tests/test.mjs TAP basic appendChild & remove > body.outerHtml 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & remove > body.outerHTML 1`] = `
 <body><div></div></body>
 `
 
-exports[`tests/test.mjs TAP basic appendChild & remove > body.outerHtml after remove 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & remove > body.outerHTML after remove 1`] = `
 <body></body>
 `
 
-exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHtml 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHTML 1`] = `
 <body><div></div></body>
 `
 
-exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHtml after remove 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHTML after remove 1`] = `
 <body></body>
 `
 
@@ -53,22 +53,22 @@ exports[`tests/test.mjs TAP doc type / Quirks mode > .serialize() 1`] = `
 <!DOCTYPE html><html><head></head><body></body></html>
 `
 
-exports[`tests/test.mjs TAP element > body.innerHtml 1`] = `
+exports[`tests/test.mjs TAP element > body.innerHTML 1`] = `
 <div>Body content</div>
     
 `
 
-exports[`tests/test.mjs TAP element > body.outerHtml 1`] = `
+exports[`tests/test.mjs TAP element > body.outerHTML 1`] = `
 <body class="foo"><div>Body content</div>
     </body>
 `
 
-exports[`tests/test.mjs TAP element > html.innerHtml 1`] = `
+exports[`tests/test.mjs TAP element > html.innerHTML 1`] = `
 <head></head><body class="foo"><div>Body content</div>
     </body>
 `
 
-exports[`tests/test.mjs TAP element > html.outerHtml 1`] = `
+exports[`tests/test.mjs TAP element > html.outerHTML 1`] = `
 <html id="main"><head></head><body class="foo"><div>Body content</div>
     </body></html>
 `

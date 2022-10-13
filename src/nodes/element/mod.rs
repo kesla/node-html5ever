@@ -46,7 +46,7 @@ impl Element {
     self.get_node_name()
   }
 
-  #[napi(getter)]
+  #[napi(getter, js_name = "innerHTML")]
   pub fn inner_html(&self) -> String {
     serialize(
       self.into(),
@@ -54,7 +54,7 @@ impl Element {
     )
   }
 
-  #[napi(getter)]
+  #[napi(getter, js_name = "outerHTML")]
   pub fn outer_html(&self) -> String {
     serialize(
       self.into(),

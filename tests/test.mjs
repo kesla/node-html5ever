@@ -84,10 +84,10 @@ test("element", (t) => {
   t.strictSame(html instanceof Element, true);
   t.strictSame(body instanceof Element, true);
 
-  t.matchSnapshot(html.outerHtml, "html.outerHtml");
-  t.matchSnapshot(html.innerHtml, "html.innerHtml");
-  t.matchSnapshot(body.outerHtml, "body.outerHtml");
-  t.matchSnapshot(body.innerHtml, "body.innerHtml");
+  t.matchSnapshot(html.outerHTML, "html.outerHTML");
+  t.matchSnapshot(html.innerHTML, "html.innerHTML");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+  t.matchSnapshot(body.innerHTML, "body.innerHTML");
 
   t.strictSame(html, html2);
   t.strictSame(body, body2);
@@ -123,7 +123,7 @@ test("createElement + set attributes", (t) => {
 
   let element = dom.document.createElement("div");
 
-  t.matchSnapshot(element.outerHtml, "empty div");
+  t.matchSnapshot(element.outerHTML, "empty div");
   t.strictSame(element.parentElement, null);
   t.strictSame(element.parentNode, null);
 
@@ -133,12 +133,12 @@ test("createElement + set attributes", (t) => {
   element.setAttribute("foo", "bar");
   t.strictSame(element.hasAttribute("foo"), true);
   t.strictSame(element.getAttribute("foo"), "bar");
-  t.matchSnapshot(element.outerHtml, 'foo="bar"');
+  t.matchSnapshot(element.outerHTML, 'foo="bar"');
 
   element.setAttribute("foo", "baz");
   t.strictSame(element.hasAttribute("foo"), true);
   t.strictSame(element.getAttribute("foo"), "baz");
-  t.matchSnapshot(element.outerHtml, 'foo="baz"');
+  t.matchSnapshot(element.outerHTML, 'foo="baz"');
 
   element.setAttribute("hello", "world");
 
@@ -146,7 +146,7 @@ test("createElement + set attributes", (t) => {
   t.strictSame(element.hasAttribute("foo"), false);
   t.strictSame(element.getAttribute("foo"), null);
   t.strictSame(element.getAttribute("hello"), "world");
-  t.matchSnapshot(element.outerHtml, "attribute foo removed, hello added");
+  t.matchSnapshot(element.outerHTML, "attribute foo removed, hello added");
 });
 
 test("Text node", (t) => {
@@ -170,7 +170,7 @@ test("basic appendChild & remove", (t) => {
   let child = document.createElement("div");
   body.appendChild(child);
 
-  t.matchSnapshot(body.outerHtml, "body.outerHtml");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML");
 
   t.ok(child.parentElement, "child.parentElement is truthy");
   t.strictSame(child.parentElement, body, "child.parentElement is body");
@@ -185,7 +185,7 @@ test("basic appendChild & remove", (t) => {
   t.strictSame(child.parentElement, null, "child.parentElement is null");
   t.strictSame(child.parentNode, null, "child.parentNode is null");
   t.strictSame(body.children.length, 0, "body.children.length is 0");
-  t.matchSnapshot(body.outerHtml, "body.outerHtml after remove");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML after remove");
 });
 
 test("basic appendChild & removeElement", (t) => {
@@ -195,7 +195,7 @@ test("basic appendChild & removeElement", (t) => {
   let child = document.createElement("div");
   body.appendChild(child);
 
-  t.matchSnapshot(body.outerHtml, "body.outerHtml");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML");
 
   t.ok(child.parentElement, "child.parentElement is truthy");
   t.strictSame(child.parentElement, body, "child.parentElement is body");
@@ -210,7 +210,7 @@ test("basic appendChild & removeElement", (t) => {
   t.strictSame(child.parentElement, null, "child.parentElement is null");
   t.strictSame(child.parentNode, null, "child.parentNode is null");
   t.strictSame(body.children.length, 0, "body.children.length is 0");
-  t.matchSnapshot(body.outerHtml, "body.outerHtml after remove");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML after remove");
 });
 
 test("appendChild() remove element from previous parent", (t) => {
@@ -267,7 +267,7 @@ test("Element.id & Element.className", (t) => {
   div.id = "foo";
   div.className = "bar baz";
 
-  t.matchSnapshot(div.outerHtml, "div.outerHtml");
+  t.matchSnapshot(div.outerHTML, "div.outerHTML");
 
   t.strictSame(div.id, "foo");
   t.strictSame(div.className, "bar baz");

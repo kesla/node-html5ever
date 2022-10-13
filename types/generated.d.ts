@@ -101,8 +101,8 @@ export class Element {
   setAttribute(name: string, value: string): void
   hasAttribute(name: string): boolean
   get tagName(): string
-  get innerHtml(): string
-  get outerHtml(): string
+  get innerHTML(): string
+  get outerHTML(): string
   get className(): string
   set className(className: string)
   get id(): string
