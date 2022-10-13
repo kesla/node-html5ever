@@ -19,7 +19,7 @@ pub use self::parent_context::ParentContext;
 
 use self::{
   child_node_list::ChildNodeList,
-  iterators::{ChildNodesIterator, ChildrenIterator, NextIterator, PrevIterator},
+  iterators::{ChildNodesIterator, ChildrenIterator, SiblingIterator, SiblingIteratorType},
 };
 
 pub struct NodeHandlerInner {
@@ -62,7 +62,7 @@ impl NodeHandler {
     self.0.list.borrow_mut()
   }
 
-  pub(crate) fn previous_iterator<T>(&self) -> Result<PrevIterator<T>> {
+  pub(crate) fn previous_iterator<T>(&self) -> Result<SiblingIterator<T>> {
     let maybe_parent = self.parent_context.take();
     let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
       Some(parent) => Some((parent.try_into()?, parent.index)),
@@ -70,10 +70,10 @@ impl NodeHandler {
     };
     self.parent_context.set(maybe_parent);
 
-    Ok(PrevIterator::new(input))
+    Ok(SiblingIterator::new(input, SiblingIteratorType::Previous))
   }
 
-  pub(crate) fn next_iterator<T>(&self) -> Result<NextIterator<T>> {
+  pub(crate) fn next_iterator<T>(&self) -> Result<SiblingIterator<T>> {
     let maybe_parent = self.parent_context.take();
     let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
       Some(parent) => Some((parent.try_into()?, parent.index)),
@@ -81,7 +81,7 @@ impl NodeHandler {
     };
     self.parent_context.set(maybe_parent);
 
-    Ok(NextIterator::new(input))
+    Ok(SiblingIterator::new(input, SiblingIteratorType::Next))
   }
 
   pub(crate) fn child_nodes_iter(&self, deep: bool) -> ChildNodesIterator {

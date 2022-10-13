@@ -5,7 +5,7 @@ use napi::bindgen_prelude::Reference;
 use crate::{ChildNode, Element, Node, NodeHandler};
 
 pub struct ElementIterator<T> {
-  data: Option<SiblingIterator>,
+  data: Option<SiblingsInnerIterator>,
   _phantom: PhantomData<T>,
 }
 
@@ -29,13 +29,13 @@ where
   }
 }
 
-struct SiblingIterator {
+struct SiblingsInnerIterator {
   node_handler: NodeHandler,
   index: usize,
   next_index: &'static dyn Fn(usize) -> Option<usize>,
 }
 
-impl Iterator for SiblingIterator {
+impl Iterator for SiblingsInnerIterator {
   type Item = ChildNode;
 
   fn next(&mut self) -> Option<ChildNode> {
@@ -55,63 +55,33 @@ impl Iterator for SiblingIterator {
   }
 }
 
-pub struct NextIterator<T> {
-  inner: Option<SiblingIterator>,
+pub enum SiblingIteratorType {
+  Next,
+  Previous,
+}
+
+pub struct SiblingIterator<T> {
+  inner: Option<SiblingsInnerIterator>,
   _phantom: PhantomData<T>,
 }
 
-impl<T> NextIterator<T> {
-  pub fn new(input: Option<(NodeHandler, usize)>) -> Self {
-    NextIterator {
-      inner: input.map(|(node_handler, index)| SiblingIterator {
+impl<T> SiblingIterator<T> {
+  pub fn new(input: Option<(NodeHandler, usize)>, sibling_type: SiblingIteratorType) -> Self {
+    SiblingIterator {
+      inner: input.map(|(node_handler, index)| SiblingsInnerIterator {
         node_handler,
         index,
-        next_index: &|index: usize| index.checked_add(1),
+        next_index: match sibling_type {
+          SiblingIteratorType::Next => &|index: usize| index.checked_add(1),
+          SiblingIteratorType::Previous => &|index: usize| index.checked_sub(1),
+        },
       }),
       _phantom: PhantomData,
     }
   }
 }
 
-impl<T> Iterator for NextIterator<T>
-where
-  ChildNode: TryInto<T>,
-{
-  type Item = T;
-
-  fn next(&mut self) -> Option<Self::Item> {
-    self
-      .inner
-      .as_mut()
-      .map(|i| {
-        i.find_map(|child| match child.try_into() {
-          Ok(v) => Some(v),
-          Err(_) => None,
-        })
-      })
-      .flatten()
-  }
-}
-
-pub struct PrevIterator<T> {
-  inner: Option<SiblingIterator>,
-  _phantom: PhantomData<T>,
-}
-
-impl<T> PrevIterator<T> {
-  pub fn new(input: Option<(NodeHandler, usize)>) -> Self {
-    PrevIterator {
-      inner: input.map(|(node_handler, index)| SiblingIterator {
-        node_handler,
-        index,
-        next_index: &|index: usize| index.checked_sub(1),
-      }),
-      _phantom: PhantomData,
-    }
-  }
-}
-
-impl<T> Iterator for PrevIterator<T>
+impl<T> Iterator for SiblingIterator<T>
 where
   ChildNode: TryInto<T>,
 {
