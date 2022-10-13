@@ -1,5 +1,6 @@
 use std::{
-  cell::{Ref, RefCell, RefMut},
+  cell::{Cell, Ref, RefCell, RefMut},
+  ops::Deref,
   rc::Rc,
 };
 
@@ -21,15 +22,23 @@ use self::{
   iterators::{ChildNodesIterator, ChildrenIterator, NextIterator, PreviousIterator},
 };
 
-struct NodeHandlerInner {
+pub struct NodeHandlerInner {
   env: Env,
   id: usize,
   list: RefCell<ChildNodeList>,
-  parent_context: RefCell<Option<ParentContext>>,
+  pub(crate) parent_context: Cell<Option<ParentContext>>,
 }
 
 #[derive(Clone)]
 pub struct NodeHandler(Rc<NodeHandlerInner>);
+
+impl Deref for NodeHandler {
+  type Target = NodeHandlerInner;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
 
 impl NodeHandler {
   pub(crate) fn new(env: Env) -> Self {
@@ -37,7 +46,7 @@ impl NodeHandler {
       env,
       id: get_id(),
       list: Default::default(),
-      parent_context: RefCell::new(None),
+      parent_context: Cell::new(None),
     }))
   }
 
@@ -53,38 +62,32 @@ impl NodeHandler {
     self.0.list.borrow_mut()
   }
 
-  pub(crate) fn get_parent(&self) -> Ref<Option<ParentContext>> {
-    self.0.parent_context.borrow()
-  }
-
-  pub(crate) fn get_parent_mut(&self) -> RefMut<Option<ParentContext>> {
-    self.0.parent_context.borrow_mut()
-  }
-
   pub(crate) fn previous_iterator(&self) -> Result<PreviousIterator> {
-    let maybe_parent_context = self.get_parent();
-    let maybe_parent_context = maybe_parent_context.as_ref();
+    let maybe_parent_context = self.parent_context.take();
 
-    match maybe_parent_context {
-      Some(ctx) => Ok(PreviousIterator::Data {
+    let iter = match maybe_parent_context.as_ref() {
+      Some(ctx) => PreviousIterator::Data {
         node_handler: ctx.try_into()?,
         index: ctx.index,
-      }),
-      None => Ok(PreviousIterator::None),
-    }
+      },
+      None => return Ok(PreviousIterator::None),
+    };
+    self.parent_context.set(maybe_parent_context);
+    Ok(iter)
   }
 
   pub(crate) fn next_iterator(&self) -> Result<NextIterator> {
-    let maybe_parent_context = self.get_parent();
-    let maybe_parent_context = maybe_parent_context.as_ref();
+    let maybe_parent_context = self.parent_context.take();
 
-    match maybe_parent_context {
-      Some(ctx) => Ok(NextIterator::Data {
+    let iter = match maybe_parent_context.as_ref() {
+      Some(ctx) => NextIterator::Data {
         node_handler: ctx.try_into()?,
         index: ctx.index,
-      }),
-      None => Ok(NextIterator::None),
-    }
+      },
+      None => return Ok(NextIterator::None),
+    };
+    self.parent_context.set(maybe_parent_context);
+    Ok(iter)
   }
 
   pub(crate) fn child_nodes_iter(&self, deep: bool) -> ChildNodesIterator {

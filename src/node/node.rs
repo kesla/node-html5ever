@@ -1,5 +1,3 @@
-use std::cell::RefMut;
-
 use crate::{
   ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler,
   ParentContext, ParentNode, Text,
@@ -112,9 +110,7 @@ impl Node {
 
   pub(crate) fn append_node(&self, child_node: &Node) -> Result<()> {
     // remove from old parent
-    {
-      child_node.remove()?;
-    }
+    child_node.remove()?;
     // TODO: concatenate already existing text node
 
     let node_handler = NodeHandler::from(self);
@@ -129,26 +125,33 @@ impl Node {
       children.len() - 1,
     ));
     let node_handler = NodeHandler::from(child_node);
-    let mut parent = node_handler.get_parent_mut();
-    *parent = parent_context;
+    node_handler.parent_context.set(parent_context);
+
     Ok(())
   }
 
   pub(crate) fn remove_node(&self, child_node: &Node) {
     let child_node_handler: NodeHandler = child_node.into();
-    let parent = child_node_handler.get_parent_mut();
+    child_node_handler.parent_context.set(None);
 
-    remove_node(self, parent, child_node);
+    let parent_node_handler: NodeHandler = self.into();
+    let mut children = parent_node_handler.get_child_nodes_mut();
+    children.remove_node(child_node);
   }
 
   pub(crate) fn remove(&self) -> Result<()> {
-    let node_handler = NodeHandler::from(self);
-    let maybe_parent = node_handler.get_parent_mut();
+    let node_handler: NodeHandler = self.into();
 
-    match maybe_parent.as_ref() {
-      Some(parent) => remove_node(&parent.try_into()?, maybe_parent, self),
-      None => {}
-    }
+    let parent_ctx: ParentContext = match node_handler.parent_context.take() {
+      Some(parent) => parent,
+      None => return Ok(()),
+    };
+
+    let parent_node = parent_ctx.get_node()?;
+    let parent_node_handler: NodeHandler = parent_node.into();
+
+    let mut children = parent_node_handler.get_child_nodes_mut();
+    children.remove_node(self);
 
     Ok(())
   }
@@ -163,13 +166,4 @@ impl Node {
       Node::Text(_) => "#text".to_string(),
     }
   }
-}
-
-fn remove_node(parent: &Node, mut parent_ref: RefMut<Option<ParentContext>>, child: &Node) {
-  let parent_node_handler: NodeHandler = parent.into();
-
-  let mut children = parent_node_handler.get_child_nodes_mut();
-  children.remove_node(child);
-
-  *parent_ref = None;
 }

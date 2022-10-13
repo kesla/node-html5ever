@@ -1,9 +1,9 @@
-use std::{borrow::Borrow, fmt::Debug, ops::Deref};
+use std::{fmt::Debug, ops::Deref};
 
 use html5ever::{namespace_url, ns};
 use napi::bindgen_prelude::Reference;
 
-use crate::{ChildNode, Element};
+use crate::{ChildNode, Element, ParentNode};
 
 struct ElementRef {
   r: Reference<Element>,
@@ -195,10 +195,7 @@ impl selectors::Element for ElementRef {
 
   fn is_root(&self) -> bool {
     self
-      .node_handler
-      .get_parent()
-      .borrow()
-      .as_ref()
-      .map_or(false, |parent| parent.is_document())
+      .get_parent_node()
+      .map_or(false, |parent| matches!(parent, ParentNode::Document(_)))
   }
 }

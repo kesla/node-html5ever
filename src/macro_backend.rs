@@ -72,9 +72,10 @@ pub(crate) mod parent {
   }
 
   pub(crate) fn get_parent_node(node_handler: NodeHandler) -> Option<ParentNode> {
-    let parent = node_handler.get_parent();
-    let parent = parent.as_ref();
-    parent.map(|ctx| ctx.node.clone())
+    let parent = node_handler.parent_context.take();
+    let result = parent.as_ref().map(|p| p.node.clone());
+    node_handler.parent_context.set(parent);
+    result
   }
 
   pub(crate) fn remove(child: Node) -> Result<()> {

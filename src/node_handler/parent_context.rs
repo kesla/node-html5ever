@@ -1,4 +1,4 @@
-use napi::{Env, Error, Result};
+use napi::{Env, Result};
 
 use crate::{Node, ParentNode};
 
@@ -22,17 +22,5 @@ impl ParentContext {
       ParentNode::Element(weak_reference) => weak_reference.upgrade(self.env)?.unwrap().into(),
     };
     Ok(node)
-  }
-
-  pub(crate) fn is_document(&self) -> bool {
-    matches!(&self.node, ParentNode::Document(_))
-  }
-}
-
-impl TryInto<Node> for &ParentContext {
-  type Error = Error;
-
-  fn try_into(self) -> Result<Node> {
-    self.get_node()
   }
 }
