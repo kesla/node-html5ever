@@ -12,11 +12,11 @@ pub(crate) mod children {
     node_handler.children_iter(false).collect()
   }
 
-  pub(crate) fn append_child(parent_node: Node, child_node: Node) -> Result<()> {
+  pub(crate) fn append_child(parent_node: Node, child_node: ChildNode) -> Result<()> {
     parent_node.append_node(&child_node)
   }
 
-  pub(crate) fn remove_element(parent_node: Node, child_node: Node) {
+  pub(crate) fn remove_element(parent_node: Node, child_node: ChildNode) {
     parent_node.remove_node(&child_node);
   }
 
@@ -55,7 +55,7 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::{ChildNode, Document, Element, Node, NodeHandler, ParentNode};
+  use crate::{ChildNode, Document, Element, NodeHandler, ParentNode};
   use napi::{
     bindgen_prelude::{Reference, WeakReference},
     Result,
@@ -77,7 +77,7 @@ pub(crate) mod parent {
     result
   }
 
-  pub(crate) fn remove(child: Node) -> Result<()> {
+  pub(crate) fn remove(child: ChildNode) -> Result<()> {
     child.remove()
   }
 

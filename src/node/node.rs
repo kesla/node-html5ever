@@ -98,14 +98,14 @@ impl Node {
     }
   }
 
-  pub(crate) fn append_node(&self, child_node: &Node) -> Result<()> {
+  pub(crate) fn append_node(&self, child_node: &ChildNode) -> Result<()> {
     // remove from old parent
     child_node.remove()?;
     // TODO: concatenate already existing text node
 
     let node_handler = NodeHandler::from(self);
     let mut children = node_handler.get_child_nodes_mut();
-    children.append_node(&child_node.into());
+    children.append_node(&child_node);
 
     let parent_node: ParentNode = self.into();
 
@@ -120,30 +120,13 @@ impl Node {
     Ok(())
   }
 
-  pub(crate) fn remove_node(&self, child_node: &Node) {
+  pub(crate) fn remove_node(&self, child_node: &ChildNode) {
     let child_node_handler: NodeHandler = child_node.into();
     child_node_handler.parent_context.set(None);
 
     let parent_node_handler: NodeHandler = self.into();
     let mut children = parent_node_handler.get_child_nodes_mut();
-    children.remove_node(&child_node.into());
-  }
-
-  pub(crate) fn remove(&self) -> Result<()> {
-    let node_handler: NodeHandler = self.into();
-
-    let parent_ctx: ParentContext = match node_handler.parent_context.take() {
-      Some(parent) => parent,
-      None => return Ok(()),
-    };
-
-    let parent_node = parent_ctx.get_node()?;
-    let parent_node_handler: NodeHandler = parent_node.into();
-
-    let mut children = parent_node_handler.get_child_nodes_mut();
-    children.remove_node(&self.into());
-
-    Ok(())
+    children.remove_node(child_node);
   }
 
   pub(crate) fn get_node_name(&self) -> String {

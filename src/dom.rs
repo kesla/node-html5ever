@@ -145,8 +145,8 @@ impl TreeSink for Html5everDom {
   }
 
   fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
-    let child = match child {
-      NodeOrText::AppendNode(handle) => handle,
+    let child: ChildNode = match child {
+      NodeOrText::AppendNode(node) => node.into(),
       NodeOrText::AppendText(content) => {
         let r = Text::new_reference(self.env, content.to_string()).unwrap();
         r.into()

@@ -3,7 +3,7 @@ use std::{
   ops::Deref,
 };
 
-use crate::{Comment, DocumentType, Element, Node, Text};
+use crate::{Comment, DocumentType, Element, Node, NodeHandler, ParentContext, Text};
 use napi::{
   bindgen_prelude::{Error, FromNapiValue, Reference, Result, ToNapiValue},
   Status,
@@ -35,6 +35,23 @@ impl ChildNode {
         "Node is not a DocumentType".to_string(),
       )),
     }
+  }
+
+  pub(crate) fn remove(&self) -> Result<()> {
+    let node_handler: NodeHandler = self.into();
+
+    let parent_ctx: ParentContext = match node_handler.parent_context.take() {
+      Some(parent) => parent,
+      None => return Ok(()),
+    };
+
+    let parent_node = parent_ctx.get_node()?;
+    let parent_node_handler: NodeHandler = parent_node.into();
+
+    let mut children = parent_node_handler.get_child_nodes_mut();
+    children.remove_node(self);
+
+    Ok(())
   }
 }
 
