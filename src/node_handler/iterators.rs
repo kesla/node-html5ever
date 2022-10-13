@@ -4,43 +4,37 @@ use napi::bindgen_prelude::Reference;
 
 use crate::{ChildNode, Element, Node, NodeHandler};
 
-pub struct ElementIterator<T> {
-  data: Option<SiblingsInnerIterator>,
+pub enum SiblingIteratorType {
+  Next,
+  Previous,
+}
+
+pub struct SiblingIterator<T> {
+  data: Option<(NodeHandler, usize)>,
+  next_index: &'static dyn Fn(usize) -> Option<usize>,
   _phantom: PhantomData<T>,
 }
 
-impl<T> Iterator for ElementIterator<T>
-where
-  ChildNode: TryInto<T>,
-{
-  type Item = T;
-
-  fn next(&mut self) -> Option<Self::Item> {
-    self
-      .data
-      .as_mut()
-      .map(|i| {
-        i.find_map(|child| match child.try_into() {
-          Ok(v) => Some(v),
-          Err(_) => None,
-        })
-      })
-      .flatten()
+impl<T> SiblingIterator<T> {
+  pub fn new(data: Option<(NodeHandler, usize)>, sibling_type: SiblingIteratorType) -> Self {
+    SiblingIterator {
+      data,
+      next_index: match sibling_type {
+        SiblingIteratorType::Next => &|index: usize| index.checked_add(1),
+        SiblingIteratorType::Previous => &|index: usize| index.checked_sub(1),
+      },
+      _phantom: PhantomData,
+    }
   }
-}
 
-struct SiblingsInnerIterator {
-  node_handler: NodeHandler,
-  index: usize,
-  next_index: &'static dyn Fn(usize) -> Option<usize>,
-}
+  fn next_child_node(&mut self) -> Option<ChildNode> {
+    let (node_handler, index) = match self.data {
+      Some((ref node_handler, ref mut index)) => (node_handler, index),
+      None => return None,
+    };
 
-impl Iterator for SiblingsInnerIterator {
-  type Item = ChildNode;
-
-  fn next(&mut self) -> Option<ChildNode> {
-    let child_nodes = self.node_handler.get_child_nodes();
-    let next_index = match (self.next_index)(self.index) {
+    let child_nodes = node_handler.get_child_nodes();
+    let next_index = match (self.next_index)(*index) {
       Some(i) => i,
       None => return None,
     };
@@ -49,35 +43,9 @@ impl Iterator for SiblingsInnerIterator {
       Some(node) => node,
       None => return None,
     };
-    self.index = next_index;
+    *index = next_index;
 
     Some(node.into())
-  }
-}
-
-pub enum SiblingIteratorType {
-  Next,
-  Previous,
-}
-
-pub struct SiblingIterator<T> {
-  inner: Option<SiblingsInnerIterator>,
-  _phantom: PhantomData<T>,
-}
-
-impl<T> SiblingIterator<T> {
-  pub fn new(input: Option<(NodeHandler, usize)>, sibling_type: SiblingIteratorType) -> Self {
-    SiblingIterator {
-      inner: input.map(|(node_handler, index)| SiblingsInnerIterator {
-        node_handler,
-        index,
-        next_index: match sibling_type {
-          SiblingIteratorType::Next => &|index: usize| index.checked_add(1),
-          SiblingIteratorType::Previous => &|index: usize| index.checked_sub(1),
-        },
-      }),
-      _phantom: PhantomData,
-    }
   }
 }
 
@@ -88,16 +56,13 @@ where
   type Item = T;
 
   fn next(&mut self) -> Option<Self::Item> {
-    self
-      .inner
-      .as_mut()
-      .map(|i| {
-        i.find_map(|child| match child.try_into() {
-          Ok(v) => Some(v),
-          Err(_) => None,
-        })
-      })
-      .flatten()
+    while let Some(child) = self.next_child_node() {
+      if let Ok(child) = child.try_into() {
+        return Some(child);
+      }
+    }
+
+    None
   }
 }
 
