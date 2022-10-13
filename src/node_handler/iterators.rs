@@ -1,8 +1,6 @@
 use std::marker::PhantomData;
 
-use napi::bindgen_prelude::Reference;
-
-use crate::{ChildNode, Element, NodeHandler};
+use crate::{ChildNode, NodeHandler};
 
 pub enum SiblingIteratorType {
   Next,
@@ -66,12 +64,13 @@ where
   }
 }
 
-pub(crate) struct ChildNodesIterator {
+pub(crate) struct ChildNodesIterator<T> {
   queue: Vec<ChildNode>,
   deep: bool,
+  _phantom: PhantomData<T>,
 }
 
-impl ChildNodesIterator {
+impl<T> ChildNodesIterator<T> {
   pub(crate) fn new(node_handler: &NodeHandler, deep: bool) -> Self {
     let queue = node_handler
       .get_child_nodes()
@@ -79,14 +78,14 @@ impl ChildNodesIterator {
       .rev()
       .cloned()
       .collect();
-    Self { queue, deep }
+    Self {
+      queue,
+      deep,
+      _phantom: PhantomData,
+    }
   }
-}
 
-impl Iterator for ChildNodesIterator {
-  type Item = ChildNode;
-
-  fn next(&mut self) -> Option<Self::Item> {
+  fn next_child_node(&mut self) -> Option<ChildNode> {
     let node = match self.queue.pop() {
       Some(handle) => handle,
       None => return None,
@@ -104,21 +103,19 @@ impl Iterator for ChildNodesIterator {
   }
 }
 
-pub(crate) struct ChildrenIterator(ChildNodesIterator);
-
-impl ChildrenIterator {
-  pub(crate) fn new(node_handler: &NodeHandler, deep: bool) -> Self {
-    Self(ChildNodesIterator::new(node_handler, deep))
-  }
-}
-
-impl Iterator for ChildrenIterator {
-  type Item = Reference<Element>;
+impl<T> Iterator for ChildNodesIterator<T>
+where
+  ChildNode: TryInto<T>,
+{
+  type Item = T;
 
   fn next(&mut self) -> Option<Self::Item> {
-    self.0.find_map(|e| match e {
-      ChildNode::Element(e) => Some(e),
-      _ => None,
-    })
+    while let Some(child) = self.next_child_node() {
+      if let Ok(child) = child.try_into() {
+        return Some(child);
+      }
+    }
+
+    None
   }
 }

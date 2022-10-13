@@ -4,7 +4,7 @@ use std::{
   rc::Rc,
 };
 
-use napi::{Env, Error, Result};
+use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
 use crate::{
   get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Node, ParentNode,
@@ -19,7 +19,7 @@ pub use self::parent_context::ParentContext;
 
 use self::{
   child_node_list::ChildNodeList,
-  iterators::{ChildNodesIterator, ChildrenIterator, SiblingIterator, SiblingIteratorType},
+  iterators::{ChildNodesIterator, SiblingIterator, SiblingIteratorType},
 };
 
 pub struct NodeHandlerInner {
@@ -84,12 +84,12 @@ impl NodeHandler {
     Ok(SiblingIterator::new(input, SiblingIteratorType::Next))
   }
 
-  pub(crate) fn child_nodes_iter(&self, deep: bool) -> ChildNodesIterator {
+  pub(crate) fn child_nodes_iter(&self, deep: bool) -> ChildNodesIterator<ChildNode> {
     ChildNodesIterator::new(self, deep)
   }
 
-  pub(crate) fn children_iter(&self, deep: bool) -> ChildrenIterator {
-    ChildrenIterator::new(self, deep)
+  pub(crate) fn children_iter(&self, deep: bool) -> ChildNodesIterator<Reference<Element>> {
+    ChildNodesIterator::new(self, deep)
   }
 }
 
