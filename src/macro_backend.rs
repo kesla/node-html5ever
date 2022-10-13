@@ -55,7 +55,6 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
-  use crate::node_handler::iterators::PrevNextIterator;
   use crate::{ChildNode, Document, Element, Node, NodeHandler, ParentNode};
   use napi::{
     bindgen_prelude::{Reference, WeakReference},

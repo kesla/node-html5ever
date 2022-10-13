@@ -12,7 +12,7 @@ use crate::{
 };
 
 mod child_node_list;
-pub mod iterators;
+mod iterators;
 mod parent_context;
 
 pub use self::parent_context::ParentContext;

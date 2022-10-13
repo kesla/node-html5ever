@@ -2,28 +2,22 @@ use napi::bindgen_prelude::Reference;
 
 use crate::{ChildNode, Element, Node, NodeHandler};
 
-pub struct ElementIterator<I>(I);
+pub struct ElementIterator(Option<SiblingIterator>);
 
-impl<I> Iterator for ElementIterator<I>
-where
-  I: Iterator<Item = ChildNode>,
-{
+impl Iterator for ElementIterator {
   type Item = Reference<Element>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    self.0.find_map(|child| match child {
-      ChildNode::Element(element) => Some(element),
-      _ => None,
-    })
-  }
-}
-
-pub trait PrevNextIterator
-where
-  Self: Iterator<Item = ChildNode> + Sized,
-{
-  fn element_iterator(self) -> ElementIterator<Self> {
-    ElementIterator(self)
+    self
+      .0
+      .as_mut()
+      .map(|i| {
+        i.find_map(|child| match child {
+          ChildNode::Element(element) => Some(element),
+          _ => None,
+        })
+      })
+      .flatten()
   }
 }
 
@@ -33,7 +27,9 @@ struct SiblingIterator {
   next_index: &'static dyn Fn(usize) -> Option<usize>,
 }
 
-impl SiblingIterator {
+impl Iterator for SiblingIterator {
+  type Item = ChildNode;
+
   fn next(&mut self) -> Option<ChildNode> {
     let child_nodes = self.node_handler.get_child_nodes();
     let next_index = match (self.next_index)(self.index) {
@@ -61,6 +57,10 @@ impl NextIterator {
       next_index: &|index: usize| index.checked_add(1),
     }))
   }
+
+  pub fn element_iterator(self) -> ElementIterator {
+    ElementIterator(self.0)
+  }
 }
 
 impl Iterator for NextIterator {
@@ -70,7 +70,6 @@ impl Iterator for NextIterator {
     (&mut self.0).as_mut().map(|iter| iter.next()).flatten()
   }
 }
-impl PrevNextIterator for NextIterator {}
 
 pub struct PrevIterator(Option<SiblingIterator>);
 impl PrevIterator {
@@ -81,9 +80,11 @@ impl PrevIterator {
       next_index: &|index: usize| index.checked_sub(1),
     }))
   }
-}
 
-impl PrevNextIterator for PrevIterator {}
+  pub fn element_iterator(self) -> ElementIterator {
+    ElementIterator(self.0)
+  }
+}
 
 impl Iterator for PrevIterator {
   type Item = ChildNode;
