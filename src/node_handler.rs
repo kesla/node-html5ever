@@ -19,7 +19,7 @@ pub use self::parent_context::ParentContext;
 
 use self::{
   child_node_list::ChildNodeList,
-  iterators::{ChildNodesIterator, ChildrenIterator, NextIterator, PreviousIterator},
+  iterators::{ChildNodesIterator, ChildrenIterator, SiblingIterator},
 };
 
 pub struct NodeHandlerInner {
@@ -62,32 +62,26 @@ impl NodeHandler {
     self.0.list.borrow_mut()
   }
 
-  pub(crate) fn previous_iterator(&self) -> Result<PreviousIterator> {
-    let maybe_parent_context = self.parent_context.take();
-
-    let iter = match maybe_parent_context.as_ref() {
-      Some(ctx) => PreviousIterator::Data {
-        node_handler: ctx.try_into()?,
-        index: ctx.index,
-      },
-      None => return Ok(PreviousIterator::None),
+  pub(crate) fn previous_iterator(&self) -> Result<SiblingIterator> {
+    let maybe_parent = self.parent_context.take();
+    let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
+      Some(parent) => Some((parent.try_into()?, parent.index)),
+      None => None,
     };
-    self.parent_context.set(maybe_parent_context);
-    Ok(iter)
+    self.parent_context.set(maybe_parent);
+
+    Ok(SiblingIterator::new_prev_iterator(input))
   }
 
-  pub(crate) fn next_iterator(&self) -> Result<NextIterator> {
-    let maybe_parent_context = self.parent_context.take();
-
-    let iter = match maybe_parent_context.as_ref() {
-      Some(ctx) => NextIterator::Data {
-        node_handler: ctx.try_into()?,
-        index: ctx.index,
-      },
-      None => return Ok(NextIterator::None),
+  pub(crate) fn next_iterator(&self) -> Result<SiblingIterator> {
+    let maybe_parent = self.parent_context.take();
+    let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
+      Some(parent) => Some((parent.try_into()?, parent.index)),
+      None => None,
     };
-    self.parent_context.set(maybe_parent_context);
-    Ok(iter)
+    self.parent_context.set(maybe_parent);
+
+    Ok(SiblingIterator::new_next_iterator(input))
   }
 
   pub(crate) fn child_nodes_iter(&self, deep: bool) -> ChildNodesIterator {

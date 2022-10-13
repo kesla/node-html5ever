@@ -3,37 +3,66 @@ use napi::{bindgen_prelude::Reference, Error, Result};
 
 use crate::{ChildNode, Element, Node, NodeHandler};
 
-pub(crate) enum PreviousIterator {
+pub enum SiblingIterator {
   Data {
     node_handler: NodeHandler,
     index: usize,
+    next_index: &'static dyn Fn(usize) -> Option<usize>,
   },
   None,
 }
 
-impl FallibleIterator for PreviousIterator {
+impl SiblingIterator {
+  pub fn new_next_iterator(input: Option<(NodeHandler, usize)>) -> Self {
+    match input {
+      Some((node_handler, index)) => SiblingIterator::Data {
+        node_handler,
+        index,
+        next_index: &|index: usize| index.checked_add(1),
+      },
+      None => SiblingIterator::None,
+    }
+  }
+
+  pub fn new_prev_iterator(input: Option<(NodeHandler, usize)>) -> Self {
+    match input {
+      Some((node_handler, index)) => SiblingIterator::Data {
+        node_handler,
+        index,
+        next_index: &|index: usize| index.checked_sub(1),
+      },
+      None => SiblingIterator::None,
+    }
+  }
+}
+
+impl FallibleIterator for SiblingIterator {
   type Item = ChildNode;
   type Error = Error;
 
   fn next(&mut self) -> Result<Option<Self::Item>> {
-    let (node_handler, index) = match self {
+    let (node_handler, index, next_index) = match self {
       Self::Data {
-        node_handler,
+        ref node_handler,
         index,
-      } => (node_handler, index),
+        ref next_index,
+      } => (node_handler, index, next_index),
       Self::None => return Ok(None),
     };
 
-    if *index == 0 {
-      return Ok(None);
-    }
-
-    *index -= 1;
-
     let child_nodes = node_handler.get_child_nodes();
-    let node = child_nodes.get(*index).unwrap();
-    let e = handle_to_child_node(node)?;
-    Ok(Some(e))
+    let next_index = match next_index(*index) {
+      Some(i) => i,
+      None => return Ok(None),
+    };
+
+    let node = match child_nodes.get(next_index) {
+      Some(node) => node,
+      None => return Ok(None),
+    };
+    *index = next_index;
+
+    Ok(Some(handle_to_child_node(node)?))
   }
 }
 
@@ -46,43 +75,6 @@ fn handle_to_child_node(node: &Node) -> Result<ChildNode> {
     _ => panic!("Invalid handle"),
   };
   Ok(e)
-}
-
-pub(crate) enum NextIterator {
-  Data {
-    node_handler: NodeHandler,
-    index: usize,
-  },
-  None,
-}
-
-impl FallibleIterator for NextIterator {
-  type Item = ChildNode;
-  type Error = Error;
-
-  fn next(&mut self) -> Result<Option<Self::Item>> {
-    let (node_handler, index) = match self {
-      Self::Data {
-        node_handler,
-        index,
-      } => (node_handler, index),
-      Self::None => return Ok(None),
-    };
-
-    let child_nodes = node_handler.get_child_nodes();
-    let last = child_nodes.len() - 1;
-
-    if *index == last {
-      return Ok(None);
-    }
-
-    *index += 1;
-
-    let child_nodes = node_handler.get_child_nodes();
-    let node = child_nodes.get(*index).unwrap();
-
-    Ok(Some(handle_to_child_node(node)?))
-  }
 }
 
 pub(crate) struct ChildNodesIterator {
