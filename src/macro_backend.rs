@@ -55,6 +55,7 @@ pub(crate) mod children {
 }
 
 pub(crate) mod parent {
+  use crate::node_handler::iterators::PrevNextIterator;
   use crate::{ChildNode, Document, Element, Node, NodeHandler, ParentNode};
   use napi::{
     bindgen_prelude::{Reference, WeakReference},
@@ -107,11 +108,7 @@ pub(crate) mod parent {
   pub(crate) fn get_previous_element_sibling(
     node_handler: NodeHandler,
   ) -> Result<Option<Reference<Element>>> {
-    let val = node_handler.previous_iterator()?.find_map(|s| match s {
-      ChildNode::Element(element) => Some(element),
-      _ => None,
-    });
-    Ok(val)
+    Ok(node_handler.previous_iterator()?.element_iterator().next())
   }
 
   pub(crate) fn get_next_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {
@@ -121,11 +118,7 @@ pub(crate) mod parent {
   pub(crate) fn get_next_element_sibling(
     node_handler: NodeHandler,
   ) -> Result<Option<Reference<Element>>> {
-    let val = node_handler.next_iterator()?.find_map(|s| match s {
-      ChildNode::Element(element) => Some(element),
-      _ => None,
-    });
-    Ok(val)
+    Ok(node_handler.next_iterator()?.element_iterator().next())
   }
 }
 

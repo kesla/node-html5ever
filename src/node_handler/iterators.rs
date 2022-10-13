@@ -2,6 +2,31 @@ use napi::bindgen_prelude::Reference;
 
 use crate::{ChildNode, Element, Node, NodeHandler};
 
+pub struct ElementIterator<I>(I);
+
+impl<I> Iterator for ElementIterator<I>
+where
+  I: Iterator<Item = ChildNode>,
+{
+  type Item = Reference<Element>;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    self.0.find_map(|child| match child {
+      ChildNode::Element(element) => Some(element),
+      _ => None,
+    })
+  }
+}
+
+pub trait PrevNextIterator
+where
+  Self: Iterator<Item = ChildNode> + Sized,
+{
+  fn element_iterator(self) -> ElementIterator<Self> {
+    ElementIterator(self)
+  }
+}
+
 struct SiblingIterator {
   node_handler: NodeHandler,
   index: usize,
@@ -45,6 +70,7 @@ impl Iterator for NextIterator {
     (&mut self.0).as_mut().map(|iter| iter.next()).flatten()
   }
 }
+impl PrevNextIterator for NextIterator {}
 
 pub struct PrevIterator(Option<SiblingIterator>);
 impl PrevIterator {
@@ -56,6 +82,8 @@ impl PrevIterator {
     }))
   }
 }
+
+impl PrevNextIterator for PrevIterator {}
 
 impl Iterator for PrevIterator {
   type Item = ChildNode;
