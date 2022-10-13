@@ -64,7 +64,7 @@ impl Debug for ChildNode {
   }
 }
 
-macro_rules! impl_from {
+macro_rules! impl_into_from {
   ($type:ty, $variant:ident) => {
     impl From<&$type> for ChildNode {
       fn from(value: &$type) -> Self {
@@ -85,13 +85,27 @@ macro_rules! impl_from {
         ChildNode::$variant(value)
       }
     }
+
+    impl TryInto<Reference<$type>> for ChildNode {
+      type Error = Error;
+
+      fn try_into(self) -> Result<Reference<$type>> {
+        match self {
+          ChildNode::$variant(r) => Ok(r),
+          _ => Err(Error::new(
+            Status::InvalidArg,
+            format!("Could not convert {:?} to {}", self, stringify!($type)),
+          )),
+        }
+      }
+    }
   };
 }
 
-impl_from!(Comment, Comment);
-impl_from!(DocumentType, DocumentType);
-impl_from!(Element, Element);
-impl_from!(Text, Text);
+impl_into_from!(Comment, Comment);
+impl_into_from!(DocumentType, DocumentType);
+impl_into_from!(Element, Element);
+impl_into_from!(Text, Text);
 
 impl From<&Node> for ChildNode {
   fn from(val: &Node) -> Self {

@@ -1,20 +1,28 @@
+use std::marker::PhantomData;
+
 use napi::bindgen_prelude::Reference;
 
 use crate::{ChildNode, Element, Node, NodeHandler};
 
-pub struct ElementIterator(Option<SiblingIterator>);
+pub struct ElementIterator<T> {
+  data: Option<SiblingIterator>,
+  _phantom: PhantomData<T>,
+}
 
-impl Iterator for ElementIterator {
-  type Item = Reference<Element>;
+impl<T> Iterator for ElementIterator<T>
+where
+  ChildNode: TryInto<T>,
+{
+  type Item = T;
 
   fn next(&mut self) -> Option<Self::Item> {
     self
-      .0
+      .data
       .as_mut()
       .map(|i| {
-        i.find_map(|child| match child {
-          ChildNode::Element(element) => Some(element),
-          _ => None,
+        i.find_map(|child| match child.try_into() {
+          Ok(v) => Some(v),
+          Err(_) => None,
         })
       })
       .flatten()
@@ -58,8 +66,11 @@ impl NextIterator {
     }))
   }
 
-  pub fn element_iterator(self) -> ElementIterator {
-    ElementIterator(self.0)
+  pub fn element_iterator(self) -> ElementIterator<Reference<Element>> {
+    ElementIterator {
+      data: self.0,
+      _phantom: PhantomData,
+    }
   }
 }
 
@@ -81,8 +92,11 @@ impl PrevIterator {
     }))
   }
 
-  pub fn element_iterator(self) -> ElementIterator {
-    ElementIterator(self.0)
+  pub fn element_iterator(self) -> ElementIterator<Reference<Element>> {
+    ElementIterator {
+      data: self.0,
+      _phantom: PhantomData,
+    }
   }
 }
 
