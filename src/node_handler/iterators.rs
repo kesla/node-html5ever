@@ -31,19 +31,19 @@ impl<T> SiblingIterator<T> {
       None => return None,
     };
 
-    let child_nodes = node_handler.get_child_nodes();
-    let next_index = match (self.next_index)(*index) {
+    let next_index_fn = self.next_index;
+    let next_index = match next_index_fn(*index) {
       Some(i) => i,
       None => return None,
     };
 
-    let node = match child_nodes.get(next_index) {
-      Some(node) => node,
-      None => return None,
-    };
-    *index = next_index;
-
-    Some(node.clone())
+    match node_handler.get_child_node(next_index) {
+      Some(child_node) => {
+        *index = next_index;
+        Some(child_node)
+      }
+      None => None,
+    }
   }
 }
 
@@ -72,12 +72,10 @@ pub(crate) struct ChildNodesIterator<T> {
 
 impl<T> ChildNodesIterator<T> {
   pub(crate) fn new(node_handler: &NodeHandler, deep: bool) -> Self {
-    let queue = node_handler
-      .get_child_nodes()
-      .iter()
-      .rev()
-      .cloned()
-      .collect();
+    let child_nodes = node_handler.child_nodes.take();
+    let queue = child_nodes.iter().rev().cloned().collect();
+    node_handler.child_nodes.set(child_nodes);
+
     Self {
       queue,
       deep,
@@ -94,8 +92,9 @@ impl<T> ChildNodesIterator<T> {
     if self.deep {
       if let ChildNode::Element(r) = &node {
         let node_handler = r.get_node_handler();
-        let child_nodes = node_handler.get_child_nodes();
+        let child_nodes = node_handler.child_nodes.take();
         self.queue.extend(child_nodes.iter().rev().cloned());
+        node_handler.child_nodes.set(child_nodes);
       }
     }
 

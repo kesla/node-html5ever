@@ -5,8 +5,8 @@ use std::{
 
 use crate::{Comment, DocumentType, Element, Node, NodeHandler, ParentContext, Text};
 use napi::{
-  bindgen_prelude::{Error, FromNapiValue, Reference, Result, ToNapiValue},
-  Status,
+  bindgen_prelude::{FromNapiValue, Reference, Result, ToNapiValue},
+  Error, Status,
 };
 
 pub enum ChildNode {
@@ -17,28 +17,7 @@ pub enum ChildNode {
 }
 
 impl ChildNode {
-  pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
-    match &self {
-      Self::Element(r) => Ok(r),
-      _ => Err(Error::new(
-        Status::InvalidArg,
-        "Node is not an Element".to_string(),
-      )),
-    }
-  }
-
-  pub(crate) fn as_doc_type(&self) -> Result<&Reference<DocumentType>> {
-    match &self {
-      Self::DocumentType(r) => Ok(r),
-      _ => Err(Error::new(
-        Status::InvalidArg,
-        "Node is not a DocumentType".to_string(),
-      )),
-    }
-  }
-
   pub(crate) fn remove(&self) -> Result<()> {
-    println!("ChildNode::remove");
     let node_handler: NodeHandler = self.into();
 
     let parent_ctx: ParentContext = match node_handler.parent_context.take() {
@@ -48,9 +27,7 @@ impl ChildNode {
 
     let parent_node = parent_ctx.get_node()?;
     let parent_node_handler: NodeHandler = parent_node.into();
-
-    let mut children = parent_node_handler.get_child_nodes_mut();
-    children.remove_node(self);
+    parent_node_handler.remove_node(self);
 
     Ok(())
   }

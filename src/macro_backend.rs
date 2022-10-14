@@ -84,7 +84,7 @@ pub(crate) mod parent {
   pub(crate) fn owner_document(
     node_handler: NodeHandler,
   ) -> Result<Option<WeakReference<Document>>> {
-    let env = node_handler.get_env();
+    let env = node_handler.env.to_owned();
     let maybe_parent = get_parent_node(node_handler);
 
     match maybe_parent {

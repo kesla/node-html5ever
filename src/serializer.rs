@@ -30,11 +30,10 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
       }
       html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
         let node_handler: NodeHandler = (&self.0).into();
-        let children = node_handler.get_child_nodes();
         ops.extend(
-          children
-            .iter()
-            .map(|child| SerializeOp::Open(child.clone())),
+          node_handler
+            .child_nodes_iter(false)
+            .map(|child| SerializeOp::Open(child)),
         );
       }
     };
@@ -47,7 +46,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
             ChildNode::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
             ChildNode::Element(element) => {
               let node_handler = element.get_node_handler();
-              let list = node_handler.get_child_nodes();
+              let child_nodes = node_handler.child_nodes.take();
               serializer.start_elem(
                 // TODO: Is this actually copying the data? Need to figure that out
                 element.name.clone(),
@@ -56,12 +55,13 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
                   .iter()
                   .map(|at| (&at.name, &at.value[..])),
               )?;
-              ops.reserve(1 + list.len());
+              ops.reserve(1 + child_nodes.len());
               ops.push_front(SerializeOp::Close(element.name.clone()));
 
-              for child in list.iter().rev() {
+              for child in child_nodes.iter().rev() {
                 ops.push_front(SerializeOp::Open(child.clone()));
               }
+              node_handler.child_nodes.set(child_nodes);
             }
             ChildNode::Text(text) => serializer.write_text(&text.data)?,
           }

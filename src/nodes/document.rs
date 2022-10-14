@@ -1,5 +1,5 @@
 use html5ever::{Namespace, QualName};
-use napi::{bindgen_prelude::Reference, Result};
+use napi::{bindgen_prelude::Reference, Error, Result};
 
 use crate::{DocumentType, Element, Text};
 
@@ -9,28 +9,26 @@ pub struct Document {}
 #[napi]
 impl Document {
   #[napi(getter)]
-  pub fn get_doc_type(&self) -> Result<Option<Reference<DocumentType>>> {
-    if let Some(first) = self.get_node_handler().get_child_nodes().get(0) {
-      if let Ok(doc_type) = first.as_doc_type() {
-        return Ok(Some(doc_type.clone(self.env)?));
-      }
-    }
-
-    Ok(None)
+  pub fn get_doc_type(&self) -> Option<Reference<DocumentType>> {
+    self
+      .get_node_handler()
+      .get_child_node::<Reference<DocumentType>, Error>(0)
   }
 
   #[napi(getter)]
   pub fn get_document_element(&self) -> Result<Reference<Element>> {
     let node_handler = self.get_node_handler();
-    let list = node_handler.get_child_nodes();
-    let node = match list.len() {
-      2 => list.get(1),
-      _ => list.get(0),
-    }
-    .unwrap();
-    let element = node.as_element()?;
 
-    element.clone(self.env)
+    match node_handler.get_child_node::<Reference<Element>, Error>(0) {
+      Some(r) => Ok(r),
+      None => match node_handler.try_get_child_node::<Reference<Element>, Error>(1) {
+        Ok(Some(e)) => Ok(e),
+        Ok(None) => Err(Error::from_reason(
+          "Document has no document Element (<html>)".to_string(),
+        )),
+        Err(e) => Err(e),
+      },
+    }
   }
 
   #[napi(getter)]
@@ -38,17 +36,26 @@ impl Document {
     let document_element = self.get_document_element()?;
 
     let node_handler = document_element.get_node_handler();
-    let list = node_handler.get_child_nodes();
-    list.get(0).unwrap().as_element()?.clone(self.env)
+
+    match node_handler.try_get_child_node::<Reference<Element>, Error>(0)? {
+      Some(e) => Ok(e),
+      None => Err(Error::from_reason(
+        "Document has no head Element (<head>)".to_string(),
+      )),
+    }
   }
 
   #[napi(getter)]
   pub fn get_body(&mut self) -> Result<Reference<Element>> {
     let document_element = self.get_document_element()?;
-
     let node_handler = document_element.get_node_handler();
-    let list = node_handler.get_child_nodes();
-    list.get(1).unwrap().as_element()?.clone(self.env)
+
+    match node_handler.try_get_child_node::<Reference<Element>, Error>(1)? {
+      Some(e) => Ok(e),
+      None => Err(Error::from_reason(
+        "Document has no body Element (<body>)".to_string(),
+      )),
+    }
   }
 
   #[napi(getter)]
@@ -68,11 +75,5 @@ impl Document {
   #[napi]
   pub fn create_text_node(&mut self, data: String) -> Result<Reference<Text>> {
     Text::new_reference(self.env, data)
-  }
-}
-
-impl Drop for Document {
-  fn drop(&mut self) {
-    println!("Dropping Document");
   }
 }

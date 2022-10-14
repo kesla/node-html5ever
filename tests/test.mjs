@@ -14,6 +14,18 @@ const test = (name, fn) => {
   });
 };
 
+/**
+ *
+ * @param {String} name
+ * @param {(t:Tap.Test) => void} fn
+ */
+test.only = (name, fn) => {
+  tap.only(name, (t) => {
+    fn(t);
+    t.end();
+  });
+};
+
 test("parse works", (t) => {
   let dom = new Html5EverDom("<html></html>");
   t.ok(dom);

@@ -104,22 +104,20 @@ impl Node {
 
     if let Some(parent) = node_handler.parent_context.take() {
       let parent_node_handler: NodeHandler = parent.get_node()?.into();
-      let mut children = parent_node_handler.get_child_nodes_mut();
-      children.remove_node(child_node);
+      parent_node_handler.remove_node(child_node);
     }
 
     // TODO: concatenate already existing text node
 
     let node_handler: NodeHandler = self.into();
-    let mut children = node_handler.get_child_nodes_mut();
-    children.append_node(child_node);
+    node_handler.append_node(child_node);
 
     let parent_node: ParentNode = self.into();
 
     let parent_context = Some(ParentContext::new(
-      node_handler.get_env(),
+      node_handler.env.clone(),
       parent_node,
-      children.len() - 1,
+      node_handler.child_nodes_len() - 1,
     ));
     let node_handler = NodeHandler::from(child_node);
     node_handler.parent_context.set(parent_context);
@@ -132,8 +130,7 @@ impl Node {
     child_node_handler.parent_context.set(None);
 
     let parent_node_handler: NodeHandler = self.into();
-    let mut children = parent_node_handler.get_child_nodes_mut();
-    children.remove_node(child_node);
+    parent_node_handler.remove_node(child_node);
   }
 
   pub(crate) fn get_node_name(&self) -> String {

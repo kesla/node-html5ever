@@ -39,24 +39,13 @@ impl Html5everDom {
     )
     .one(html);
 
-    println!("serialized: {}", dom.serialize()?);
-    // println!("html: {}", html);
-    println!(
-      "fragment: {}",
-      dom.document_reference.get_document_element()?.inner_html()
-    );
-
     let fragment: Reference<DocumentFragment> = DocumentFragment::new_reference(env)?;
 
     let node_handler = dom
       .document_reference
       .get_document_element()?
       .get_node_handler();
-    let tmp: Vec<ChildNode> = {
-      let get_child_nodes = node_handler.get_child_nodes();
-      let iter = get_child_nodes.iter();
-      iter.cloned().collect()
-    };
+    let tmp: Vec<ChildNode> = node_handler.child_nodes_iter(false).collect();
 
     let fragment_node: Node = fragment.clone(env)?.into();
 

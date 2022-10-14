@@ -94,14 +94,3 @@ impl Element {
       .set_attribute(LocalName::from("id"), id.into());
   }
 }
-
-impl Drop for Element {
-  fn drop(&mut self) {
-    println!(
-      "Dropping element <{} id=\"{}\" class=\"{}\">",
-      self.name.local,
-      self.get_id(),
-      self.get_class_name()
-    );
-  }
-}
