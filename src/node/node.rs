@@ -100,10 +100,17 @@ impl Node {
 
   pub(crate) fn append_node(&self, child_node: &ChildNode) -> Result<()> {
     // remove from old parent
-    child_node.remove()?;
+    let node_handler: NodeHandler = child_node.into();
+
+    if let Some(parent) = node_handler.parent_context.take() {
+      let parent_node_handler: NodeHandler = parent.get_node()?.into();
+      let mut children = parent_node_handler.get_child_nodes_mut();
+      children.remove_node(child_node);
+    }
+
     // TODO: concatenate already existing text node
 
-    let node_handler = NodeHandler::from(self);
+    let node_handler: NodeHandler = self.into();
     let mut children = node_handler.get_child_nodes_mut();
     children.append_node(child_node);
 
