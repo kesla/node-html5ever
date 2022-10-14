@@ -192,3 +192,18 @@ impl_from!(DocumentFragment);
 impl_from!(DocumentType);
 impl_from!(Element);
 impl_from!(Text);
+
+impl Drop for NodeHandlerInner {
+  fn drop(&mut self) {
+    println!("Dropping NodeHandlerInner {}", self.id);
+    // let list = {
+    //   let borrow_mut = self.list.borrow_mut();
+    //   let list: Vec<ChildNode> = borrow_mut.iter().cloned().collect();
+    //   list.clone()
+    // };
+    // for child in list {
+    //   child.remove();
+    // }
+    // self.parent_context.set(None);
+  }
+}

@@ -38,6 +38,7 @@ impl ChildNode {
   }
 
   pub(crate) fn remove(&self) -> Result<()> {
+    println!("ChildNode::remove");
     let node_handler: NodeHandler = self.into();
 
     let parent_ctx: ParentContext = match node_handler.parent_context.take() {

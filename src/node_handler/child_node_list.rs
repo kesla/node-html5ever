@@ -41,6 +41,12 @@ impl ChildNodeList {
   pub(crate) fn append_node(&mut self, child: &ChildNode) {
     self.0.push(child.to_owned());
   }
+
+  pub(crate) fn clear(&mut self) {
+    println!("Clearing child node list");
+    // self.0.clear();
+    // self.0 = Vec::new();
+  }
 }
 
 impl From<ChildNodeList> for Vec<ChildNode> {
