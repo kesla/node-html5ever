@@ -27,14 +27,14 @@ impl ChildNodeList {
   pub(crate) fn sync_parent_context(&mut self) {
     for index in 0..self.0.len() {
       let node_handler: NodeHandler = (&self.0[index]).into();
-      let mut parent_context = node_handler.parent_context.take();
-      assert!(parent_context.is_some());
 
-      if let Some(mut ctx) = parent_context.as_mut() {
-        ctx.index = index;
-      }
+      node_handler.parent_context.borrow_mut(|parent_context| {
+        assert!(parent_context.is_some());
 
-      node_handler.parent_context.set(parent_context);
+        if let Some(mut ctx) = parent_context.as_mut() {
+          ctx.index = index;
+        }
+      })
     }
   }
 

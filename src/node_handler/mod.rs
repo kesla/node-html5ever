@@ -1,10 +1,10 @@
-use std::{cell::Cell, ops::Deref, rc::Rc};
+use std::{ops::Deref, rc::Rc};
 
 use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
 use crate::{
-  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Node, ParentNode,
-  Text,
+  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, EinarCell, Element, Node,
+  ParentNode, Text,
 };
 
 mod child_node_list;
@@ -21,8 +21,8 @@ use self::{
 pub struct NodeHandlerInner {
   pub(crate) env: Env,
   id: usize,
-  pub(crate) child_nodes: Cell<ChildNodeList>,
-  pub(crate) parent_context: Cell<Option<ParentContext>>,
+  pub(crate) child_nodes: EinarCell<ChildNodeList>,
+  pub(crate) parent_context: EinarCell<Option<ParentContext>>,
 }
 
 #[derive(Clone)]
@@ -47,42 +47,45 @@ impl NodeHandler {
   }
 
   pub(crate) fn previous_iterator<T>(&self) -> Result<SiblingIterator<T>> {
-    let maybe_parent = self.parent_context.take();
-    let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
-      Some(parent) => Some((parent.try_into()?, parent.index)),
-      None => None,
-    };
-    self.parent_context.set(maybe_parent);
+    let input: Option<(NodeHandler, usize)> =
+      self
+        .parent_context
+        .borrow::<_, Result<_>>(|maybe_parent| match maybe_parent.as_ref() {
+          Some(parent) => Ok(Some((parent.try_into()?, parent.index))),
+          None => Ok(None),
+        })?;
 
     Ok(SiblingIterator::new(input, SiblingIteratorType::Previous))
   }
 
   pub(crate) fn next_iterator<T>(&self) -> Result<SiblingIterator<T>> {
-    let maybe_parent = self.parent_context.take();
-    let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
-      Some(parent) => Some((parent.try_into()?, parent.index)),
-      None => None,
-    };
-    self.parent_context.set(maybe_parent);
+    self
+      .parent_context
+      .borrow(|maybe_parent: &Option<ParentContext>| {
+        let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
+          Some(parent) => Some((parent.try_into()?, parent.index)),
+          None => None,
+        };
 
-    Ok(SiblingIterator::new(input, SiblingIteratorType::Next))
+        Ok(SiblingIterator::new(input, SiblingIteratorType::Next))
+      })
   }
 
   pub(crate) fn try_get_child_node<T, U>(&self, index: usize) -> std::result::Result<Option<T>, U>
   where
     ChildNode: TryInto<T, Error = U>,
   {
-    let child_nodes = self.child_nodes.take();
-    let child_node = child_nodes.get(index).cloned();
-    self.child_nodes.set(child_nodes);
+    self.child_nodes.borrow(|child_nodes| {
+      let child_node = child_nodes.get(index).cloned();
 
-    let result = if let Some(child_node) = child_node {
-      Some(child_node.try_into()?)
-    } else {
-      None
-    };
+      let result = if let Some(child_node) = child_node {
+        Some(child_node.try_into()?)
+      } else {
+        None
+      };
 
-    Ok(result)
+      Ok(result)
+    })
   }
 
   pub(crate) fn get_child_node<T, U>(&self, index: usize) -> Option<T>
@@ -104,22 +107,19 @@ impl NodeHandler {
   }
 
   pub(crate) fn append_node(&self, child: &ChildNode) {
-    let mut child_nodes = self.child_nodes.take();
-    child_nodes.append_node(child);
-    self.child_nodes.set(child_nodes);
+    self.child_nodes.borrow_mut(|child_nodes| {
+      child_nodes.append_node(child);
+    });
   }
 
   pub(crate) fn remove_node(&self, child: &ChildNode) {
-    let mut child_nodes = self.child_nodes.take();
-    child_nodes.remove_node(child);
-    self.child_nodes.set(child_nodes);
+    self.child_nodes.borrow_mut(|child_nodes| {
+      child_nodes.remove_node(child);
+    });
   }
 
   pub(crate) fn child_nodes_len(&self) -> usize {
-    let child_nodes = self.child_nodes.take();
-    let len = child_nodes.len();
-    self.child_nodes.set(child_nodes);
-    len
+    self.child_nodes.borrow(|child_nodes| child_nodes.len())
   }
 }
 

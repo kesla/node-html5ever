@@ -102,7 +102,7 @@ impl Node {
     // remove from old parent
     let node_handler: NodeHandler = child_node.into();
 
-    if let Some(parent) = node_handler.parent_context.take() {
+    if let Some(parent) = node_handler.parent_context.replace(None) {
       let parent_node_handler: NodeHandler = parent.get_node()?.into();
       parent_node_handler.remove_node(child_node);
     }

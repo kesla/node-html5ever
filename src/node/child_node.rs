@@ -20,7 +20,7 @@ impl ChildNode {
   pub(crate) fn remove(&self) -> Result<()> {
     let node_handler: NodeHandler = self.into();
 
-    let parent_ctx: ParentContext = match node_handler.parent_context.take() {
+    let parent_ctx: ParentContext = match node_handler.parent_context.replace(None) {
       Some(parent) => parent,
       None => return Ok(()),
     };

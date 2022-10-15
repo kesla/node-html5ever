@@ -5,6 +5,7 @@ extern crate napi_derive;
 extern crate node_html5ever_derive;
 
 mod dom;
+mod einar_cell;
 mod id;
 mod macro_backend;
 mod node;
@@ -16,6 +17,7 @@ mod serializer;
 
 pub use crate::selectors::Selectors;
 pub use dom::Html5everDom;
+pub use einar_cell::EinarCell;
 pub use id::get_id;
 pub use node::{ChildNode, Node, ParentNode};
 pub use node_handler::{NodeHandler, ParentContext};

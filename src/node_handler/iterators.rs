@@ -72,9 +72,9 @@ pub(crate) struct ChildNodesIterator<T> {
 
 impl<T> ChildNodesIterator<T> {
   pub(crate) fn new(node_handler: &NodeHandler, deep: bool) -> Self {
-    let child_nodes = node_handler.child_nodes.take();
-    let queue = child_nodes.iter().rev().cloned().collect();
-    node_handler.child_nodes.set(child_nodes);
+    let queue = node_handler
+      .child_nodes
+      .borrow(|child_nodes| child_nodes.iter().rev().cloned().collect());
 
     Self {
       queue,
@@ -92,9 +92,9 @@ impl<T> ChildNodesIterator<T> {
     if self.deep {
       if let ChildNode::Element(r) = &node {
         let node_handler = r.get_node_handler();
-        let child_nodes = node_handler.child_nodes.take();
-        self.queue.extend(child_nodes.iter().rev().cloned());
-        node_handler.child_nodes.set(child_nodes);
+        node_handler
+          .child_nodes
+          .borrow(|child_nodes| self.queue.extend(child_nodes.iter().rev().cloned()));
       }
     }
 
