@@ -3,20 +3,16 @@ use std::{ops::Deref, rc::Rc};
 use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
 use crate::{
-  get_id, ChildNode, Comment, Document, DocumentFragment, DocumentType, EinarCell, Element, Node,
-  ParentNode, Text,
+  get_id, ChildNode, ChildNodesIterator, Comment, Document, DocumentFragment, DocumentType,
+  EinarCell, Element, Node, ParentNode, SiblingIterator, SiblingIteratorType, Text,
 };
 
 mod child_node_list;
-mod iterators;
 mod parent_context;
 
 pub use self::parent_context::ParentContext;
 
-use self::{
-  child_node_list::ChildNodeList,
-  iterators::{ChildNodesIterator, SiblingIterator, SiblingIteratorType},
-};
+use self::child_node_list::ChildNodeList;
 
 pub struct NodeHandlerInner {
   pub(crate) env: Env,
