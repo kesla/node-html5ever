@@ -3,8 +3,8 @@ use std::{ops::Deref, rc::Rc};
 use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
 use crate::{
-  get_id, ChildNode, ChildNodesIterator, Comment, Document, DocumentFragment, DocumentType,
-  EinarCell, Element, Node, ParentNode, SiblingIterator, SiblingIteratorType, Text,
+  ChildNode, ChildNodesIterator, Comment, Document, DocumentFragment, DocumentType, EinarCell,
+  Element, Node, ParentNode, SiblingIterator, SiblingIteratorType, Text,
 };
 
 mod child_node_list;
@@ -16,7 +16,6 @@ use self::child_node_list::ChildNodeList;
 
 pub struct NodeHandlerInner {
   pub(crate) env: Env,
-  id: usize,
   pub(crate) child_nodes: EinarCell<ChildNodeList>,
   pub(crate) parent_context: EinarCell<Option<ParentContext>>,
 }
@@ -36,7 +35,6 @@ impl NodeHandler {
   pub(crate) fn new(env: Env) -> Self {
     NodeHandler(Rc::new(NodeHandlerInner {
       env,
-      id: get_id(),
       child_nodes: Default::default(),
       parent_context: Default::default(),
     }))
@@ -193,14 +191,6 @@ impl From<&Node> for NodeHandler {
     }
   }
 }
-
-impl PartialEq for NodeHandler {
-  fn eq(&self, other: &Self) -> bool {
-    self.0.id == other.0.id
-  }
-}
-
-impl Eq for NodeHandler {}
 
 macro_rules! impl_from {
   ($type:ty) => {
