@@ -11,12 +11,14 @@ pub(crate) mod children {
     node_handler.shallow_child_nodes_iter().collect()
   }
 
-  pub(crate) fn append_child(parent_node: Node, child_node: ChildNode) -> Result<()> {
-    parent_node.append_node(&child_node)
+  pub(crate) fn append_child(parent_node: Node, child_node: ChildNode) -> Result<ChildNode> {
+    parent_node.append_node(&child_node)?;
+    Ok(child_node)
   }
 
-  pub(crate) fn remove_child(parent_node: Node, child_node: ChildNode) -> Result<()> {
-    parent_node.remove_node(&child_node)
+  pub(crate) fn remove_child(parent_node: Node, child_node: ChildNode) -> Result<ChildNode> {
+    parent_node.remove_node(&child_node)?;
+    Ok(child_node)
   }
 
   pub(crate) fn get_element_by_id(

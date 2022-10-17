@@ -168,7 +168,9 @@ test("Text node", (t) => {
   t.strictSame(text.parentNode, null);
   t.strictSame(text.ownerDocument, null);
 
-  dom.document.body.appendChild(text);
+  let text2 = dom.document.body.appendChild(text);
+  t.strictSame(text2, text, "text2 is text");
+
   t.matchSnapshot(dom.serialize(), "Text node in body");
   t.strictSame(text.parentElement, dom.document.body);
   t.strictSame(text.parentNode, dom.document.body);
@@ -217,8 +219,9 @@ test("basic appendChild & removeChild", (t) => {
 
   t.strictSame(body.children[0], child, "body.children[0] is child");
 
-  body.removeChild(child);
+  let child2 = body.removeChild(child);
 
+  t.strictSame(child2, child, "child2 is child");
   t.strictSame(child.parentElement, null, "child.parentElement is null");
   t.strictSame(child.parentNode, null, "child.parentNode is null");
   t.strictSame(body.children.length, 0, "body.children.length is 0");

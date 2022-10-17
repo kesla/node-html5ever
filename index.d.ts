@@ -33,8 +33,8 @@ export class Document {
   get nodeName(): string
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
-  appendChild(child: ChildNode): void
-  removeChild(child: ChildNode): void
+  appendChild(child: ChildNode): ChildNode
+  removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
   get firstChild(): ChildNode | null
@@ -53,8 +53,8 @@ export class DocumentFragment {
   get nodeName(): string
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
-  appendChild(child: ChildNode): void
-  removeChild(child: ChildNode): void
+  appendChild(child: ChildNode): ChildNode
+  removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
   get firstChild(): ChildNode | null
@@ -88,8 +88,8 @@ export class Element {
   get nextElementSibling(): Element | null
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
-  appendChild(child: ChildNode): void
-  removeChild(child: ChildNode): void
+  appendChild(child: ChildNode): ChildNode
+  removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
   get firstChild(): ChildNode | null

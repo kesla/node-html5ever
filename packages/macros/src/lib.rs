@@ -61,12 +61,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi]
-      pub fn append_child(&self, child: crate::ChildNode) -> napi::Result<()> {
+      pub fn append_child(&self, child: crate::ChildNode) -> napi::Result<crate::ChildNode> {
         macro_backend::children::append_child(self.into(), child.into())
       }
 
       #[napi]
-      pub fn remove_child(&self, child: crate::ChildNode) -> napi::Result<()> {
+      pub fn remove_child(&self, child: crate::ChildNode) -> napi::Result<crate::ChildNode> {
         macro_backend::children::remove_child(self.into(), child.into())
       }
 
