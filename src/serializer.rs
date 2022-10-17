@@ -32,7 +32,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
         let node_handler: NodeHandler = (&self.0).into();
         ops.extend(
           node_handler
-            .child_nodes_iter(false)
+            .shallow_child_nodes_iter()
             .map(|child| SerializeOp::Open(child)),
         );
       }

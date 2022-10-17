@@ -4,12 +4,11 @@ pub(crate) mod children {
 
   use crate::{ChildNode, Element, Node, NodeHandler};
 
-  pub(crate) fn get_child_nodes(node_handler: NodeHandler) -> Vec<ChildNode> {
-    node_handler.child_nodes_iter(false).collect()
-  }
-
-  pub(crate) fn get_children(node_handler: NodeHandler) -> Vec<Reference<Element>> {
-    node_handler.children_iter(false).collect()
+  pub(crate) fn children<T>(node_handler: NodeHandler) -> Vec<T>
+  where
+    ChildNode: TryInto<T>,
+  {
+    node_handler.shallow_child_nodes_iter().collect()
   }
 
   pub(crate) fn append_child(parent_node: Node, child_node: ChildNode) -> Result<()> {
@@ -24,7 +23,9 @@ pub(crate) mod children {
     node_handler: NodeHandler,
     id: String,
   ) -> Option<Reference<Element>> {
-    node_handler.children_iter(true).find(|e| e.get_id() == id)
+    node_handler
+      .deep_child_nodes_iter()
+      .find(|e: &Reference<Element>| e.get_id() == id)
   }
 
   pub(crate) fn get_elements_by_class_name(
@@ -32,72 +33,52 @@ pub(crate) mod children {
     class_name: String,
   ) -> Vec<Reference<Element>> {
     node_handler
-      .children_iter(true)
-      .filter(|e| e.get_class_name() == class_name)
+      .deep_child_nodes_iter()
+      .filter(|e: &Reference<Element>| e.get_class_name() == class_name)
       .collect()
   }
 
-  pub(crate) fn get_first_child(node_handler: NodeHandler) -> Option<ChildNode> {
-    node_handler.child_nodes_iter(false).next()
+  pub(crate) fn first_child<T>(node_handler: NodeHandler) -> Option<T>
+  where
+    ChildNode: TryInto<T>,
+  {
+    node_handler.shallow_child_nodes_iter().next()
   }
 
-  pub(crate) fn get_last_child(node_handler: NodeHandler) -> Option<ChildNode> {
-    node_handler.child_nodes_iter(false).last()
-  }
-
-  pub(crate) fn get_first_element_child(node_handler: NodeHandler) -> Option<Reference<Element>> {
-    node_handler.children_iter(false).next()
-  }
-
-  pub(crate) fn get_last_element_child(node_handler: NodeHandler) -> Option<Reference<Element>> {
-    node_handler.children_iter(false).last()
+  pub(crate) fn last_child<T>(node_handler: NodeHandler) -> Option<T>
+  where
+    ChildNode: TryInto<T>,
+  {
+    node_handler.shallow_child_nodes_iter().next_back()
   }
 }
 
 pub(crate) mod parent {
-  use crate::{ChildNode, Document, Element, NodeHandler, ParentNode};
-  use napi::{
-    bindgen_prelude::{Reference, WeakReference},
-    Result,
-  };
+  use crate::{ChildNode, NodeHandler, ParentNode};
+  use napi::Result;
 
-  pub(crate) fn get_parent_element(
-    node_handler: NodeHandler,
-  ) -> Result<Option<WeakReference<Element>>> {
-    node_handler.parent_iterator().next().transpose()
-  }
-
-  pub(crate) fn get_parent_node(node_handler: NodeHandler) -> Result<Option<ParentNode>> {
-    node_handler.parent_iterator().next().transpose()
+  pub(crate) fn parent<T>(node_handler: NodeHandler) -> Result<Option<T>>
+  where
+    ParentNode: TryInto<T>,
+  {
+    node_handler.parent_iterator().try_next()
   }
 
   pub(crate) fn remove(child: ChildNode) -> Result<()> {
     child.remove()
   }
 
-  pub(crate) fn owner_document(
-    node_handler: NodeHandler,
-  ) -> Result<Option<WeakReference<Document>>> {
-    node_handler.parent_iterator().next().transpose()
-  }
-
-  pub(crate) fn get_previous_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {
+  pub(crate) fn previous<T>(node_handler: NodeHandler) -> Result<Option<T>>
+  where
+    ChildNode: TryInto<T>,
+  {
     Ok(node_handler.previous_iterator()?.next())
   }
 
-  pub(crate) fn get_previous_element_sibling(
-    node_handler: NodeHandler,
-  ) -> Result<Option<Reference<Element>>> {
-    Ok(node_handler.previous_iterator()?.next())
-  }
-
-  pub(crate) fn get_next_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {
-    Ok(node_handler.next_iterator()?.next())
-  }
-
-  pub(crate) fn get_next_element_sibling(
-    node_handler: NodeHandler,
-  ) -> Result<Option<Reference<Element>>> {
+  pub(crate) fn next<T>(node_handler: NodeHandler) -> Result<Option<T>>
+  where
+    ChildNode: TryInto<T>,
+  {
     Ok(node_handler.next_iterator()?.next())
   }
 }

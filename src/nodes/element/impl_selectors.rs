@@ -185,7 +185,7 @@ impl selectors::Element for ElementRef {
   fn is_empty(&self) -> bool {
     self
       .get_node_handler()
-      .child_nodes_iter(false)
+      .shallow_child_nodes_iter()
       .all(|ref child| match child {
         ChildNode::Element(ref _element) => false,
         ChildNode::Text(ref text) => text.data.is_empty(),

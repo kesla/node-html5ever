@@ -52,12 +52,12 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     true => quote!(
       #[napi(getter)]
       pub fn get_child_nodes(&self) -> Vec<crate::ChildNode> {
-        macro_backend::children::get_child_nodes(self.into())
+        macro_backend::children::children(self.into())
       }
 
       #[napi(getter)]
       pub fn get_children(&self) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::get_children(self.into())
+        macro_backend::children::children(self.into())
       }
 
       #[napi]
@@ -88,26 +88,26 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_first_child(&self) -> Option<crate::ChildNode> {
-        macro_backend::children::get_first_child(self.into())
-      }
-
-      #[napi(getter)]
-      pub fn get_last_child(&self) -> Option<crate::ChildNode> {
-        macro_backend::children::get_last_child(self.into())
+        macro_backend::children::first_child(self.into())
       }
 
       #[napi(getter)]
       pub fn get_first_element_child(
         &self,
       ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::get_first_element_child(self.into())
+        macro_backend::children::first_child(self.into())
+      }
+
+      #[napi(getter)]
+      pub fn get_last_child(&self) -> Option<crate::ChildNode> {
+        macro_backend::children::last_child(self.into())
       }
 
       #[napi(getter)]
       pub fn get_last_element_child(
         &self,
       ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::get_last_element_child(self.into())
+        macro_backend::children::last_child(self.into())
       }
     ),
     false => quote!(),
@@ -118,13 +118,20 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
           napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
-        macro_backend::parent::get_parent_element(self.into())
+        macro_backend::parent::parent(self.into())
       }
 
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
           napi::Result<Option<crate::ParentNode>> {
-        macro_backend::parent::get_parent_node(self.into())
+        macro_backend::parent::parent(self.into())
+      }
+
+      #[napi(getter)]
+      pub fn get_owner_document(
+        &self,
+      ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
+        macro_backend::parent::parent(self.into())
       }
 
       #[napi]
@@ -133,34 +140,27 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi(getter)]
-      pub fn owner_document(
-        &self,
-      ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
-        macro_backend::parent::owner_document(self.into())
-      }
-
-      #[napi(getter)]
       pub fn get_previous_sibling(&self) ->
         napi::Result<Option<crate::ChildNode>> {
-        macro_backend::parent::get_previous_sibling(self.into())
+        macro_backend::parent::previous(self.into())
       }
 
       #[napi(getter)]
       pub fn get_previous_element_sibling(&self) ->
         napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::parent::get_previous_element_sibling(self.into())
+        macro_backend::parent::previous(self.into())
       }
 
       #[napi(getter)]
       pub fn get_next_sibling(&self) ->
         napi::Result<Option<crate::ChildNode>> {
-        macro_backend::parent::get_next_sibling(self.into())
+        macro_backend::parent::next(self.into())
       }
 
       #[napi(getter)]
       pub fn get_next_element_sibling(&self) ->
         napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::parent::get_next_element_sibling(self.into())
+        macro_backend::parent::next(self.into())
       }
     },
     false => quote! {},

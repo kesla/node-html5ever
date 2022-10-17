@@ -45,7 +45,7 @@ impl Html5everDom {
       .document_reference
       .get_document_element()?
       .get_node_handler();
-    let tmp: Vec<ChildNode> = node_handler.child_nodes_iter(false).collect();
+    let tmp: Vec<ChildNode> = node_handler.shallow_child_nodes_iter().collect();
 
     let fragment_node: Node = fragment.clone(env)?.into();
 

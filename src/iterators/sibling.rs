@@ -1,8 +1,7 @@
-use crate::ChildNode;
+use crate::{ChildNode, NodeHandler, ParentContext};
 
+use napi::Result;
 use std::marker::PhantomData;
-
-use crate::NodeHandler;
 
 pub enum SiblingIteratorType {
   Next,
@@ -16,15 +15,23 @@ pub struct SiblingIterator<T> {
 }
 
 impl<T> SiblingIterator<T> {
-  pub fn new(data: Option<(NodeHandler, usize)>, sibling_type: SiblingIteratorType) -> Self {
-    SiblingIterator {
+  pub fn new(
+    maybe_parent_ctx: Option<ParentContext>,
+    sibling_type: SiblingIteratorType,
+  ) -> Result<Self> {
+    let data = match &maybe_parent_ctx {
+      Some(parent) => Some((parent.try_into()?, parent.index)),
+      None => None,
+    };
+
+    Ok(SiblingIterator {
       data,
       next_index: match sibling_type {
         SiblingIteratorType::Next => &|index: usize| index.checked_add(1),
         SiblingIteratorType::Previous => &|index: usize| index.checked_sub(1),
       },
       _phantom: PhantomData,
-    }
+    })
   }
 
   pub(crate) fn next_child_node(&mut self) -> Option<ChildNode> {

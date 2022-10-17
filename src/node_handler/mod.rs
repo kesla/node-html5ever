@@ -1,10 +1,11 @@
 use std::{ops::Deref, rc::Rc};
 
-use napi::{bindgen_prelude::Reference, Env, Error, Result};
+use napi::{Env, Error, Result};
 
 use crate::{
-  ChildNode, ChildNodesIterator, Comment, Document, DocumentFragment, DocumentType, EinarCell,
-  Element, Node, ParentIterator, ParentNode, SiblingIterator, SiblingIteratorType, Text,
+  ChildNode, Comment, DeepChildNodesIterator, Document, DocumentFragment, DocumentType, EinarCell,
+  Element, Node, ParentIterator, ParentNode, ShallowChildNodesIterator, SiblingIterator,
+  SiblingIteratorType, Text,
 };
 
 mod child_node_list;
@@ -41,28 +42,11 @@ impl NodeHandler {
   }
 
   pub(crate) fn previous_iterator<T>(&self) -> Result<SiblingIterator<T>> {
-    let input: Option<(NodeHandler, usize)> =
-      self
-        .parent_context
-        .borrow::<_, Result<_>>(|maybe_parent| match maybe_parent.as_ref() {
-          Some(parent) => Ok(Some((parent.try_into()?, parent.index))),
-          None => Ok(None),
-        })?;
-
-    Ok(SiblingIterator::new(input, SiblingIteratorType::Previous))
+    SiblingIterator::new(self.parent_context.cloned(), SiblingIteratorType::Previous)
   }
 
   pub(crate) fn next_iterator<T>(&self) -> Result<SiblingIterator<T>> {
-    self
-      .parent_context
-      .borrow(|maybe_parent: &Option<ParentContext>| {
-        let input: Option<(NodeHandler, usize)> = match maybe_parent.as_ref() {
-          Some(parent) => Some((parent.try_into()?, parent.index)),
-          None => None,
-        };
-
-        Ok(SiblingIterator::new(input, SiblingIteratorType::Next))
-      })
+    SiblingIterator::new(self.parent_context.cloned(), SiblingIteratorType::Next)
   }
 
   pub(crate) fn parent_iterator<T>(&self) -> ParentIterator<T> {
@@ -96,12 +80,18 @@ impl NodeHandler {
     }
   }
 
-  pub(crate) fn child_nodes_iter(&self, deep: bool) -> ChildNodesIterator<ChildNode> {
-    ChildNodesIterator::new(self, deep)
+  pub(crate) fn deep_child_nodes_iter<T>(&self) -> DeepChildNodesIterator<T>
+  where
+    ChildNode: TryInto<T>,
+  {
+    DeepChildNodesIterator::new(self)
   }
 
-  pub(crate) fn children_iter(&self, deep: bool) -> ChildNodesIterator<Reference<Element>> {
-    ChildNodesIterator::new(self, deep)
+  pub(crate) fn shallow_child_nodes_iter<T>(&self) -> ShallowChildNodesIterator<T>
+  where
+    ChildNode: TryInto<T>,
+  {
+    ShallowChildNodesIterator::new(self)
   }
 
   pub(crate) fn append_node(&self, child: &ChildNode) {

@@ -22,8 +22,8 @@ export class Comment {
   get nodeName(): string
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
-  remove(): void
   get ownerDocument(): Document | null
+  remove(): void
   get previousSibling(): ChildNode | null
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
@@ -38,8 +38,8 @@ export class Document {
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
   get firstChild(): ChildNode | null
-  get lastChild(): ChildNode | null
   get firstElementChild(): Element | null
+  get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   get docType(): DocumentType | null
   get documentElement(): Element
@@ -58,8 +58,8 @@ export class DocumentFragment {
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
   get firstChild(): ChildNode | null
-  get lastChild(): ChildNode | null
   get firstElementChild(): Element | null
+  get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
 }
 export class DocumentType {
@@ -69,8 +69,8 @@ export class DocumentType {
   get nodeName(): string
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
-  remove(): void
   get ownerDocument(): Document | null
+  remove(): void
   get previousSibling(): ChildNode | null
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
@@ -80,8 +80,8 @@ export class Element {
   get nodeName(): string
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
-  remove(): void
   get ownerDocument(): Document | null
+  remove(): void
   get previousSibling(): ChildNode | null
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
@@ -93,8 +93,8 @@ export class Element {
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
   get firstChild(): ChildNode | null
-  get lastChild(): ChildNode | null
   get firstElementChild(): Element | null
+  get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
@@ -113,8 +113,8 @@ export class Text {
   get nodeName(): string
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
-  remove(): void
   get ownerDocument(): Document | null
+  remove(): void
   get previousSibling(): ChildNode | null
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null

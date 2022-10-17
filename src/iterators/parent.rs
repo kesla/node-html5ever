@@ -34,6 +34,15 @@ impl<T> ParentIterator<T> {
   }
 }
 
+impl<T> ParentIterator<T>
+where
+  ParentNode: TryInto<T>,
+{
+  pub fn try_next(&mut self) -> Result<Option<T>> {
+    self.next().transpose()
+  }
+}
+
 impl<T> Iterator for ParentIterator<T>
 where
   ParentNode: TryInto<T>,
