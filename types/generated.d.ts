@@ -34,6 +34,7 @@ export class Document {
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
   append(childNodeOrText: ChildNode | string): void
+  prepend(childNodeOrText: ChildNode | string): void
   appendChild(child: ChildNode): ChildNode
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
@@ -55,6 +56,7 @@ export class DocumentFragment {
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
   append(childNodeOrText: ChildNode | string): void
+  prepend(childNodeOrText: ChildNode | string): void
   appendChild(child: ChildNode): ChildNode
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
@@ -91,6 +93,7 @@ export class Element {
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
   append(childNodeOrText: ChildNode | string): void
+  prepend(childNodeOrText: ChildNode | string): void
   appendChild(child: ChildNode): ChildNode
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null

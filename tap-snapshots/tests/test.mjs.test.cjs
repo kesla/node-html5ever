@@ -13,6 +13,14 @@ exports[`tests/test.mjs TAP .append works w both strings and elements > body.out
 <body>hello<div></div></body>
 `
 
+exports[`tests/test.mjs TAP .prepend works w both strings and elements > body.outerHTML 1`] = `
+<body>hello</body>
+`
+
+exports[`tests/test.mjs TAP .prepend works w both strings and elements > body.outerHTML 2`] = `
+<body><div></div>hello</body>
+`
+
 exports[`tests/test.mjs TAP Element.id & Element.className > div.outerHTML 1`] = `
 <div id="foo" class="bar baz"></div>
 `

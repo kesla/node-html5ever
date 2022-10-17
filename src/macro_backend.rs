@@ -16,6 +16,24 @@ pub(crate) mod children {
     Ok(child_node)
   }
 
+  pub(crate) fn prepend(
+    env: Env,
+    parent_node: Node,
+    node: Either<ChildNode, String>,
+  ) -> Result<()> {
+    let child_node: ChildNode = match node {
+      Either::A(child_node) => child_node,
+      Either::B(data) => {
+        let text = Text::new_reference(env, data)?;
+        text.into()
+      }
+    };
+
+    parent_node.prepend_node(&child_node)?;
+
+    Ok(())
+  }
+
   pub(crate) fn append(env: Env, parent_node: Node, node: Either<ChildNode, String>) -> Result<()> {
     let child_node: ChildNode = match node {
       Either::A(child_node) => child_node,

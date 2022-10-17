@@ -278,7 +278,21 @@ test('.append works w both strings and elements', (t) => {
   body.append("hello"/*, "world" */);
   t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
   t.matchSnapshot(body.outerHTML, "body.outerHTML");
-  body.append(document.createElement("div"));
+  const div = document.createElement("div");
+  body.append(div);
+  t.strictSame(div, body.lastChild, "div is body.lastChild");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+})
+
+test('.prepend works w both strings and elements', (t) => {
+  let { document } = new Html5EverDom("");
+  let body = document.body;
+  body.prepend("hello"/*, "world" */);
+  t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+  const div = document.createElement("div");
+  body.prepend(div);
+  t.strictSame(div, body.firstChild, "div is body.firstChild");
   t.matchSnapshot(body.outerHTML, "body.outerHTML");
 })
 

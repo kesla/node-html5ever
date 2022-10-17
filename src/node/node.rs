@@ -87,6 +87,11 @@ impl Clone for Node {
   }
 }
 
+enum AppendOrPrepend {
+  APPEND,
+  PREPEND,
+}
+
 impl Node {
   pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
     match &self {
@@ -98,7 +103,7 @@ impl Node {
     }
   }
 
-  pub(crate) fn append_node(&self, child_node: &ChildNode) -> Result<()> {
+  fn append_or_prepend(&self, child_node: &ChildNode, mode: AppendOrPrepend) -> Result<()> {
     // remove from old parent
     let node_handler: NodeHandler = child_node.into();
 
@@ -110,7 +115,10 @@ impl Node {
     // TODO: concatenate already existing text node
 
     let node_handler: NodeHandler = self.into();
-    node_handler.append_node(child_node);
+    match mode {
+      AppendOrPrepend::APPEND => node_handler.append_node(child_node),
+      AppendOrPrepend::PREPEND => node_handler.prepend_node(child_node),
+    }
 
     let parent_node: ParentNode = self.into();
 
@@ -123,6 +131,14 @@ impl Node {
     node_handler.parent_context.set(parent_context);
 
     Ok(())
+  }
+
+  pub(crate) fn append_node(&self, child_node: &ChildNode) -> Result<()> {
+    self.append_or_prepend(child_node, AppendOrPrepend::APPEND)
+  }
+
+  pub(crate) fn prepend_node(&self, child_node: &ChildNode) -> Result<()> {
+    self.append_or_prepend(child_node, AppendOrPrepend::PREPEND)
   }
 
   pub(crate) fn remove_node(&self, child_node: &ChildNode) -> Result<()> {

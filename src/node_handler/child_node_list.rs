@@ -49,6 +49,10 @@ impl ChildNodeList {
   pub(crate) fn append_node(&mut self, child: &ChildNode) {
     self.0.push(child.to_owned());
   }
+
+  pub(crate) fn prepend_node(&mut self, child: &ChildNode) {
+    self.0.insert(0, child.to_owned());
+  }
 }
 
 impl From<ChildNodeList> for Vec<ChildNode> {

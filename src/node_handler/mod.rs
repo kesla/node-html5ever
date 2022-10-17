@@ -100,6 +100,12 @@ impl NodeHandler {
     });
   }
 
+  pub(crate) fn prepend_node(&self, child: &ChildNode) {
+    self.child_nodes.borrow_mut(|child_nodes| {
+      child_nodes.prepend_node(child);
+    });
+  }
+
   pub(crate) fn remove_node(&self, child: &ChildNode) -> Result<()> {
     self
       .child_nodes
