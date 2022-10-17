@@ -15,8 +15,8 @@ pub(crate) mod children {
     parent_node.append_node(&child_node)
   }
 
-  pub(crate) fn remove_child(parent_node: Node, child_node: ChildNode) {
-    parent_node.remove_node(&child_node);
+  pub(crate) fn remove_child(parent_node: Node, child_node: ChildNode) -> Result<()> {
+    parent_node.remove_node(&child_node)
   }
 
   pub(crate) fn get_element_by_id(

@@ -104,7 +104,7 @@ impl Node {
 
     if let Some(parent) = node_handler.parent_context.replace(None) {
       let parent_node_handler: NodeHandler = parent.get_node()?.into();
-      parent_node_handler.remove_node(child_node);
+      parent_node_handler.remove_node(child_node)?;
     }
 
     // TODO: concatenate already existing text node
@@ -125,12 +125,14 @@ impl Node {
     Ok(())
   }
 
-  pub(crate) fn remove_node(&self, child_node: &ChildNode) {
+  pub(crate) fn remove_node(&self, child_node: &ChildNode) -> Result<()> {
+    let parent_node_handler: NodeHandler = self.into();
+    parent_node_handler.remove_node(child_node)?;
+
     let child_node_handler: NodeHandler = child_node.into();
     child_node_handler.parent_context.set(None);
 
-    let parent_node_handler: NodeHandler = self.into();
-    parent_node_handler.remove_node(child_node);
+    Ok(())
   }
 
   pub(crate) fn get_node_name(&self) -> String {

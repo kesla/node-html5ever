@@ -1,6 +1,7 @@
 use std::{self, slice::Iter};
 
 use crate::{ChildNode, NodeHandler};
+use napi::{Error, Result};
 
 #[derive(Default)]
 pub(crate) struct ChildNodeList(Vec<ChildNode>);
@@ -18,10 +19,17 @@ impl ChildNodeList {
     self.0.iter()
   }
 
-  pub(crate) fn remove_node(&mut self, node: &ChildNode) {
-    self.0.retain(|h| h != node);
+  pub(crate) fn remove_node(&mut self, node: &ChildNode) -> Result<()> {
+    let index = self
+      .0
+      .iter()
+      .position(|child_node| child_node == node)
+      .ok_or_else(|| Error::from_reason("Node not found"))?;
+
+    self.0.remove(index);
 
     self.sync_parent_context();
+    Ok(())
   }
 
   pub(crate) fn sync_parent_context(&mut self) {

@@ -364,3 +364,20 @@ test(".firstChild & .lastChild", (t) => {
   t.strictSame(bar?.firstElementChild, bar?.children[0]);
   t.strictSame(bar?.lastElementChild, bar?.children[bar.children.length - 1]);
 });
+
+test('.removeChild errors if the node is not a child', (t) => {
+  let { document } = new Html5EverDom(
+    `<div id="foo"></div><div id="bar"></div>`
+  );
+
+  const foo = document.getElementById("foo");
+  const bar = document.getElementById("bar");
+
+  if (!foo || !bar) {
+    throw new Error("missing element");
+  }
+
+  t.throws(() => {
+    foo.removeChild(bar);
+  });
+})

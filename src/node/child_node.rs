@@ -27,9 +27,7 @@ impl ChildNode {
 
     let parent_node = parent_ctx.get_node()?;
     let parent_node_handler: NodeHandler = parent_node.into();
-    parent_node_handler.remove_node(self);
-
-    Ok(())
+    parent_node_handler.remove_node(self)
   }
 }
 
