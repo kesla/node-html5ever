@@ -61,6 +61,14 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi]
+      pub fn append(
+        &self,
+        child_node_or_text: napi::Either<crate::ChildNode, String>,
+      ) -> napi::Result<()> {
+        macro_backend::children::append(self.env, self.into(), child_node_or_text.into())
+      }
+
+      #[napi]
       pub fn append_child(&self, child: crate::ChildNode) -> napi::Result<crate::ChildNode> {
         macro_backend::children::append_child(self.into(), child.into())
       }

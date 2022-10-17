@@ -272,6 +272,16 @@ test("appendChild() remove element from previous parent", (t) => {
   );
 });
 
+test('.append works w both strings and elements', (t) => {
+  let { document } = new Html5EverDom("");
+  let body = document.body;
+  body.append("hello"/*, "world" */);
+  t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
+  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+  body.append(document.createElement("div"));
+  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+})
+
 test("Element.id & Element.className", (t) => {
   let { document } = new Html5EverDom("");
 

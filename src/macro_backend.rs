@@ -1,8 +1,8 @@
 pub(crate) mod children {
 
-  use napi::{bindgen_prelude::Reference, Result};
+  use napi::{bindgen_prelude::Reference, Either, Env, Result};
 
-  use crate::{ChildNode, Element, Node, NodeHandler};
+  use crate::{ChildNode, Element, Node, NodeHandler, Text};
 
   pub(crate) fn children<T>(node_handler: NodeHandler) -> Vec<T>
   where
@@ -14,6 +14,20 @@ pub(crate) mod children {
   pub(crate) fn append_child(parent_node: Node, child_node: ChildNode) -> Result<ChildNode> {
     parent_node.append_node(&child_node)?;
     Ok(child_node)
+  }
+
+  pub(crate) fn append(env: Env, parent_node: Node, node: Either<ChildNode, String>) -> Result<()> {
+    let child_node: ChildNode = match node {
+      Either::A(child_node) => child_node,
+      Either::B(data) => {
+        let text = Text::new_reference(env, data)?;
+        text.into()
+      }
+    };
+
+    parent_node.append_node(&child_node)?;
+
+    Ok(())
   }
 
   pub(crate) fn remove_child(parent_node: Node, child_node: ChildNode) -> Result<ChildNode> {

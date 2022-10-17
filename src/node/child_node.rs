@@ -5,8 +5,8 @@ use std::{
 
 use crate::{Comment, DocumentType, Element, Node, NodeHandler, ParentContext, Text};
 use napi::{
-  bindgen_prelude::{FromNapiValue, Reference, Result, ToNapiValue},
-  Error, Status,
+  bindgen_prelude::{FromNapiValue, Reference, Result, ToNapiValue, TypeName, ValidateNapiValue},
+  Error, Status, ValueType,
 };
 
 pub enum ChildNode {
@@ -67,12 +67,23 @@ impl ToNapiValue for ChildNode {
   }
 }
 
+impl ValidateNapiValue for ChildNode {
+  unsafe fn validate(
+    env: napi::sys::napi_env,
+    napi_val: napi::sys::napi_value,
+  ) -> Result<napi::sys::napi_value> {
+    <&Element>::validate(env, napi_val)
+      .or_else(|_| <&Text>::validate(env, napi_val))
+      .or_else(|_| <&DocumentType>::validate(env, napi_val))
+      .or_else(|_| <&Text>::validate(env, napi_val))
+  }
+}
+
 impl FromNapiValue for ChildNode {
   unsafe fn from_napi_value(
     env: napi::sys::napi_env,
     napi_val: napi::sys::napi_value,
   ) -> Result<Self> {
-    use napi::bindgen_prelude::ValidateNapiValue;
     if <&Element>::validate(env, napi_val).is_ok() {
       <&Element>::from_napi_value(env, napi_val).map(|r| r.into())
     } else if <&Text>::validate(env, napi_val).is_ok() {
@@ -88,6 +99,16 @@ impl FromNapiValue for ChildNode {
           .to_string(),
       ))
     }
+  }
+}
+
+impl TypeName for ChildNode {
+  fn type_name() -> &'static str {
+    "ChildNode"
+  }
+
+  fn value_type() -> ValueType {
+    ValueType::Unknown
   }
 }
 
