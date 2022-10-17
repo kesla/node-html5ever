@@ -2,6 +2,7 @@ use napi::{Env, Result};
 
 use crate::{Node, ParentNode};
 
+#[derive(Clone)]
 pub struct ParentContext {
   pub(crate) node: ParentNode,
   pub(crate) index: usize,

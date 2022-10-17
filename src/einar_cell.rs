@@ -38,6 +38,12 @@ impl<T> EinarCell<T> {
   }
 }
 
+impl<T: Clone> EinarCell<T> {
+  pub fn cloned(&self) -> T {
+    self.borrow(|value| value.clone())
+  }
+}
+
 impl<T: Default> Default for EinarCell<T> {
   fn default() -> Self {
     Self::new(Default::default())

@@ -41,7 +41,7 @@ impl selectors::Element for ElementRef {
   }
 
   fn parent_element(&self) -> Option<Self> {
-    self.get_parent_element().map(|r| ElementRef {
+    self.get_parent_element().unwrap().map(|r| ElementRef {
       r: r.upgrade(self.env).unwrap().unwrap(),
       env: self.env,
     })
@@ -196,6 +196,7 @@ impl selectors::Element for ElementRef {
   fn is_root(&self) -> bool {
     self
       .get_parent_node()
+      .unwrap()
       .map_or(false, |parent| matches!(parent, ParentNode::Document(_)))
   }
 }

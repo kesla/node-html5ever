@@ -61,19 +61,18 @@ pub(crate) mod parent {
     Result,
   };
 
-  pub(crate) fn get_parent_element(node_handler: NodeHandler) -> Option<WeakReference<Element>> {
-    let parent_node = get_parent_node(node_handler);
-
-    match parent_node {
-      Some(ParentNode::Element(element)) => Some(element),
-      _ => None,
+  pub(crate) fn get_parent_element(
+    node_handler: NodeHandler,
+  ) -> Result<Option<WeakReference<Element>>> {
+    match node_handler.parent_iterator().next() {
+      Some(Ok(ParentNode::Element(element))) => Ok(Some(element)),
+      Some(Err(err)) => Err(err),
+      _ => Ok(None),
     }
   }
 
-  pub(crate) fn get_parent_node(node_handler: NodeHandler) -> Option<ParentNode> {
-    node_handler
-      .parent_context
-      .borrow(|parent| parent.as_ref().map(|p| p.node.clone()))
+  pub(crate) fn get_parent_node(node_handler: NodeHandler) -> Result<Option<ParentNode>> {
+    node_handler.parent_iterator().next().transpose()
   }
 
   pub(crate) fn remove(child: ChildNode) -> Result<()> {
@@ -83,20 +82,14 @@ pub(crate) mod parent {
   pub(crate) fn owner_document(
     node_handler: NodeHandler,
   ) -> Result<Option<WeakReference<Document>>> {
-    let env = node_handler.env.to_owned();
-    let maybe_parent = get_parent_node(node_handler);
-
-    match maybe_parent {
-      Some(ParentNode::Document(document)) => Ok(Some(document)),
-      Some(ParentNode::Element(element)) => {
-        let maybe_elment = element.upgrade(env)?;
-        match maybe_elment {
-          Some(element) => element.owner_document(),
-          None => Ok(None),
-        }
-      }
-      _ => Ok(None),
-    }
+    node_handler
+      .parent_iterator()
+      .find_map(|node| match node {
+        Ok(ParentNode::Document(document)) => Some(Ok(document)),
+        Err(err) => Some(Err(err)),
+        _ => None,
+      })
+      .transpose()
   }
 
   pub(crate) fn get_previous_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {

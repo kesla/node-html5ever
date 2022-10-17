@@ -4,7 +4,7 @@ use napi::{bindgen_prelude::Reference, Env, Error, Result};
 
 use crate::{
   ChildNode, ChildNodesIterator, Comment, Document, DocumentFragment, DocumentType, EinarCell,
-  Element, Node, ParentNode, SiblingIterator, SiblingIteratorType, Text,
+  Element, Node, ParentIterator, ParentNode, SiblingIterator, SiblingIteratorType, Text,
 };
 
 mod child_node_list;
@@ -63,6 +63,10 @@ impl NodeHandler {
 
         Ok(SiblingIterator::new(input, SiblingIteratorType::Next))
       })
+  }
+
+  pub(crate) fn parent_iterator(&self) -> ParentIterator {
+    ParentIterator::new(self.parent_context.cloned())
   }
 
   pub(crate) fn try_get_child_node<T, U>(&self, index: usize) -> std::result::Result<Option<T>, U>

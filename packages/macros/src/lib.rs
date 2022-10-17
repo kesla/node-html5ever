@@ -117,13 +117,13 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     true => quote! {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
-          Option<napi::bindgen_prelude::WeakReference<crate::Element>> {
+          napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
         macro_backend::parent::get_parent_element(self.into())
       }
 
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
-          Option<crate::ParentNode> {
+          napi::Result<Option<crate::ParentNode>> {
         macro_backend::parent::get_parent_node(self.into())
       }
 
