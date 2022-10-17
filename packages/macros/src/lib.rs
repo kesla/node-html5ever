@@ -66,8 +66,8 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi]
-      pub fn remove_element(&self, child: &crate::Element) {
-        macro_backend::children::remove_element(self.into(), child.into());
+      pub fn remove_child(&self, child: crate::ChildNode) {
+        macro_backend::children::remove_child(self.into(), child.into());
       }
 
       #[napi]

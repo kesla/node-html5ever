@@ -200,7 +200,7 @@ test("basic appendChild & remove", (t) => {
   t.matchSnapshot(body.outerHTML, "body.outerHTML after remove");
 });
 
-test("basic appendChild & removeElement", (t) => {
+test("basic appendChild & removeChild", (t) => {
   let { document } = new Html5EverDom("");
 
   let body = document.body;
@@ -217,7 +217,7 @@ test("basic appendChild & removeElement", (t) => {
 
   t.strictSame(body.children[0], child, "body.children[0] is child");
 
-  body.removeElement(child);
+  body.removeChild(child);
 
   t.strictSame(child.parentElement, null, "child.parentElement is null");
   t.strictSame(child.parentNode, null, "child.parentNode is null");

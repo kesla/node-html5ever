@@ -21,11 +21,11 @@ exports[`tests/test.mjs TAP basic appendChild & remove > body.outerHTML after re
 <body></body>
 `
 
-exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHTML 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & removeChild > body.outerHTML 1`] = `
 <body><div></div></body>
 `
 
-exports[`tests/test.mjs TAP basic appendChild & removeElement > body.outerHTML after remove 1`] = `
+exports[`tests/test.mjs TAP basic appendChild & removeChild > body.outerHTML after remove 1`] = `
 <body></body>
 `
 
