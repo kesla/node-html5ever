@@ -70,6 +70,20 @@ macro_rules! impl_from {
         ParentNode::$variant(value)
       }
     }
+
+    impl TryInto<WeakReference<$type>> for ParentNode {
+      type Error = Error;
+
+      fn try_into(self) -> Result<WeakReference<$type>> {
+        match self {
+          ParentNode::$variant(r) => Ok(r),
+          _ => Err(Error::new(
+            Status::InvalidArg,
+            format!("Could not convert {:?} to {}", self, stringify!($type)),
+          )),
+        }
+      }
+    }
   };
 }
 

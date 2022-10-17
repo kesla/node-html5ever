@@ -65,7 +65,7 @@ impl NodeHandler {
       })
   }
 
-  pub(crate) fn parent_iterator(&self) -> ParentIterator {
+  pub(crate) fn parent_iterator<T>(&self) -> ParentIterator<T> {
     ParentIterator::new(self.parent_context.cloned())
   }
 

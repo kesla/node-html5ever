@@ -64,11 +64,7 @@ pub(crate) mod parent {
   pub(crate) fn get_parent_element(
     node_handler: NodeHandler,
   ) -> Result<Option<WeakReference<Element>>> {
-    match node_handler.parent_iterator().next() {
-      Some(Ok(ParentNode::Element(element))) => Ok(Some(element)),
-      Some(Err(err)) => Err(err),
-      _ => Ok(None),
-    }
+    node_handler.parent_iterator().next().transpose()
   }
 
   pub(crate) fn get_parent_node(node_handler: NodeHandler) -> Result<Option<ParentNode>> {
@@ -82,14 +78,7 @@ pub(crate) mod parent {
   pub(crate) fn owner_document(
     node_handler: NodeHandler,
   ) -> Result<Option<WeakReference<Document>>> {
-    node_handler
-      .parent_iterator()
-      .find_map(|node| match node {
-        Ok(ParentNode::Document(document)) => Some(Ok(document)),
-        Err(err) => Some(Err(err)),
-        _ => None,
-      })
-      .transpose()
+    node_handler.parent_iterator().next().transpose()
   }
 
   pub(crate) fn get_previous_sibling(node_handler: NodeHandler) -> Result<Option<ChildNode>> {

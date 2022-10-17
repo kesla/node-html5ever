@@ -12,7 +12,7 @@ pub enum SiblingIteratorType {
 pub struct SiblingIterator<T> {
   pub(crate) data: Option<(NodeHandler, usize)>,
   pub(crate) next_index: &'static dyn Fn(usize) -> Option<usize>,
-  pub(crate) _phantom: PhantomData<T>,
+  _phantom: PhantomData<T>,
 }
 
 impl<T> SiblingIterator<T> {
