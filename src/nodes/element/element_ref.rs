@@ -1,26 +1,18 @@
 use std::{fmt::Debug, ops::Deref};
 
 use html5ever::{namespace_url, ns};
-use napi::{bindgen_prelude::Reference, Env};
+use napi::{bindgen_prelude::Reference, Error, Result, Status};
 
 use crate::{ChildNode, Element, ParentNode};
 
 pub struct ElementRef {
   r: Reference<Element>,
-  env: Env,
-}
-
-impl ElementRef {
-  pub fn new(env: Env, r: Reference<Element>) -> Self {
-    Self { r, env }
-  }
 }
 
 impl Clone for ElementRef {
   fn clone(&self) -> Self {
     Self {
-      r: self.r.clone(self.env).unwrap(),
-      env: self.env,
+      r: self.r.clone(self.r.env).unwrap(),
     }
   }
 }
@@ -47,10 +39,10 @@ impl selectors::Element for ElementRef {
   }
 
   fn parent_element(&self) -> Option<Self> {
-    self.get_parent_element().unwrap().map(|r| ElementRef {
-      r: r.upgrade(self.env).unwrap().unwrap(),
-      env: self.env,
-    })
+    self
+      .get_parent_element()
+      .unwrap()
+      .map(|r| r.upgrade(self.r.env).unwrap().unwrap().into())
   }
 
   fn parent_node_is_shadow_root(&self) -> bool {
@@ -69,14 +61,11 @@ impl selectors::Element for ElementRef {
     self
       .get_previous_element_sibling()
       .unwrap()
-      .map(|r| ElementRef { r, env: self.env })
+      .map(|r| r.into())
   }
 
   fn next_sibling_element(&self) -> Option<Self> {
-    self
-      .get_next_element_sibling()
-      .unwrap()
-      .map(|r| ElementRef { r, env: self.env })
+    self.get_next_element_sibling().unwrap().map(|r| r.into())
   }
 
   fn is_html_element_in_html_document(&self) -> bool {
@@ -210,5 +199,25 @@ impl selectors::Element for ElementRef {
 impl Into<Reference<Element>> for ElementRef {
   fn into(self) -> Reference<Element> {
     self.r
+  }
+}
+
+impl From<Reference<Element>> for ElementRef {
+  fn from(r: Reference<Element>) -> Self {
+    ElementRef { r }
+  }
+}
+
+impl TryFrom<ChildNode> for ElementRef {
+  type Error = Error;
+
+  fn try_from(child_node: ChildNode) -> Result<Self> {
+    match child_node {
+      ChildNode::Element(element) => Ok(element.into()),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        "Could not convert ChildNode to ElementRef".to_string(),
+      )),
+    }
   }
 }

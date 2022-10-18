@@ -85,6 +85,24 @@ pub(crate) mod children {
   {
     node_handler.shallow_child_nodes_iter().next_back()
   }
+
+  pub(crate) fn query_selector_all(
+    node_handler: NodeHandler,
+    selectors: String,
+  ) -> Result<Vec<Reference<Element>>> {
+    node_handler
+      .selectors_iter(selectors)
+      .map(|iter| iter.collect())
+  }
+
+  pub(crate) fn query_selector(
+    node_handler: NodeHandler,
+    selectors: String,
+  ) -> Result<Option<Reference<Element>>> {
+    node_handler
+      .selectors_iter(selectors)
+      .map(|mut iter| iter.next())
+  }
 }
 
 pub(crate) mod parent {

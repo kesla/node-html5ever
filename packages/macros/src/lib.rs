@@ -102,6 +102,22 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         macro_backend::children::get_elements_by_class_name(self.into(), class_name)
       }
 
+      #[napi]
+      pub fn query_selector(
+        &self,
+        selectors: String,
+      ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
+        macro_backend::children::query_selector(self.into(), selectors)
+      }
+
+      #[napi]
+      pub fn query_selector_all(
+        &self,
+        selectors: String,
+      ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
+        macro_backend::children::query_selector_all(self.into(), selectors)
+      }
+
       #[napi(getter)]
       pub fn get_first_child(&self) -> Option<crate::ChildNode> {
         macro_backend::children::first_child(self.into())

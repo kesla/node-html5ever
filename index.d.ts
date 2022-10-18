@@ -39,6 +39,8 @@ export class Document {
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  querySelector(selectors: string): Element | null
+  querySelectorAll(selectors: string): Array<Element>
   get firstChild(): ChildNode | null
   get firstElementChild(): Element | null
   get lastChild(): ChildNode | null
@@ -50,7 +52,6 @@ export class Document {
   get nodeName(): string
   createElement(name: string): Element
   createTextNode(data: string): Text
-  querySelectorAll(selectors: string): Array<Element>
 }
 export class DocumentFragment {
   get nodeName(): string
@@ -62,6 +63,8 @@ export class DocumentFragment {
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  querySelector(selectors: string): Element | null
+  querySelectorAll(selectors: string): Array<Element>
   get firstChild(): ChildNode | null
   get firstElementChild(): Element | null
   get lastChild(): ChildNode | null
@@ -99,6 +102,8 @@ export class Element {
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  querySelector(selectors: string): Element | null
+  querySelectorAll(selectors: string): Array<Element>
   get firstChild(): ChildNode | null
   get firstElementChild(): Element | null
   get lastChild(): ChildNode | null

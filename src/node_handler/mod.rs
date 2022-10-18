@@ -4,8 +4,8 @@ use napi::{Env, Error, Result};
 
 use crate::{
   ChildNode, Comment, DeepChildNodesIterator, Document, DocumentFragment, DocumentType, EinarCell,
-  Element, Node, ParentIterator, ParentNode, ShallowChildNodesIterator, SiblingIterator,
-  SiblingIteratorType, Text,
+  Element, Node, ParentIterator, ParentNode, SelectorsIterator, ShallowChildNodesIterator,
+  SiblingIterator, SiblingIteratorType, Text,
 };
 
 mod child_node_list;
@@ -92,6 +92,13 @@ impl NodeHandler {
     ChildNode: TryInto<T>,
   {
     ShallowChildNodesIterator::new(self)
+  }
+
+  pub(crate) fn selectors_iter(&self, selectors: String) -> Result<SelectorsIterator> {
+    Ok(SelectorsIterator::new(
+      crate::Selectors::compile(selectors)?,
+      self.deep_child_nodes_iter(),
+    ))
   }
 
   pub(crate) fn append_node(&self, child: &ChildNode) {
