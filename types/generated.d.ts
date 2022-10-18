@@ -129,6 +129,7 @@ export class Element {
   setAttribute(name: string, value: string): void
   hasAttribute(name: string): boolean
   get classList(): ClassList
+  get style(): object
   get tagName(): string
   get innerHTML(): string
   get outerHTML(): string

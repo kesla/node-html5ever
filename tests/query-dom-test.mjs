@@ -1,8 +1,7 @@
 // this is based on the test from https://raw.githubusercontent.com/micnews/query-dom/master/test.js
 
 import tap, { skip } from "tap";
-
-import { Html5EverDom, QuirksMode, Element, Document } from "../index.js";
+import { DocumentFragment, Text, Html5EverDom, QuirksMode, Element, Document } from "../index.js";
 
 /**
  *
@@ -17,9 +16,23 @@ const test = (name, fn) => {
 };
 test.skip = skip;
 
-const parseFragment = (input) => {
+/**
+ * 
+ * @param {String} input 
+ * @returns {DocumentFragment}
+ */
+function parseFragment(input) {
   return Html5EverDom.createDocumentFragment(input);
-};
+}
+
+/**
+ * 
+ * @param {String} input 
+ * @returns {Document}
+ */
+function parse(input) {
+  return new Html5EverDom(input).document;
+}
 
 test("tagNames & nodeNames are upper case", (t) => {
   const fragment = parseFragment("<div>beep boop</div><DIV></DIV>hello, world");
@@ -158,26 +171,28 @@ test("style - multiple statements", (t) => {
         -ms-border-radius: 10px;
         border-radius: 10px;
         border-color: ;
+        font: 14px/1.5 Helvetica, Arial, sans-serif;
         : red;
       "></div>
-    `).childNodes[0].style;
+    `).children[0].style;
   const expected = {
     WebkitBorderRadius: "10px",
     MozBorderRadius: "10px",
     msBorderRadius: "10px",
     borderRadius: "10px",
+    font: "14px/1.5 Helvetica, Arial, sans-serif",
   };
   t.same(actual, expected);
 });
 
 test("style - no style", (t) => {
-  const actual = parseFragment("<div></div>").childNodes[0].style;
+  const actual = parseFragment("<div></div>").children[0].style;
   const expected = {};
   t.same(actual, expected);
 });
 
 test("style - invalid", (t) => {
-  const actual = parseFragment('<div style="foo"></div>').childNodes[0].style;
+  const actual = parseFragment('<div style="foo"></div>').children[0].style;
   const expected = {};
   t.same(actual, expected);
 });
@@ -188,7 +203,7 @@ test("text element", (t) => {
 
   const actual = parseFragment("beep boop").childNodes[0];
   const actualNodeName = actual.nodeName;
-  const actualData = actual.data;
+  const actualData = actual instanceof Text && actual.data;
 
   t.strictSame(actualNodeName, expectedNodeName);
   t.strictSame(actualData, expectedData);
@@ -200,10 +215,10 @@ test("parseFragment().querySelectorAll()", (t) => {
       <foo></foo>
     </div>`).querySelectorAll("foo");
   t.strictSame(actual.length, 2);
-  t.strictSame(actual[0].tagName, "foo");
-  t.strictSame(actual[0].parentNode.tagName, "beep");
-  t.strictSame(actual[1].tagName, "foo");
-  t.strictSame(actual[1].parentNode.tagName, "div");
+  t.strictSame(actual[0].tagName, "FOO");
+  t.strictSame(actual[0].parentElement?.tagName, "BEEP");
+  t.strictSame(actual[1].tagName, "FOO");
+  t.strictSame(actual[1].parentElement?.tagName, "DIV");
 });
 
 test("parse().querySelectorAll()", (t) => {
@@ -212,22 +227,22 @@ test("parse().querySelectorAll()", (t) => {
       <foo></foo>
     </div>`).querySelectorAll("foo");
   t.strictSame(actual.length, 2);
-  t.strictSame(actual[0].tagName, "foo");
-  t.strictSame(actual[0].parentNode.tagName, "beep");
-  t.strictSame(actual[1].tagName, "foo");
-  t.strictSame(actual[1].parentNode.tagName, "div");
+  t.strictSame(actual[0].tagName, "FOO");
+  t.strictSame(actual[0].parentElement?.tagName, "BEEP");
+  t.strictSame(actual[1].tagName, "FOO");
+  t.strictSame(actual[1].parentElement?.tagName, "DIV");
 });
 
 test("element.querySelectorAll()", (t) => {
   const actual = parseFragment(`<div>
       <beep><foo></foo></beep>
       <foo></foo>
-    </div>`).childNodes[0].querySelectorAll("foo");
+    </div>`).children[0].querySelectorAll("foo");
   t.strictSame(actual.length, 2);
-  t.strictSame(actual[0].tagName, "foo");
-  t.strictSame(actual[0].parentNode.tagName, "beep");
-  t.strictSame(actual[1].tagName, "foo");
-  t.strictSame(actual[1].parentNode.tagName, "div");
+  t.strictSame(actual[0].tagName, "FOO");
+  t.strictSame(actual[0].parentElement?.tagName, "BEEP");
+  t.strictSame(actual[1].tagName, "FOO");
+  t.strictSame(actual[1].parentElement?.tagName, "DIV");
 });
 
 test("parseFragment().querySelector()", (t) => {
@@ -236,8 +251,8 @@ test("parseFragment().querySelector()", (t) => {
       <beep><foo></foo></beep>
       <foo></foo>
     </div>`).querySelector("foo");
-  t.strictSame(actual.tagName, "foo");
-  t.strictSame(actual.parentNode.tagName, "beep");
+  t.strictSame(actual?.tagName, "FOO");
+  t.strictSame(actual?.parentElement?.tagName, "BEEP");
 });
 
 test("parse().querySelector()", (t) => {
@@ -246,8 +261,8 @@ test("parse().querySelector()", (t) => {
       <beep><foo></foo></beep>
       <foo></foo>
     </div>`).querySelector("foo");
-  t.strictSame(actual.tagName, "foo");
-  t.strictSame(actual.parentNode.tagName, "beep");
+  t.strictSame(actual?.tagName, "FOO");
+  t.strictSame(actual?.parentElement?.tagName, "BEEP");
 });
 
 test("element().querySelector()", (t) => {
@@ -255,15 +270,15 @@ test("element().querySelector()", (t) => {
       <flipp><flopp></flopp></flipp>
       <beep><foo></foo></beep>
       <foo></foo>
-    </div>`).childNodes[0].querySelector("foo");
-  t.strictSame(actual.tagName, "foo");
-  t.strictSame(actual.parentNode.tagName, "beep");
+    </div>`).children[0].querySelector("foo");
+  t.strictSame(actual?.tagName, "FOO");
+  t.strictSame(actual?.parentElement?.tagName, "BEEP");
 });
 
 test("element().innerHTML", (t) => {
   const innerHTML =
     '<flipp hello="world"><flopp foo="bar">text</flopp></flipp>';
-  const actual = parseFragment(`<div>${innerHTML}</div>`).childNodes[0]
+  const actual = parseFragment(`<div>${innerHTML}</div>`).children[0]
     .innerHTML;
   const expected = innerHTML;
   t.strictSame(expected, actual);
@@ -272,13 +287,13 @@ test("element().innerHTML", (t) => {
 test("element().outerHTML", (t) => {
   const outerHTML =
     '<div><flipp hello="world"><flopp foo="bar">text</flopp></flipp></div>';
-  const actual = parseFragment(outerHTML).childNodes[0].outerHTML;
+  const actual = parseFragment(outerHTML).children[0].outerHTML;
   const expected = outerHTML;
   t.strictSame(expected, actual);
 });
 
 test("#text.textContent", (t) => {
-  const actual = parseFragment("beep beep").childNodes[0].textContent;
+  const actual = parseFragment("beep beep").children[0].textContent;
   const expected = "beep beep";
   t.strictSame(actual, expected);
 });
@@ -286,7 +301,7 @@ test("#text.textContent", (t) => {
 test("element().textContent", (t) => {
   const actual = parseFragment(`
       <div><flipp>Foo <flopp>Bar</flopp></flipp>Fred</div>
-    `).childNodes[0].textContent;
+    `).children[0].textContent;
   const expected = "Foo BarFred";
   t.strictSame(actual, expected);
 });

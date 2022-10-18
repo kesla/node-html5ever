@@ -3,7 +3,11 @@ mod class_list;
 mod element_ref;
 
 use html5ever::{LocalName, QualName};
-use napi::{bindgen_prelude::Reference, Result};
+use napi::{
+  bindgen_prelude::{Object, Reference},
+  Result,
+};
+use regex::Regex;
 
 use crate::serialize;
 
@@ -63,6 +67,58 @@ impl Element {
       self.class_list = Some(class_list.clone(self.env)?);
       Ok(class_list)
     }
+  }
+
+  #[napi(getter)]
+  pub fn get_style(&self) -> Result<Object> {
+    let style = self
+      .attributes_wrapper
+      .get_attribute(LocalName::from("style"))
+      .map(|attribute| attribute.value.to_string())
+      .unwrap_or_default();
+
+    style
+      .split(';')
+      .try_fold(self.env.create_object()?, |mut obj, style| {
+        let mut style = style.split(':').map(|s| s.trim());
+        let key = style.next();
+        let value = style.next();
+
+        if let (Some(key), Some(value)) = (key, value) {
+          if key.len() > 0 && value.len() > 0 {
+            let re = Regex::new(r"(-?\w+)-?(.*)").unwrap();
+
+            let caps = re.captures(key).unwrap();
+
+            let mut key = String::new();
+            key.push_str(match &caps[1] {
+              "-webkit" => "Webkit",
+              "-moz" => "Moz",
+              "-ms" => "ms",
+              "-o" => "O",
+              _ => &caps[1],
+            });
+
+            if let Some(rest) = caps.get(2) {
+              rest
+                .as_str()
+                .split('-')
+                .filter(|part| part.trim().len() > 0)
+                .for_each(|part| {
+                  let mut chars = part.chars();
+                  let first = chars.next().unwrap().to_uppercase().to_string();
+                  let rest = chars.collect::<String>();
+                  key.push_str(&first);
+                  key.push_str(&rest);
+                });
+            }
+
+            obj.set(key, value.trim().to_string())?;
+          }
+        }
+
+        Ok(obj)
+      })
   }
 
   #[napi(getter)]

@@ -13,7 +13,7 @@ napi = { version = "2.7.0", default-features = false, features = ["napi4"] }
 napi-derive = "2.7.0"
 node-html5ever-derive = { path = "./packages/macros" }
 fallible-iterator = "0.2.0"
-
+regex = "1.5.4"
 
 html5ever = "0.26.0"
 selectors = "0.23.0"
