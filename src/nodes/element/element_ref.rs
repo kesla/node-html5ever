@@ -104,11 +104,12 @@ impl selectors::Element for ElementRef {
       selectors::attr::NamespaceConstraint::Any => self
         .attributes_wrapper
         .iter()
-        .any(|attr| self.name.local == local_name.to_string() && operation.eval_str(&attr.value)),
+        .any(|attr| attr.name.local == local_name.to_string() && operation.eval_str(&attr.value)),
+
       selectors::attr::NamespaceConstraint::Specific(namespace_url) => {
         self.attributes_wrapper.iter().any(|attr| {
-          self.name.ns == namespace_url.to_string()
-            && self.name.local == local_name.to_string()
+          attr.name.ns == namespace_url.to_string()
+            && attr.name.local == local_name.to_string()
             && operation.eval_str(&attr.value)
         })
       }
