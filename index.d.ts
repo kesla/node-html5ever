@@ -39,6 +39,7 @@ export class Document {
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  getElementsByTagName(qualifiedName: string): Array<Element>
   querySelector(selectors: string): Element | null
   querySelectorAll(selectors: string): Array<Element>
   get firstChild(): ChildNode | null
@@ -63,6 +64,7 @@ export class DocumentFragment {
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  getElementsByTagName(qualifiedName: string): Array<Element>
   querySelector(selectors: string): Element | null
   querySelectorAll(selectors: string): Array<Element>
   get firstChild(): ChildNode | null
@@ -111,6 +113,7 @@ export class Element {
   removeChild(child: ChildNode): ChildNode
   getElementById(id: string): Element | null
   getElementsByClassName(className: string): Array<Element>
+  getElementsByTagName(qualifiedName: string): Array<Element>
   querySelector(selectors: string): Element | null
   querySelectorAll(selectors: string): Array<Element>
   get firstChild(): ChildNode | null

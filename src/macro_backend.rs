@@ -72,6 +72,18 @@ pub(crate) mod children {
       .collect()
   }
 
+  pub(crate) fn get_elements_by_tag_name(
+    node_handler: NodeHandler,
+    tag_name: String,
+  ) -> Vec<Reference<Element>> {
+    let tag_name: &str = &tag_name;
+
+    node_handler
+      .deep_child_nodes_iter()
+      .filter(|e: &Reference<Element>| e.get_tag_name().eq_ignore_ascii_case(tag_name))
+      .collect()
+  }
+
   pub(crate) fn first_child<T>(node_handler: NodeHandler) -> Option<T>
   where
     ChildNode: TryInto<T>,

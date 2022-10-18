@@ -103,6 +103,14 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       }
 
       #[napi]
+      pub fn get_elements_by_tag_name(
+        &self,
+        qualified_name: String,
+      ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
+        macro_backend::children::get_elements_by_tag_name(self.into(), qualified_name)
+      }
+
+      #[napi]
       pub fn query_selector(
         &self,
         selectors: String,

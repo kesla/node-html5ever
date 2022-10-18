@@ -74,7 +74,7 @@ test("attributes", (t) => {
 });
 
 test("hasAttribute()", (t) => {
-  const actual = parseFragment('<div foo="bar"></div>').childNodes[0];
+  const actual = parseFragment('<div foo="bar"></div>').children[0];
   t.strictSame(
     actual.hasAttribute("does-not-exists"),
     false,
@@ -96,10 +96,10 @@ test("getElementsByTagName()", (t) => {
     </div>`);
   const actual = fragment.getElementsByTagName("foo");
   t.strictSame(actual.length, 2);
-  t.strictSame(actual[0].tagName, "foo");
-  t.strictSame(actual[0].parentNode.tagName, "div");
-  t.strictSame(actual[1].tagName, "foo");
-  t.strictSame(actual[1].parentNode.tagName, "beep");
+  t.strictSame(actual[0].tagName, "FOO");
+  t.strictSame(actual[0].parentElement?.tagName, "DIV");
+  t.strictSame(actual[1].tagName, "FOO");
+  t.strictSame(actual[1].parentElement?.tagName, "BEEP");
 });
 
 test("getElementsByTagName() tricky", (t) => {
@@ -108,10 +108,10 @@ test("getElementsByTagName() tricky", (t) => {
       <foo></foo>
     </div>`).getElementsByTagName("foo");
   t.strictSame(actual.length, 2);
-  t.strictSame(actual[0].tagName, "foo");
-  t.strictSame(actual[0].parentNode.tagName, "beep");
-  t.strictSame(actual[1].tagName, "foo");
-  t.strictSame(actual[1].parentNode.tagName, "div");
+  t.strictSame(actual[0].tagName, "FOO");
+  t.strictSame(actual[0].parentElement?.tagName, "BEEP");
+  t.strictSame(actual[1].tagName, "FOO");
+  t.strictSame(actual[1].parentElement?.tagName, "DIV");
 });
 
 test("classList.contains()", (t) => {
