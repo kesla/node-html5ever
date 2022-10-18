@@ -9,7 +9,7 @@ use napi::{
 };
 use regex::Regex;
 
-use crate::serialize;
+use crate::{serialize, Text};
 
 use attributes::{Attr, AttributesWrapper};
 use class_list::ClassList;
@@ -127,7 +127,7 @@ impl Element {
   }
 
   #[napi(getter, js_name = "innerHTML")]
-  pub fn inner_html(&self) -> String {
+  pub fn get_inner_html(&self) -> String {
     serialize(
       self.into(),
       html5ever::serialize::TraversalScope::ChildrenOnly(None),
@@ -135,11 +135,22 @@ impl Element {
   }
 
   #[napi(getter, js_name = "outerHTML")]
-  pub fn outer_html(&self) -> String {
+  pub fn gete_outer_html(&self) -> String {
     serialize(
       self.into(),
       html5ever::serialize::TraversalScope::IncludeNode,
     )
+  }
+
+  #[napi(getter)]
+  pub fn get_text_content(&self) -> Option<String> {
+    let text = self
+      .get_node_handler()
+      .deep_child_nodes_iter::<Reference<Text>>()
+      .map(|text| text.data.clone())
+      .collect();
+
+    Some(text)
   }
 
   #[napi(getter)]

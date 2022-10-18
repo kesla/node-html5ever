@@ -28,6 +28,7 @@ export class Comment {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
+  get textContent(): string | null
 }
 export class Document {
   get nodeName(): string
@@ -50,7 +51,7 @@ export class Document {
   get documentElement(): Element
   get head(): Element
   get body(): Element
-  get nodeName(): string
+  get textContent(): string | null
   createElement(name: string): Element
   createTextNode(data: string): Text
 }
@@ -71,6 +72,7 @@ export class DocumentFragment {
   get firstElementChild(): Element | null
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
+  get textContent(): string | null
 }
 export class DocumentType {
   name: string
@@ -85,6 +87,7 @@ export class DocumentType {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
+  get textContent(): string | null
 }
 export class Attr {
   get localName(): string
@@ -133,6 +136,7 @@ export class Element {
   get tagName(): string
   get innerHTML(): string
   get outerHTML(): string
+  get textContent(): string | null
   get className(): string
   set className(className: string)
   get id(): string
@@ -149,4 +153,5 @@ export class Text {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
+  get textContent(): string | null
 }

@@ -293,7 +293,7 @@ test("element().outerHTML", (t) => {
 });
 
 test("#text.textContent", (t) => {
-  const actual = parseFragment("beep beep").children[0].textContent;
+  const actual = parseFragment("beep beep").childNodes[0].textContent;
   const expected = "beep beep";
   t.strictSame(actual, expected);
 });
@@ -313,7 +313,7 @@ test("element().textContent preserves whitespace", (t) => {
       </flipp>
       Fred
     </div>`).childNodes[0].textContent;
-  const expected = "\n    Foo\n      Bar\n    \n    Fred\n  ";
+  const expected = "\n      Foo\n        Bar\n      \n      Fred\n    ";
   t.strictSame(actual, expected);
 });
 
@@ -336,7 +336,7 @@ test("parse().querySelectorAll(#id)", (t) => {
       <foo></foo>
     </div>`).querySelectorAll("#bar");
   t.strictSame(actual.length, 1);
-  t.strictSame(actual[0].tagName, "foo");
+  t.strictSame(actual[0].tagName, "FOO");
 });
 
 test("parse().querySelectorAll(.class)", (t) => {
@@ -345,7 +345,7 @@ test("parse().querySelectorAll(.class)", (t) => {
       <foo></foo>
     </div>`).querySelectorAll(".bar");
   t.strictSame(actual.length, 1);
-  t.strictSame(actual[0].tagName, "foo");
+  t.strictSame(actual[0].tagName, "FOO");
 });
 
 test("parse().querySelectorAll(tag > #id)", (t) => {
@@ -354,7 +354,7 @@ test("parse().querySelectorAll(tag > #id)", (t) => {
       <foo></foo>
     </div>`).querySelectorAll("beep #bar");
   t.strictSame(actual.length, 1);
-  t.strictSame(actual[0].tagName, "foo");
+  t.strictSame(actual[0].tagName, "FOO");
 });
 
 test("parse().querySelectorAll(tag + tag)", (t) => {
@@ -363,7 +363,7 @@ test("parse().querySelectorAll(tag + tag)", (t) => {
       <foo></foo>
     </div>`).querySelectorAll("span + foo");
   t.strictSame(actual.length, 1);
-  t.strictSame(actual[0].tagName, "foo");
+  t.strictSame(actual[0].tagName, "FOO");
 });
 
 test("parse().querySelectorAll([attr=value])", (t) => {
@@ -382,7 +382,7 @@ test("parse().querySelectorAll([attr^=value])", (t) => {
       <foo></foo>
     </div>`).querySelectorAll('[data-name^="foo"]');
   t.strictSame(actual.length, 1);
-  t.strictSame(actual[0].tagName, "foo");
+  t.strictSame(actual[0].tagName, "FOO");
   t.strictSame(actual[0].getAttribute("data-name"), "foo-bar");
 });
 

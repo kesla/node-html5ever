@@ -1,6 +1,6 @@
 use std::{fmt::Debug, ops::Deref};
 
-use html5ever::{namespace_url, ns};
+use html5ever::{local_name, namespace_url, ns};
 use napi::{bindgen_prelude::Reference, Error, Result, Status};
 
 use crate::{ChildNode, Element, ParentNode};
@@ -136,7 +136,10 @@ impl selectors::Element for ElementRef {
   }
 
   fn is_link(&self) -> bool {
-    todo!()
+    matches!(
+      self.name.local,
+      local_name!("a") | local_name!("area") | local_name!("link")
+    ) && self.has_attribute("href".to_string())
   }
 
   fn is_html_slot_element(&self) -> bool {

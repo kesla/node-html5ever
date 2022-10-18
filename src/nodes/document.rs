@@ -59,8 +59,8 @@ impl Document {
   }
 
   #[napi(getter)]
-  pub fn node_name(&self) -> String {
-    "#document".to_string()
+  pub fn get_text_content(&self) -> Option<String> {
+    None
   }
 
   #[napi]
