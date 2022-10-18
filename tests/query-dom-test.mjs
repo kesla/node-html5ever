@@ -386,13 +386,14 @@ test("parse().querySelectorAll([attr^=value])", (t) => {
   t.strictSame(actual[0].getAttribute("data-name"), "foo-bar");
 });
 
-test("parse().querySelectorAll(:contains())", (t) => {
-  const actual = parse(`<div>
-      <beep>qux it</beep>
-      <beep><bar></bar>it qux</beep>
-      <foo>quuux</foo>
-    </div>`).querySelectorAll('beep:contains("qux")');
-  t.strictSame(actual.length, 2);
-  t.strictSame(actual[0].textContent, "qux it");
-  t.strictSame(actual[1].textContent, "it qux");
-});
+// - not proper css
+// test("parse().querySelectorAll(:contains())", (t) => {
+//   const actual = parse(`<div>
+//       <beep>qux it</beep>
+//       <beep><bar></bar>it qux</beep>
+//       <foo>quuux</foo>
+//     </div>`).querySelectorAll('beep:contains("qux")');
+//   t.strictSame(actual.length, 2);
+//   t.strictSame(actual[0].textContent, "qux it");
+//   t.strictSame(actual[1].textContent, "it qux");
+// });
