@@ -33,20 +33,19 @@ test("tagNames & nodeNames are upper case", (t) => {
   t.strictSame(actual[1].nodeName, "DIV");
 });
 
-/*
 test("nested has correct tagNames & nodeNames", (t) => {
-  const actual = parseFragment("<div><span></span></div>").childNodes;
+  const actual = parseFragment("<div><span></span></div>").children;
 
   t.strictSame(actual.length, 1);
-  t.strictSame(actual[0].tagName, "div");
-  t.strictSame(actual[0].nodeName, "div");
+  t.strictSame(actual[0].tagName, "DIV");
+  t.strictSame(actual[0].nodeName, "DIV");
 
-  t.strictSame(actual[0].childNodes[0].tagName, "span");
-  t.strictSame(actual[0].childNodes[0].nodeName, "span");
+  t.strictSame(actual[0].children[0].tagName, "SPAN");
+  t.strictSame(actual[0].children[0].nodeName, "SPAN");
 });
 
 test("getAttribute()", (t) => {
-  const actual = parseFragment('<div foo="bar"></div>').childNodes;
+  const actual = parseFragment('<div foo="bar"></div>').children;
   t.strictSame(
     actual[0].getAttribute("does-not-exists"),
     null,
@@ -66,10 +65,12 @@ test("getAttribute()", (t) => {
 });
 
 test("attributes", (t) => {
-  const actual = parseFragment('<div foo="bar"></div>').childNodes[0]
+  const actual = parseFragment('<div foo="bar"></div>').children[0]
     .attributes;
-  const expected = [{ name: "foo", value: "bar" }];
-  t.same(actual, expected);
+
+  t.strictSame(actual.length, 1);
+  t.strictSame(actual[0].name, "foo");
+  t.strictSame(actual[0].value, "bar");
 });
 
 test("hasAttribute()", (t) => {
@@ -380,4 +381,3 @@ test("parse().querySelectorAll(:contains())", (t) => {
   t.strictSame(actual[0].textContent, "qux it");
   t.strictSame(actual[1].textContent, "it qux");
 });
-*/

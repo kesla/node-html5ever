@@ -2,10 +2,11 @@ mod attributes_wrapper;
 mod element_ref;
 
 use html5ever::{LocalName, QualName};
+use napi::bindgen_prelude::Reference;
 
 use crate::serialize;
 
-use attributes_wrapper::AttributesWrapper;
+use attributes_wrapper::{Attr, AttributesWrapper};
 pub use element_ref::ElementRef;
 
 #[create_node(has_children, is_child)]
@@ -17,6 +18,11 @@ pub struct Element {
 
 #[napi]
 impl Element {
+  #[napi(getter)]
+  pub fn get_attributes(&self, r: Reference<Element>) -> Vec<Attr> {
+    self.attributes_wrapper.get_attributes(r)
+  }
+
   #[napi]
   pub fn get_attribute(&self, name: String) -> Option<String> {
     self

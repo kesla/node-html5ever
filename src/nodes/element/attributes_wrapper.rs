@@ -1,4 +1,65 @@
 use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
+use napi::{
+  bindgen_prelude::{Reference, WeakReference},
+  Env, Result,
+};
+
+use crate::{Document, Element};
+
+#[napi]
+pub struct Attr {
+  attribute: Attribute,
+  owner_element: WeakReference<Element>,
+  env: Env,
+}
+
+#[napi]
+impl Attr {
+  #[napi(getter)]
+  pub fn get_local_name(&self) -> String {
+    self.attribute.name.local.to_string()
+  }
+
+  #[napi(getter)]
+  pub fn get_name(&self) -> String {
+    self.attribute.name.local.to_string()
+  }
+
+  #[napi(getter)]
+  pub fn get_namespace_uri(&self) -> String {
+    self.attribute.name.ns.to_string()
+  }
+
+  #[napi(getter)]
+  pub fn get_owner_document(&self) -> Result<Option<WeakReference<Document>>> {
+    let element = match self.get_owner_element().upgrade(self.env)? {
+      Some(element) => element,
+      None => return Ok(None),
+    };
+
+    element.get_owner_document()
+  }
+
+  #[napi(getter)]
+  pub fn get_owner_element(&self) -> WeakReference<Element> {
+    self.owner_element.clone()
+  }
+
+  #[napi(getter)]
+  pub fn get_prefix(&self) -> Option<String> {
+    self
+      .attribute
+      .name
+      .prefix
+      .as_ref()
+      .map(|prefix| prefix.to_string())
+  }
+
+  #[napi(getter)]
+  pub fn get_value(&self) -> String {
+    self.attribute.value.to_string()
+  }
+}
 
 pub(crate) struct AttributesWrapper {
   attrs: Vec<Attribute>,
@@ -11,6 +72,18 @@ impl From<Vec<Attribute>> for AttributesWrapper {
 }
 
 impl AttributesWrapper {
+  pub(crate) fn get_attributes(&self, r: Reference<Element>) -> Vec<Attr> {
+    self
+      .attrs
+      .iter()
+      .map(|attribute| Attr {
+        attribute: attribute.clone(),
+        owner_element: r.downgrade(),
+        env: r.env,
+      })
+      .collect()
+  }
+
   pub(crate) fn get_attribute(&self, name: LocalName) -> Option<&Attribute> {
     self.iter().find(|attribute| attribute.name.local == name)
   }

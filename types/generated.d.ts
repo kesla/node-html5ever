@@ -84,6 +84,15 @@ export class DocumentType {
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
 }
+export class Attr {
+  get localName(): string
+  get name(): string
+  get namespaceUri(): string
+  get ownerDocument(): Document | null
+  get ownerElement(): Element
+  get prefix(): string | null
+  get value(): string
+}
 export class Element {
   get nodeName(): string
   get parentElement(): Element | null
@@ -108,6 +117,7 @@ export class Element {
   get firstElementChild(): Element | null
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
+  get attributes(): Array<Attr>
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void
