@@ -1,17 +1,21 @@
-mod attributes_wrapper;
+mod attributes;
+mod class_list;
 mod element_ref;
 
 use html5ever::{LocalName, QualName};
-use napi::bindgen_prelude::Reference;
+use napi::{bindgen_prelude::Reference, Result};
 
 use crate::serialize;
 
-use attributes_wrapper::{Attr, AttributesWrapper};
+use attributes::{Attr, AttributesWrapper};
+use class_list::ClassList;
 pub use element_ref::ElementRef;
 
 #[create_node(has_children, is_child)]
 pub struct Element {
   pub(crate) attributes_wrapper: AttributesWrapper,
+
+  pub(crate) class_list: Option<Reference<ClassList>>,
 
   pub(crate) name: QualName,
 }
@@ -46,6 +50,19 @@ impl Element {
   #[napi]
   pub fn has_attribute(&self, name: String) -> bool {
     self.attributes_wrapper.has_attribute(name.into())
+  }
+
+  #[napi(getter)]
+  pub fn get_class_list(&mut self, element: Reference<Element>) -> Result<Reference<ClassList>> {
+    if let Some(class_list) = &self.class_list {
+      class_list.clone(self.env)
+    } else {
+      let inner = ClassList::new(element.downgrade(), self.env);
+
+      let class_list = ClassList::into_reference(inner, self.env)?;
+      self.class_list = Some(class_list.clone(self.env)?);
+      Ok(class_list)
+    }
   }
 
   #[napi(getter)]

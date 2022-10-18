@@ -68,6 +68,7 @@ impl Document {
     Element::new_reference(
       self.env,
       vec![].into(),
+      Default::default(),
       QualName::new(None, Namespace::from("html"), name.into()),
     )
   }

@@ -119,31 +119,31 @@ test("classList.contains()", (t) => {
       <div></div>
       <div class="foo"></div>
       <div class="foo bar"></div>
-    `).childNodes;
+    `).children;
 
   t.same(actual.length, 3);
 
-  t.falsy(actual[0].classList.contains("foo"));
-  t.truthy(actual[1].classList.contains("foo"));
-  t.falsy(actual[1].classList.contains("bar"));
-  t.truthy(actual[2].classList.contains("foo"));
-  t.truthy(actual[2].classList.contains("bar"));
-  t.falsy(actual[2].classList.contains("bas"));
+  t.notOk(actual[0].classList.contains("foo"));
+  t.ok(actual[1].classList.contains("foo"));
+  t.notOk(actual[1].classList.contains("bar"));
+  t.ok(actual[2].classList.contains("foo"));
+  t.ok(actual[2].classList.contains("bar"));
+  t.notOk(actual[2].classList.contains("bas"));
 });
 
 test("classList.contains() whitespace in className", (t) => {
-  const actual = parseFragment('<div class="  foo   bar  "/>').childNodes[0]
+  const actual = parseFragment('<div class="  foo   bar  "/>').children[0]
     .classList;
 
-  t.truthy(actual.contains("foo"));
-  t.truthy(actual.contains("bar"));
-  t.falsy(actual.contains(""));
-  t.falsy(actual.contains(" "));
+  t.ok(actual.contains("foo"));
+  t.ok(actual.contains("bar"));
+  t.notOk(actual.contains(""));
+  t.notOk(actual.contains(" "));
 });
 
 test("style - single statement", (t) => {
   const actual = parseFragment('<div style="font-size: 14px"></div>')
-    .childNodes[0].style;
+    .children[0].style;
   const expected = {
     fontSize: "14px",
   };

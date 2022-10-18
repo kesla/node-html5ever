@@ -95,6 +95,9 @@ export class Attr {
   get prefix(): string | null
   get value(): string
 }
+export class ClassList {
+  contains(token: string): boolean
+}
 export class Element {
   get nodeName(): string
   get parentElement(): Element | null
@@ -125,6 +128,7 @@ export class Element {
   removeAttribute(name: string): void
   setAttribute(name: string, value: string): void
   hasAttribute(name: string): boolean
+  get classList(): ClassList
   get tagName(): string
   get innerHTML(): string
   get outerHTML(): string
