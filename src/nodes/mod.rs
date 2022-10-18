@@ -9,5 +9,5 @@ pub use comment::Comment;
 pub use document::Document;
 pub use document_fragment::DocumentFragment;
 pub use document_type::DocumentType;
-pub use element::Element;
+pub use element::{Element, ElementRef};
 pub use text::Text;

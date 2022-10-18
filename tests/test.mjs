@@ -408,3 +408,18 @@ test('.removeChild errors if the node is not a child', (t) => {
     foo.removeChild(bar);
   });
 })
+
+test('basic querySelectorAll', (t) => {
+  let { document } = new Html5EverDom(`
+    <div id="foo">
+      <div id="bar" class="baz">First</div>
+    </div>
+    <div class="baz">Second</div>
+  `);
+
+  let div = document.querySelectorAll("div");
+  t.strictSame(div.length, 3);
+  t.strictSame(div[0].id, "foo");
+  t.strictSame(div[1].id, "bar");
+  t.strictSame(div[2].id, "");
+});

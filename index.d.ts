@@ -50,6 +50,7 @@ export class Document {
   get nodeName(): string
   createElement(name: string): Element
   createTextNode(data: string): Text
+  querySelectorAll(selectors: string): Array<Element>
 }
 export class DocumentFragment {
   get nodeName(): string

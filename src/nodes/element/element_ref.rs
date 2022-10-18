@@ -1,13 +1,19 @@
 use std::{fmt::Debug, ops::Deref};
 
 use html5ever::{namespace_url, ns};
-use napi::bindgen_prelude::Reference;
+use napi::{bindgen_prelude::Reference, Env};
 
 use crate::{ChildNode, Element, ParentNode};
 
-struct ElementRef {
+pub struct ElementRef {
   r: Reference<Element>,
-  env: napi::Env,
+  env: Env,
+}
+
+impl ElementRef {
+  pub fn new(env: Env, r: Reference<Element>) -> Self {
+    Self { r, env }
+  }
 }
 
 impl Clone for ElementRef {
@@ -198,5 +204,11 @@ impl selectors::Element for ElementRef {
       .get_parent_node()
       .unwrap()
       .map_or(false, |parent| matches!(parent, ParentNode::Document(_)))
+  }
+}
+
+impl Into<Reference<Element>> for ElementRef {
+  fn into(self) -> Reference<Element> {
+    self.r
   }
 }

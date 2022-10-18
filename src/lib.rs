@@ -23,6 +23,6 @@ pub use id::get_id;
 pub use iterators::*;
 pub use node::{ChildNode, Node, ParentNode};
 pub use node_handler::{NodeHandler, ParentContext};
-pub use nodes::{Comment, Document, DocumentFragment, DocumentType, Element, Text};
+pub use nodes::{Comment, Document, DocumentFragment, DocumentType, Element, ElementRef, Text};
 pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;

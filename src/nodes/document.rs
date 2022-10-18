@@ -76,4 +76,20 @@ impl Document {
   pub fn create_text_node(&mut self, data: String) -> Result<Reference<Text>> {
     Text::new_reference(self.env, data)
   }
+
+  #[napi]
+  pub fn query_selector_all(&self, selectors: String) -> napi::Result<Vec<Reference<Element>>> {
+    let iter = crate::NodeHandler::from(self)
+      .deep_child_nodes_iter::<Reference<Element>>()
+      .map(|r| crate::ElementRef::new(self.env, r));
+
+    let compiled_selectors = crate::Selectors::compile(selectors)?;
+
+    let result: Vec<Reference<Element>> = iter
+      .filter(|element| compiled_selectors.matches(element))
+      .map(|element| element.into())
+      .collect();
+
+    Ok(result)
+  }
 }

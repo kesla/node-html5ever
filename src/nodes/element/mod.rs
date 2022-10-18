@@ -1,11 +1,12 @@
 mod attributes_wrapper;
-mod impl_selectors;
+mod element_ref;
 
 use html5ever::{LocalName, QualName};
 
 use crate::serialize;
 
 use attributes_wrapper::AttributesWrapper;
+pub use element_ref::ElementRef;
 
 #[create_node(has_children, is_child)]
 pub struct Element {
