@@ -1,10 +1,12 @@
 use html5ever::{Namespace, QualName};
 use napi::{bindgen_prelude::Reference, Error, Result};
 
-use crate::{DocumentType, Element, Text};
+use crate::{DocumentType, Element, QuirksMode, Text};
 
 #[create_node(has_children)]
-pub struct Document {}
+pub struct Document {
+  pub(crate) quirks_mode: QuirksMode,
+}
 
 #[napi]
 impl Document {

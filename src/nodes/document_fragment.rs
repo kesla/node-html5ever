@@ -1,5 +1,9 @@
+use crate::QuirksMode;
+
 #[create_node(has_children)]
-pub struct DocumentFragment {}
+pub struct DocumentFragment {
+  pub(crate) quirks_mode: QuirksMode,
+}
 
 #[napi]
 impl DocumentFragment {

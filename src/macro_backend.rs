@@ -102,18 +102,14 @@ pub(crate) mod children {
     node_handler: NodeHandler,
     selectors: String,
   ) -> Result<Vec<Reference<Element>>> {
-    node_handler
-      .selectors_iter(selectors)
-      .map(|iter| iter.collect())
+    node_handler.selectors_iter(selectors)?.collect()
   }
 
   pub(crate) fn query_selector(
     node_handler: NodeHandler,
     selectors: String,
   ) -> Result<Option<Reference<Element>>> {
-    node_handler
-      .selectors_iter(selectors)
-      .map(|mut iter| iter.next())
+    node_handler.selectors_iter(selectors)?.try_next()
   }
 }
 

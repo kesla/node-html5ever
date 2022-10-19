@@ -1,4 +1,5 @@
 use cssparser::{serialize_identifier, CowRcStr, ParseError, SourceLocation, ToCss};
+use napi::{bindgen_prelude::WeakReference, Either, Result};
 use selectors::{
   matching::{matches_selector, MatchingContext, MatchingMode, QuirksMode},
   parser::{NonTSPseudoClass, SelectorParseErrorKind},
@@ -6,7 +7,7 @@ use selectors::{
 };
 use std::{fmt::Write, ops::Deref};
 
-use crate::ElementRef;
+use crate::{Document, DocumentFragment, ElementRef};
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct AttrValue(String);
@@ -176,7 +177,7 @@ impl<'i> selectors::parser::Parser<'i> for Parser {
     &self,
     location: SourceLocation,
     name: CowRcStr<'i>,
-  ) -> Result<PseudoClass, ParseError<'i, SelectorParseErrorKind<'i>>> {
+  ) -> std::result::Result<PseudoClass, ParseError<'i, SelectorParseErrorKind<'i>>> {
     use self::PseudoClass::*;
     if name.eq_ignore_ascii_case("any-link") {
       Ok(AnyLink)
@@ -220,14 +221,33 @@ impl Selectors {
     }
   }
 
-  pub fn matches(&self, element: &ElementRef) -> bool {
-    self.0.iter().any(|selector| selector.matches(element))
+  pub fn matches(&self, element: &ElementRef) -> Result<bool> {
+    let quirks_mode = element
+      .node_handler
+      .parent_iterator::<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>()
+      .try_next()?
+      .map_or(QuirksMode::NoQuirks, |parent| match parent {
+        Either::A(weak_document) => {
+          let document = weak_document.upgrade(element.env).unwrap().unwrap();
+          document.quirks_mode.into()
+        }
+        Either::B(weak_fragment) => {
+          let fragment = weak_fragment.upgrade(element.env).unwrap().unwrap();
+          fragment.quirks_mode.into()
+        }
+      });
+
+    let m = self
+      .0
+      .iter()
+      .any(|selector| selector.matches(element, quirks_mode));
+    Ok(m)
   }
 }
 
 impl Selector {
-  pub fn matches(&self, element: &ElementRef) -> bool {
-    let mut context = MatchingContext::new(MatchingMode::Normal, None, None, QuirksMode::NoQuirks);
+  pub fn matches(&self, element: &ElementRef, quirks_mode: QuirksMode) -> bool {
+    let mut context = MatchingContext::new(MatchingMode::Normal, None, None, quirks_mode);
 
     matches_selector(&self.0, 0, None, element, &mut context, &mut |_, _| {})
   }

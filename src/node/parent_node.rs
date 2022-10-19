@@ -3,7 +3,7 @@ use std::fmt::{Debug, Formatter};
 use crate::{Document, DocumentFragment, Element, Node};
 use napi::{
   bindgen_prelude::{Error, FromNapiValue, Result, ToNapiValue, WeakReference},
-  Status,
+  Either, Status,
 };
 
 #[derive(Clone)]
@@ -100,6 +100,24 @@ impl From<&Node> for ParentNode {
       Node::Text(_) => panic!("Text nodes cannot be a parent node"),
       Node::Document(r) => ParentNode::Document(r.downgrade()),
       Node::DocumentFragment(r) => ParentNode::DocumentFragment(r.downgrade()),
+    }
+  }
+}
+
+impl TryInto<Either<WeakReference<Document>, WeakReference<DocumentFragment>>> for ParentNode {
+  type Error = Error;
+
+  fn try_into(self) -> Result<Either<WeakReference<Document>, WeakReference<DocumentFragment>>> {
+    match self {
+      ParentNode::Document(r) => Ok(Either::A(r.clone())),
+      ParentNode::DocumentFragment(r) => Ok(Either::B(r.clone())),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        format!(
+          "Could not convert {:?} to Document or DocumentFragment",
+          self
+        ),
+      )),
     }
   }
 }

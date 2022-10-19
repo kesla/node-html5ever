@@ -12,9 +12,6 @@ pub struct Html5everDom {
   document_reference: Reference<Document>,
 
   #[napi(writable = false)]
-  pub quirks_mode: QuirksMode,
-
-  #[napi(writable = false)]
   pub errors: Vec<String>,
 
   env: Env,
@@ -39,7 +36,8 @@ impl Html5everDom {
     )
     .one(html);
 
-    let fragment: Reference<DocumentFragment> = DocumentFragment::new_reference(env)?;
+    let fragment: Reference<DocumentFragment> =
+      DocumentFragment::new_reference(env, dom.get_quirks_mode())?;
 
     let node_handler = dom
       .document_reference
@@ -53,16 +51,13 @@ impl Html5everDom {
       fragment_node.append_node(&child.clone())?;
     }
 
-    // Ok(dom)
-    // dom.document_reference.get_document_element()
     Ok(fragment)
   }
 
   fn create_sink(env: Env) -> Result<Html5everDom> {
-    let document_reference = Document::new_reference(env)?;
+    let document_reference = Document::new_reference(env, QuirksMode::NoQuirks)?;
     let sink = Html5everDom {
       document_reference,
-      quirks_mode: QuirksMode::NoQuirks,
       errors: vec![],
       env,
     };
@@ -73,6 +68,11 @@ impl Html5everDom {
   #[napi(getter)]
   pub fn document(&mut self) -> Result<Reference<Document>> {
     self.document_reference.clone(self.env)
+  }
+
+  #[napi(getter)]
+  pub fn get_quirks_mode(&self) -> QuirksMode {
+    self.document_reference.quirks_mode
   }
 
   #[napi]
@@ -182,7 +182,7 @@ impl TreeSink for Html5everDom {
   }
 
   fn set_quirks_mode(&mut self, mode: html5ever::tree_builder::QuirksMode) {
-    self.quirks_mode = mode.into()
+    self.document_reference.quirks_mode = mode.into();
   }
 
   fn append_before_sibling(

@@ -1,4 +1,4 @@
-use napi::bindgen_prelude::Reference;
+use napi::{bindgen_prelude::Reference, Result};
 
 use crate::{DeepChildNodesIterator, Element, ElementRef, Selectors};
 
@@ -14,14 +14,23 @@ impl SelectorsIterator {
 }
 
 impl Iterator for SelectorsIterator {
-  type Item = Reference<Element>;
+  type Item = Result<Reference<Element>>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    self.iter.find_map(|element_ref| {
-      self
-        .selectors
-        .matches(&element_ref)
-        .then(|| element_ref.into())
-    })
+    while let Some(element_ref) = self.iter.next() {
+      match self.selectors.matches(&element_ref) {
+        Ok(true) => return Some(Ok(element_ref.into())),
+        Ok(false) => continue,
+        Err(err) => return Some(Err(err)),
+      }
+    }
+
+    None
+  }
+}
+
+impl SelectorsIterator {
+  pub fn try_next(&mut self) -> Result<Option<Reference<Element>>> {
+    self.next().transpose()
   }
 }

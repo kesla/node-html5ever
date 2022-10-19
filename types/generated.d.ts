@@ -10,11 +10,11 @@ export const enum QuirksMode {
 }
 export type Html5everDom = Html5EverDom
 export class Html5EverDom {
-  quirksMode: QuirksMode
   errors: Array<string>
   constructor(html: string)
   static createDocumentFragment(html: string): DocumentFragment
   get document(): Document
+  get quirksMode(): QuirksMode
   serialize(): string
 }
 export class Comment {
