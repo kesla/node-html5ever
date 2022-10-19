@@ -41,6 +41,12 @@ impl Element {
 
   #[napi]
   pub fn remove_attribute(&mut self, name: String) {
+    if name == "class".to_string() {
+      if let Some(class_list) = &mut self.class_list {
+        class_list.clear();
+      }
+    }
+
     self.attributes_wrapper.remove_attribute(name.into());
   }
 

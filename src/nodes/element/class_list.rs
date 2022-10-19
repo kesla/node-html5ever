@@ -40,6 +40,10 @@ impl ClassList {
     self.list.iter()
   }
 
+  pub(crate) fn clear(&mut self) {
+    self.list.clear();
+  }
+
   #[napi]
   pub fn item(&self, index: i64) -> Option<String> {
     usize::try_from(index)
