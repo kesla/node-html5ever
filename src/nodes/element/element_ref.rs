@@ -2,6 +2,11 @@ use std::{fmt::Debug, ops::Deref};
 
 use html5ever::{local_name, namespace_url, ns};
 use napi::{bindgen_prelude::Reference, Error, Result, Status};
+use selectors::{
+  attr::{AttrSelectorOperation, NamespaceConstraint},
+  matching::{ElementSelectorFlags, MatchingContext},
+  OpaqueElement, SelectorImpl,
+};
 
 use crate::{ChildNode, Element, ParentNode};
 
@@ -31,11 +36,37 @@ impl Deref for ElementRef {
   }
 }
 
+impl Into<Reference<Element>> for ElementRef {
+  fn into(self) -> Reference<Element> {
+    self.r
+  }
+}
+
+impl From<Reference<Element>> for ElementRef {
+  fn from(r: Reference<Element>) -> Self {
+    ElementRef { r }
+  }
+}
+
+impl TryFrom<ChildNode> for ElementRef {
+  type Error = Error;
+
+  fn try_from(child_node: ChildNode) -> Result<Self> {
+    match child_node {
+      ChildNode::Element(element) => Ok(element.into()),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        "Could not convert ChildNode to ElementRef".to_string(),
+      )),
+    }
+  }
+}
+
 impl selectors::Element for ElementRef {
   type Impl = crate::Selectors;
 
-  fn opaque(&self) -> selectors::OpaqueElement {
-    selectors::OpaqueElement::new(self)
+  fn opaque(&self) -> OpaqueElement {
+    OpaqueElement::new(self)
   }
 
   fn parent_element(&self) -> Option<Self> {
@@ -72,17 +103,11 @@ impl selectors::Element for ElementRef {
     self.name.ns == ns!(html)
   }
 
-  fn has_local_name(
-    &self,
-    local_name: &<Self::Impl as selectors::SelectorImpl>::BorrowedLocalName,
-  ) -> bool {
+  fn has_local_name(&self, local_name: &<Self::Impl as SelectorImpl>::BorrowedLocalName) -> bool {
     self.name.local == local_name.to_string()
   }
 
-  fn has_namespace(
-    &self,
-    ns: &<Self::Impl as selectors::SelectorImpl>::BorrowedNamespaceUrl,
-  ) -> bool {
+  fn has_namespace(&self, ns: &<Self::Impl as SelectorImpl>::BorrowedNamespaceUrl) -> bool {
     self.name.ns == ns.to_string()
   }
 
@@ -92,46 +117,40 @@ impl selectors::Element for ElementRef {
 
   fn attr_matches(
     &self,
-    ns: &selectors::attr::NamespaceConstraint<
-      &<Self::Impl as selectors::SelectorImpl>::NamespaceUrl,
-    >,
-    local_name: &<Self::Impl as selectors::SelectorImpl>::LocalName,
-    operation: &selectors::attr::AttrSelectorOperation<
-      &<Self::Impl as selectors::SelectorImpl>::AttrValue,
-    >,
+    ns: &NamespaceConstraint<&<Self::Impl as SelectorImpl>::NamespaceUrl>,
+    local_name: &<Self::Impl as SelectorImpl>::LocalName,
+    operation: &AttrSelectorOperation<&<Self::Impl as SelectorImpl>::AttrValue>,
   ) -> bool {
     match ns {
-      selectors::attr::NamespaceConstraint::Any => self
+      NamespaceConstraint::Any => self
         .attributes_wrapper
         .iter()
         .any(|attr| attr.name.local == local_name.to_string() && operation.eval_str(&attr.value)),
 
-      selectors::attr::NamespaceConstraint::Specific(namespace_url) => {
-        self.attributes_wrapper.iter().any(|attr| {
-          attr.name.ns == namespace_url.to_string()
-            && attr.name.local == local_name.to_string()
-            && operation.eval_str(&attr.value)
-        })
-      }
+      NamespaceConstraint::Specific(namespace_url) => self.attributes_wrapper.iter().any(|attr| {
+        attr.name.ns == namespace_url.to_string()
+          && attr.name.local == local_name.to_string()
+          && operation.eval_str(&attr.value)
+      }),
     }
   }
 
   fn match_non_ts_pseudo_class<F>(
     &self,
-    _pc: &<Self::Impl as selectors::SelectorImpl>::NonTSPseudoClass,
-    _context: &mut selectors::matching::MatchingContext<Self::Impl>,
+    _pc: &<Self::Impl as SelectorImpl>::NonTSPseudoClass,
+    _context: &mut MatchingContext<Self::Impl>,
     _flags_setter: &mut F,
   ) -> bool
   where
-    F: FnMut(&Self, selectors::matching::ElementSelectorFlags),
+    F: FnMut(&Self, ElementSelectorFlags),
   {
     todo!()
   }
 
   fn match_pseudo_element(
     &self,
-    _pe: &<Self::Impl as selectors::SelectorImpl>::PseudoElement,
-    _context: &mut selectors::matching::MatchingContext<Self::Impl>,
+    _pe: &<Self::Impl as SelectorImpl>::PseudoElement,
+    _context: &mut MatchingContext<Self::Impl>,
   ) -> bool {
     todo!()
   }
@@ -149,7 +168,7 @@ impl selectors::Element for ElementRef {
 
   fn has_id(
     &self,
-    id: &<Self::Impl as selectors::SelectorImpl>::Identifier,
+    id: &<Self::Impl as SelectorImpl>::Identifier,
     case_sensitivity: selectors::attr::CaseSensitivity,
   ) -> bool {
     let id_attr = self.get_id();
@@ -159,7 +178,7 @@ impl selectors::Element for ElementRef {
 
   fn has_class(
     &self,
-    name: &<Self::Impl as selectors::SelectorImpl>::Identifier,
+    name: &<Self::Impl as SelectorImpl>::Identifier,
     case_sensitivity: selectors::attr::CaseSensitivity,
   ) -> bool {
     self
@@ -170,13 +189,13 @@ impl selectors::Element for ElementRef {
 
   fn imported_part(
     &self,
-    _name: &<Self::Impl as selectors::SelectorImpl>::Identifier,
-  ) -> Option<<Self::Impl as selectors::SelectorImpl>::Identifier> {
+    _name: &<Self::Impl as SelectorImpl>::Identifier,
+  ) -> Option<<Self::Impl as SelectorImpl>::Identifier> {
     // TODO: Implement this (shadow DOM related)
     None
   }
 
-  fn is_part(&self, _name: &<Self::Impl as selectors::SelectorImpl>::Identifier) -> bool {
+  fn is_part(&self, _name: &<Self::Impl as SelectorImpl>::Identifier) -> bool {
     // TODO: Implement this (shadow DOM related)
     false
   }
@@ -197,31 +216,5 @@ impl selectors::Element for ElementRef {
       .get_parent_node()
       .unwrap()
       .map_or(false, |parent| matches!(parent, ParentNode::Document(_)))
-  }
-}
-
-impl Into<Reference<Element>> for ElementRef {
-  fn into(self) -> Reference<Element> {
-    self.r
-  }
-}
-
-impl From<Reference<Element>> for ElementRef {
-  fn from(r: Reference<Element>) -> Self {
-    ElementRef { r }
-  }
-}
-
-impl TryFrom<ChildNode> for ElementRef {
-  type Error = Error;
-
-  fn try_from(child_node: ChildNode) -> Result<Self> {
-    match child_node {
-      ChildNode::Element(element) => Ok(element.into()),
-      _ => Err(Error::new(
-        Status::InvalidArg,
-        "Could not convert ChildNode to ElementRef".to_string(),
-      )),
-    }
   }
 }
