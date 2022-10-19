@@ -3,7 +3,7 @@ use std::{fmt::Debug, ops::Deref};
 use html5ever::{local_name, namespace_url, ns};
 use napi::{bindgen_prelude::Reference, Error, Result, Status};
 use selectors::{
-  attr::{AttrSelectorOperation, NamespaceConstraint},
+  attr::{AttrSelectorOperation, CaseSensitivity, NamespaceConstraint},
   matching::{ElementSelectorFlags, MatchingContext},
   OpaqueElement, SelectorImpl,
 };
@@ -169,7 +169,7 @@ impl selectors::Element for ElementRef {
   fn has_id(
     &self,
     id: &<Self::Impl as SelectorImpl>::Identifier,
-    case_sensitivity: selectors::attr::CaseSensitivity,
+    case_sensitivity: CaseSensitivity,
   ) -> bool {
     let id_attr = self.get_id();
 
@@ -179,12 +179,14 @@ impl selectors::Element for ElementRef {
   fn has_class(
     &self,
     name: &<Self::Impl as SelectorImpl>::Identifier,
-    case_sensitivity: selectors::attr::CaseSensitivity,
+    case_sensitivity: CaseSensitivity,
   ) -> bool {
-    self
-      .get_class_name()
-      .split_ascii_whitespace()
-      .any(|class_name_attr| case_sensitivity.eq(class_name_attr.as_bytes(), name.as_bytes()))
+    match &self.class_list {
+      Some(class_list) => class_list
+        .iter()
+        .any(|class| case_sensitivity.eq(class.as_bytes(), name.as_bytes())),
+      None => false,
+    }
   }
 
   fn imported_part(

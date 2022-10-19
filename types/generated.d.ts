@@ -99,6 +99,7 @@ export class Attr {
   get value(): string
 }
 export class ClassList {
+  item(index: number): string | null
   add(token: string): void
   remove(token: string): void
   toggle(token: string): boolean

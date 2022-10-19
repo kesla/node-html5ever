@@ -36,6 +36,17 @@ impl ClassList {
     )
   }
 
+  pub(crate) fn iter(&self) -> impl Iterator<Item = &String> {
+    self.list.iter()
+  }
+
+  #[napi]
+  pub fn item(&self, index: i64) -> Option<String> {
+    usize::try_from(index)
+      .ok()
+      .and_then(|index| self.list.get(index).cloned())
+  }
+
   #[napi]
   pub fn add(&mut self, token: String) -> Result<()> {
     validate_token(&token)?;

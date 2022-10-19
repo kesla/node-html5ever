@@ -442,6 +442,10 @@ test('ClassList', (t) => {
   t.strictSame(div.getAttribute("class"), "bar baz");
   t.strictSame(div.classList.value, "bar baz");
   t.strictSame(div.className, "bar baz");
+  t.strictSame(div.classList.item(0), "bar");
+  t.strictSame(div.classList.item(1), "baz");
+  t.strictSame(div.classList.item(2), null);
+  t.strictSame(div.classList.item(-1), null);
 
   div.classList.add("qux");
   div.classList.add("qux");
@@ -452,6 +456,9 @@ test('ClassList', (t) => {
   t.strictSame(div.getAttribute("class"), "bar baz qux");
   t.strictSame(div.classList.value, "bar baz qux");
   t.strictSame(div.className, "bar baz qux");
+  t.strictSame(div.classList.item(0), "bar");
+  t.strictSame(div.classList.item(1), "baz");
+  t.strictSame(div.classList.item(2), "qux");
 
   div.classList.remove("qux");
   div.classList.remove("qux");
@@ -462,6 +469,8 @@ test('ClassList', (t) => {
   t.strictSame(div.getAttribute("class"), "bar baz");
   t.strictSame(div.classList.value, "bar baz");
   t.strictSame(div.className, "bar baz");
+  t.strictSame(div.classList.item(0), "bar");
+  t.strictSame(div.classList.item(1), "baz");
 
   t.ok(div.classList.toggle("qux"));
   t.strictSame(div.classList.length, 3);
@@ -471,6 +480,9 @@ test('ClassList', (t) => {
   t.strictSame(div.getAttribute("class"), "bar baz qux");
   t.strictSame(div.classList.value, "bar baz qux");
   t.strictSame(div.className, "bar baz qux");
+  t.strictSame(div.classList.item(0), "bar");
+  t.strictSame(div.classList.item(1), "baz");
+  t.strictSame(div.classList.item(2), "qux");
 
   t.notOk(div.classList.toggle("qux"));
   t.strictSame(div.classList.length, 2);
@@ -480,6 +492,8 @@ test('ClassList', (t) => {
   t.strictSame(div.getAttribute("class"), "bar baz");
   t.strictSame(div.classList.value, "bar baz");
   t.strictSame(div.className, "bar baz");
+  t.strictSame(div.classList.item(0), "bar");
+  t.strictSame(div.classList.item(1), "baz");
 
   div.classList.value = "hello world";
   t.strictSame(div.classList.length, 2);
@@ -491,6 +505,8 @@ test('ClassList', (t) => {
   t.strictSame(div.getAttribute("class"), "hello world");
   t.strictSame(div.classList.value, "hello world");
   t.strictSame(div.className, "hello world");
+  t.strictSame(div.classList.item(0), "hello");
+  t.strictSame(div.classList.item(1), "world");
 
   t.throws(() => div.classList.add(""));
   t.throws(() => div.classList.remove(""));
