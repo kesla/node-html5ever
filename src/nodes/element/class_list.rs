@@ -62,6 +62,7 @@ impl ClassList {
 
   #[napi]
   pub fn toggle(&mut self, token: String) -> Result<bool> {
+    validate_token(&token)?;
     let contains = self.list.contains(&token);
 
     if contains {
