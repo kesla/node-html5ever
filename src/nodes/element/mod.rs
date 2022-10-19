@@ -45,10 +45,21 @@ impl Element {
   }
 
   #[napi]
-  pub fn set_attribute(&mut self, name: String, value: String) {
+  pub fn set_attribute(&mut self, name: String, value: String) -> Result<()> {
+    if name == "class".to_string() {
+      if let Some(class_list) = &mut self.class_list {
+        // attribute is set in ClassList::set_value
+        class_list.set_value(value)?;
+
+        return Ok(());
+      }
+    }
+
     self
       .attributes_wrapper
       .set_attribute(LocalName::from(name), value.into());
+
+    Ok(())
   }
 
   #[napi]
@@ -61,9 +72,13 @@ impl Element {
     if let Some(class_list) = &self.class_list {
       class_list.clone(self.env)
     } else {
-      let inner = ClassList::new(element.downgrade(), self.env);
-
+      let inner = ClassList::new(
+        element.downgrade(),
+        self.env,
+        self.get_attribute("class".to_string()),
+      );
       let class_list = ClassList::into_reference(inner, self.env)?;
+
       self.class_list = Some(class_list.clone(self.env)?);
       Ok(class_list)
     }

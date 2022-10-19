@@ -99,7 +99,13 @@ export class Attr {
   get value(): string
 }
 export class ClassList {
+  add(token: string): void
+  remove(token: string): void
+  toggle(token: string): boolean
   contains(token: string): boolean
+  get length(): number
+  get value(): string
+  set value(value: string)
 }
 export class Element {
   get nodeName(): string

@@ -423,3 +423,88 @@ test('basic querySelectorAll', (t) => {
   t.strictSame(div[1].id, "bar");
   t.strictSame(div[2].id, "");
 });
+
+test('ClassList', (t) => {
+  let { document } = new Html5EverDom(`
+    <div id="foo" class="bar baz"></div>
+    `);
+
+  const div = document.getElementById("foo");
+
+  if (!div) {
+    throw new Error("missing element");
+  }
+
+  t.strictSame(div.classList.length, 2);
+  t.ok(div.classList.contains("bar"));
+  t.ok(div.classList.contains("baz"));
+  t.notOk(div.classList.contains("qux"));
+  t.strictSame(div.getAttribute("class"), "bar baz");
+  t.strictSame(div.classList.value, "bar baz");
+  t.strictSame(div.className, "bar baz");
+
+  div.classList.add("qux");
+  div.classList.add("qux");
+  t.strictSame(div.classList.length, 3);
+  t.ok(div.classList.contains("bar"));
+  t.ok(div.classList.contains("baz"));
+  t.ok(div.classList.contains("qux"));
+  t.strictSame(div.getAttribute("class"), "bar baz qux");
+  t.strictSame(div.classList.value, "bar baz qux");
+  t.strictSame(div.className, "bar baz qux");
+
+  div.classList.remove("qux");
+  div.classList.remove("qux");
+  t.strictSame(div.classList.length, 2);
+  t.ok(div.classList.contains("bar"));
+  t.ok(div.classList.contains("baz"));
+  t.notOk(div.classList.contains("qux"));
+  t.strictSame(div.getAttribute("class"), "bar baz");
+  t.strictSame(div.classList.value, "bar baz");
+  t.strictSame(div.className, "bar baz");
+
+  t.ok(div.classList.toggle("qux"));
+  t.strictSame(div.classList.length, 3);
+  t.ok(div.classList.contains("bar"));
+  t.ok(div.classList.contains("baz"));
+  t.ok(div.classList.contains("qux"));
+  t.strictSame(div.getAttribute("class"), "bar baz qux");
+  t.strictSame(div.classList.value, "bar baz qux");
+  t.strictSame(div.className, "bar baz qux");
+
+  t.notOk(div.classList.toggle("qux"));
+  t.strictSame(div.classList.length, 2);
+  t.ok(div.classList.contains("bar"));
+  t.ok(div.classList.contains("baz"));
+  t.notOk(div.classList.contains("qux"));
+  t.strictSame(div.getAttribute("class"), "bar baz");
+  t.strictSame(div.classList.value, "bar baz");
+  t.strictSame(div.className, "bar baz");
+
+  div.classList.value = "hello world";
+  t.strictSame(div.classList.length, 2);
+  t.notOk(div.classList.contains("bar"));
+  t.notOk(div.classList.contains("baz"));
+  t.notOk(div.classList.contains("qux"));
+  t.ok(div.classList.contains("hello"));
+  t.ok(div.classList.contains("world"));
+  t.strictSame(div.getAttribute("class"), "hello world");
+  t.strictSame(div.classList.value, "hello world");
+  t.strictSame(div.className, "hello world");
+
+  t.throws(() => div.classList.add(""));
+  t.throws(() => div.classList.remove(""));
+  t.throws(() => div.classList.toggle(""));
+
+  t.throws(() => div.classList.add(" "));
+  t.throws(() => div.classList.remove(" "));
+  t.throws(() => div.classList.toggle(" "));
+
+  t.throws(() => div.classList.add("\t"));
+  t.throws(() => div.classList.remove("\t"));
+  t.throws(() => div.classList.toggle("\t"));
+
+  t.throws(() => div.classList.add("\n"));
+  t.throws(() => div.classList.remove("\n"));
+  t.throws(() => div.classList.toggle("\n"));
+});
