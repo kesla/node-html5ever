@@ -62,13 +62,16 @@ impl ClassList {
 
   #[napi]
   pub fn toggle(&mut self, token: String) -> Result<bool> {
-    if self.list.contains(&token) {
-      self.remove(token)?;
-      Ok(false)
+    let contains = self.list.contains(&token);
+
+    if contains {
+      self.list.retain(|t| t != &token);
     } else {
-      self.add(token)?;
-      Ok(true)
+      self.list.push(token);
     }
+
+    self.update_owner_attribute(&self.get_value())?;
+    Ok(!contains)
   }
 
   #[napi]
