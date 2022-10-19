@@ -36,10 +36,6 @@ impl ClassList {
     )
   }
 
-  pub(crate) fn iter(&self) -> impl Iterator<Item = &String> {
-    self.list.iter()
-  }
-
   pub(crate) fn clear(&mut self) {
     self.list.clear();
   }

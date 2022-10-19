@@ -181,12 +181,14 @@ impl selectors::Element for ElementRef {
     name: &<Self::Impl as SelectorImpl>::Identifier,
     case_sensitivity: CaseSensitivity,
   ) -> bool {
-    match &self.class_list {
-      Some(class_list) => class_list
-        .iter()
-        .any(|class| case_sensitivity.eq(class.as_bytes(), name.as_bytes())),
-      None => false,
-    }
+    let class_name = match self.get_attribute("class".to_string()) {
+      Some(class) => class,
+      None => return false,
+    };
+
+    class_name
+      .split_ascii_whitespace()
+      .any(|class| case_sensitivity.eq(class.as_bytes(), name.as_bytes()))
   }
 
   fn imported_part(
