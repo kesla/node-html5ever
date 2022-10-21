@@ -441,8 +441,11 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.value, "bar baz");
     t.strictSame(div.className, "bar baz");
     t.strictSame(div.classList.item(0), "bar");
+    t.strictSame(div.classList[0], "bar");
     t.strictSame(div.classList.item(1), "baz");
+    t.strictSame(div.classList[1], "baz");
     t.strictSame(div.classList.item(2), null);
+    t.strictSame(div.classList[2], undefined);
     t.strictSame(div.classList.item(-1), null);
   })
 
@@ -459,8 +462,11 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.value, "bar baz qux");
     t.strictSame(div.className, "bar baz qux");
     t.strictSame(div.classList.item(0), "bar");
+    t.strictSame(div.classList[0], "bar");
     t.strictSame(div.classList.item(1), "baz");
+    t.strictSame(div.classList[1], "baz");
     t.strictSame(div.classList.item(2), "qux");
+    t.strictSame(div.classList[2], "qux");
   })
 
   t.test('remove', (t) => {
@@ -475,6 +481,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.value, "bar");
     t.strictSame(div.className, "bar");
     t.strictSame(div.classList.item(0), "bar");
+    t.strictSame(div.classList[0], "bar");
+    t.strictSame(div.classList.item(1), null);
+    t.strictSame(div.classList[1], undefined);
   });
 
   t.test('toggle (add)', (t) => {
@@ -489,8 +498,11 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.value, "bar baz qux");
     t.strictSame(div.className, "bar baz qux");
     t.strictSame(div.classList.item(0), "bar");
+    t.strictSame(div.classList[0], "bar");
     t.strictSame(div.classList.item(1), "baz");
+    t.strictSame(div.classList[1], "baz");
     t.strictSame(div.classList.item(2), "qux");
+    t.strictSame(div.classList[2], "qux");
   });
 
   t.test('toggle (remove)', (t) => {
@@ -504,6 +516,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.value, "bar");
     t.strictSame(div.className, "bar");
     t.strictSame(div.classList.item(0), "bar");
+    t.strictSame(div.classList[0], "bar");
+    t.strictSame(div.classList.item(1), null);
+    t.strictSame(div.classList[1], undefined);
   });
 
   t.test('set .value', (t) => {
@@ -520,7 +535,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.value, "hello world");
     t.strictSame(div.className, "hello world");
     t.strictSame(div.classList.item(0), "hello");
+    t.strictSame(div.classList[0], "hello");
     t.strictSame(div.classList.item(1), "world");
+    t.strictSame(div.classList[1], "world");
   })
 
   t.test('set .className', (t) => {
@@ -537,7 +554,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.value, "hello world");
     t.strictSame(div.className, "hello world");
     t.strictSame(div.classList.item(0), "hello");
+    t.strictSame(div.classList[0], "hello");
     t.strictSame(div.classList.item(1), "world");
+    t.strictSame(div.classList[1], "world");
   })
 
   t.test('set .className to empty string', (t) => {
@@ -550,6 +569,8 @@ test('ClassList', (t) => {
     t.strictSame(div.getAttribute("class"), "");
     t.strictSame(div.classList.value, "");
     t.strictSame(div.className, "");
+    t.strictSame(div.classList.item(0), null);
+    t.strictSame(div.classList[0], undefined);
   })
 
   t.test('removeAttribute("class")', (t) => {
@@ -562,6 +583,8 @@ test('ClassList', (t) => {
     t.strictSame(div.getAttribute("class"), null);
     t.strictSame(div.classList.value, "");
     t.strictSame(div.className, "");
+    t.strictSame(div.classList.item(0), null);
+    t.strictSame(div.classList[0], undefined);
   });
 
   t.test('removeAttribute("class") after .classList has been created', (t) => {
@@ -576,6 +599,8 @@ test('ClassList', (t) => {
     t.strictSame(div.getAttribute("class"), null);
     t.strictSame(classList.value, "");
     t.strictSame(div.className, "");
+    t.strictSame(classList.item(0), null);
+    t.strictSame(classList[0], undefined);
   });
 
   t.test('throw on invalid input', (t) => {

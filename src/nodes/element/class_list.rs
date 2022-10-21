@@ -1,12 +1,16 @@
-use napi::{bindgen_prelude::WeakReference, Env, Error, Result};
+use napi::{
+  bindgen_prelude::{Object, Reference, WeakReference},
+  Env, Error, JsString, NapiValue, Result,
+};
 
 use crate::Element;
 
-#[napi]
+#[napi(skip)]
 pub struct ClassList {
   list: Vec<String>,
   owner: WeakReference<Element>,
   env: Env,
+  weak: Option<WeakReference<Self>>,
 }
 
 #[napi]
@@ -15,15 +19,51 @@ impl ClassList {
     owner: WeakReference<Element>,
     env: Env,
     initial_value: Option<String>,
-  ) -> Self {
-    Self {
+  ) -> Result<Reference<Self>> {
+    let s = Self {
       owner,
       env,
       list: initial_value.map(|s| as_list(&s)).unwrap_or_default(),
-    }
+      weak: None,
+    };
+    let r = Self::into_reference(s, env)?;
+    r.clone(env)?.weak = Some(r.downgrade());
+
+    r.clone(env)?.set_properties()?;
+
+    r.clone(env)
   }
 
-  fn update_owner_attribute(&self, value: &str) -> Result<()> {
+  fn set_properties(&self) -> Result<()> {
+    let val = self.weak.as_ref().unwrap().upgrade(self.env)?.unwrap();
+
+    let mut this = unsafe {
+      let ptr = <Reference<ClassList> as napi::bindgen_prelude::ToNapiValue>::to_napi_value(
+        self.env.raw(),
+        val,
+      )?;
+      Object::from_raw(self.env.raw(), ptr)?
+    };
+
+    let mut index: u32 = 0;
+    loop {
+      if let Some(s) = self.list.get(index as usize) {
+        let value: JsString = self.env.create_string(s)?;
+        this.set_element(index, value)?;
+      } else if this.has_element(index)? {
+        this.delete_element(index)?;
+      } else {
+        break;
+      }
+      index += 1;
+    }
+
+    Ok(())
+  }
+
+  fn sync(&self, value: &str) -> Result<()> {
+    self.set_properties()?;
+
     self.owner.upgrade(self.env)?.map_or_else(
       || Err(Error::from_reason("Element not found")),
       |mut owner| {
@@ -36,8 +76,9 @@ impl ClassList {
     )
   }
 
-  pub(crate) fn clear(&mut self) {
+  pub(crate) fn clear(&mut self) -> Result<()> {
     self.list.clear();
+    self.set_properties()
   }
 
   #[napi]
@@ -53,7 +94,7 @@ impl ClassList {
 
     if !self.list.contains(&token) {
       self.list.push(token);
-      self.update_owner_attribute(&self.get_value())
+      self.sync(&self.get_value())
     } else {
       Ok(())
     }
@@ -65,7 +106,7 @@ impl ClassList {
 
     if self.list.contains(&token) {
       self.list.retain(|t| t != &token);
-      self.update_owner_attribute(&self.get_value())
+      self.sync(&self.get_value())
     } else {
       Ok(())
     }
@@ -82,7 +123,7 @@ impl ClassList {
       self.list.push(token);
     }
 
-    self.update_owner_attribute(&self.get_value())?;
+    self.sync(&self.get_value())?;
     Ok(!contains)
   }
 
@@ -108,7 +149,7 @@ impl ClassList {
     }
 
     self.list = as_list(&value);
-    self.update_owner_attribute(&value)
+    self.sync(&value)
   }
 }
 

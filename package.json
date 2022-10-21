@@ -38,7 +38,7 @@
     "build": "napi build --platform --release --dts=types/generated.d.ts && yarn merge-dts",
     "build:debug": "napi build --platform --dts=types/generated.d.ts && yarn merge-dts",
     "build:json-debug": "napi build --platform --dts=types/generated.d.ts --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
-    "merge-dts": "cat types/generated.d.ts types/additional.d.ts > index.d.ts",
+    "merge-dts": "cat types/additional.d.ts types/generated.d.ts > index.d.ts",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "yarn build:debug && tap",
     "test:update": "yarn build:debug && tap --snapshot",

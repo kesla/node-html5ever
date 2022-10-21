@@ -40,14 +40,16 @@ impl Element {
   }
 
   #[napi]
-  pub fn remove_attribute(&mut self, name: String) {
+  pub fn remove_attribute(&mut self, name: String) -> Result<()> {
     if name == "class".to_string() {
       if let Some(class_list) = &mut self.class_list {
-        class_list.clear();
+        class_list.clear()?;
       }
     }
 
     self.attributes_wrapper.remove_attribute(name.into());
+
+    Ok(())
   }
 
   #[napi]
@@ -78,12 +80,11 @@ impl Element {
     if let Some(class_list) = &self.class_list {
       class_list.clone(self.env)
     } else {
-      let inner = ClassList::new(
+      let class_list = ClassList::new(
         element.downgrade(),
         self.env,
         self.get_attribute("class".to_string()),
-      );
-      let class_list = ClassList::into_reference(inner, self.env)?;
+      )?;
 
       self.class_list = Some(class_list.clone(self.env)?);
       Ok(class_list)
