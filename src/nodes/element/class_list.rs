@@ -1,5 +1,5 @@
 use napi::{
-  bindgen_prelude::{Object, Reference, WeakReference},
+  bindgen_prelude::{Object, Reference, ToNapiValue, WeakReference},
   Env, Error, JsString, NapiValue, Result,
 };
 
@@ -38,10 +38,7 @@ impl ClassList {
     let val = self.weak.as_ref().unwrap().upgrade(self.env)?.unwrap();
 
     let mut this = unsafe {
-      let ptr = <Reference<ClassList> as napi::bindgen_prelude::ToNapiValue>::to_napi_value(
-        self.env.raw(),
-        val,
-      )?;
+      let ptr = <Reference<ClassList> as ToNapiValue>::to_napi_value(self.env.raw(), val)?;
       Object::from_raw(self.env.raw(), ptr)?
     };
 
