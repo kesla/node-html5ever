@@ -10,12 +10,12 @@ macro_rules! impl_style_getters_and_setters {
           $(
             #[napi(getter)]
             pub fn [<get_ $field:snake>](&self) -> String {
-              self.get(stringify!($field).into())
+              self.get_property_value(stringify!($field).into())
             }
 
             #[napi(setter)]
             pub fn [<set_ $field:snake>](&mut self, value: String) {
-              self.set(stringify!($field).into(), value.into());
+              self.set_property(stringify!($field).into(), value.into(), None);
             }
           )*
         }
