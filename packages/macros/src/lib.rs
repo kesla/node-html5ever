@@ -76,12 +76,20 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         macro_backend::children::prepend(self.env, self.into(), child_node_or_text.into())
       }
 
-      #[napi]
+      #[napi(
+        ts_generic_types = "T extends ChildNode",
+        ts_args_type = "child: T",
+        ts_return_type = "T"
+      )]
       pub fn append_child(&self, child: crate::ChildNode) -> napi::Result<crate::ChildNode> {
         macro_backend::children::append_child(self.into(), child.into())
       }
 
-      #[napi]
+      #[napi(
+        ts_generic_types = "T extends ChildNode",
+        ts_args_type = "child: T",
+        ts_return_type = "T"
+      )]
       pub fn remove_child(&self, child: crate::ChildNode) -> napi::Result<crate::ChildNode> {
         macro_backend::children::remove_child(self.into(), child.into())
       }
