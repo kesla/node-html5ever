@@ -34,10 +34,11 @@
     "node": ">= 10"
   },
   "scripts": {
+    "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header",
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release --dts=types/generated.d.ts && yarn merge-dts",
-    "build:debug": "napi build --platform --dts=types/generated.d.ts && yarn merge-dts",
-    "build:json-debug": "napi build --platform --dts=types/generated.d.ts --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
+    "build": "yarn _build --release && yarn merge-dts",
+    "build:debug": "yarn _build && yarn merge-dts",
+    "build:json-debug": "yarn _build --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
     "merge-dts": "cat types/additional.d.ts types/generated.d.ts > index.d.ts",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "yarn build:debug && tap",
