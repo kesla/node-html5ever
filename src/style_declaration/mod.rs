@@ -1,6 +1,7 @@
 mod properties;
 
 use convert_case::{Case, Casing};
+use napi::{bindgen_prelude::Reference, Env, Result};
 
 struct Data {
   property: String,
@@ -15,6 +16,15 @@ pub struct StyleDeclaration {
 
 #[napi]
 impl StyleDeclaration {
+  pub(crate) fn new() -> Self {
+    Self { data: vec![] }
+  }
+
+  pub(crate) fn new_reference(env: Env) -> Result<Reference<Self>> {
+    let style_declaration = Self::new();
+    Self::into_reference(style_declaration, env)
+  }
+
   fn get_data(&self, property: String) -> Option<&Data> {
     self.data.iter().find(|data| data.property == property)
   }

@@ -1,6 +1,6 @@
 use crate::{
-  serialize, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, Node,
-  QuirksMode, Text,
+  serialize, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, LazyReference,
+  Node, QuirksMode, Text,
 };
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
@@ -116,7 +116,14 @@ impl TreeSink for Html5everDom {
     // TODO: set flags
     _flags: html5ever::tree_builder::ElementFlags,
   ) -> Self::Handle {
-    let r = Element::new_reference(self.env, attrs.into(), Default::default(), name).unwrap();
+    let r = Element::new_reference(
+      self.env,
+      attrs.into(),
+      name,
+      LazyReference::new(self.env),
+      LazyReference::new(self.env),
+    )
+    .unwrap();
     r.into()
   }
 
