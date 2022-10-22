@@ -415,10 +415,6 @@ export class StyleDeclaration {
   set counterReset(value: string)
   get counterSet(): string
   set counterSet(value: string)
-  get cssFloat(): string
-  set cssFloat(value: string)
-  get cssText(): string
-  set cssText(value: string)
   get cursor(): string
   set cursor(value: string)
   get direction(): string
@@ -1079,4 +1075,13 @@ export class StyleDeclaration {
   set writingMode(value: string)
   get zIndex(): string
   set zIndex(value: string)
+  getPropertyValue(property: string): string
+  getPropertyPriority(property: string): string
+  removeProperty(property: string): string
+  setProperty(property: string, value: string, priority?: string | undefined | null): void
+  get cssText(): string
+  set cssText(cssText: string)
+  get cssFloat(): string
+  set cssFloat(value: string)
+  get length(): number
 }

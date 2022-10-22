@@ -45,7 +45,7 @@ impl_style_getters_and_setters!({
   clip, clipPath, clipRule, color, colorInterpolation, colorInterpolationFilters,
   colorScheme, columnCount, columnFill, columnGap, columnRule, columnRuleColor,
   columnRuleStyle, columnRuleWidth, columnSpan, columnWidth, columns, contain,
-  content, counterIncrement, counterReset, counterSet, cssFloat, cssText,
+  content, counterIncrement, counterReset, counterSet,
   cursor, direction, display, dominantBaseline, emptyCells, fill,
   fillOpacity, fillRule, filter, flex, flexBasis, flexDirection,
   flexFlow, flexGrow, flexShrink, flexWrap, float, floodColor,

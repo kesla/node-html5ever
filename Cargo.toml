@@ -15,6 +15,7 @@ node-html5ever-derive = { path = "./packages/macros" }
 fallible-iterator = "0.2.0"
 regex = "1.5.4"
 paste = "1.0.9"
+convert_case = "0.6.0"
 
 html5ever = "0.26.0"
 selectors = "0.23.0"
