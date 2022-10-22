@@ -15,6 +15,7 @@ mod nodes;
 mod quirks_mode;
 mod selectors;
 mod serializer;
+mod style_declaration;
 
 pub use crate::selectors::Selectors;
 pub use dom::Html5everDom;
@@ -26,3 +27,4 @@ pub use node_handler::{NodeHandler, ParentContext};
 pub use nodes::{Comment, Document, DocumentFragment, DocumentType, Element, ElementRef, Text};
 pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;
+pub use style_declaration::StyleDeclaration;

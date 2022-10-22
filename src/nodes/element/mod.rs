@@ -1,7 +1,6 @@
 mod attributes;
 mod class_list;
 mod element_ref;
-mod style;
 
 use html5ever::{LocalName, QualName};
 use napi::{
