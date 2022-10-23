@@ -622,3 +622,33 @@ test('ClassList', (t) => {
     t.throws(() => div.classList.toggle("\n"));
   });
 });
+
+test('.style', (t) => {
+  function createDiv() {
+    let { document } = new Html5EverDom(`
+    <div id="foo" style="font-size: 14px; -webkit-text-stroke-width: 12px"></div>
+    `);
+
+    const div = document.getElementById("foo");
+
+    if (!div) {
+      throw new Error("missing element");
+    }
+    return div;
+  }
+
+  t.test('get', (t) => {
+    const div = createDiv();
+
+    t.strictSame(div.style.fontSize, "14px", "fontSize");
+    t.strictSame(div.style.webkitTextStrokeWidth, "12px", "webkitTextStrokeWidth");
+    t.strictSame(div.style.cssText, "font-size: 14px; -webkit-text-stroke-width: 12px;", "cssText");
+    t.strictSame(div.style.length, 2, "length");
+    // t.strictSame(div.style.item(0), "font-size");
+    // t.strictSame(div.style[0], "font-size");
+    // t.strictSame(div.style.item(1), "-webkit-text-stroke-width");
+    // t.strictSame(div.style[1], "-webkit-text-stroke-width");
+    t.strictSame(div.style.getPropertyValue("font-size"), "14px", "getPropertyValue('font-size')");
+    t.strictSame(div.style.getPropertyValue("-webkit-text-stroke-width"), "12px", "getPropertyValue('-webkit-text-stroke-width')");
+  });
+});

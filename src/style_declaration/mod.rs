@@ -3,6 +3,7 @@ mod properties;
 use convert_case::{Case, Casing};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
+#[derive(Debug)]
 struct Data {
   property: String,
   value: String,
@@ -16,12 +17,14 @@ pub struct StyleDeclaration {
 
 #[napi]
 impl StyleDeclaration {
-  pub(crate) fn new() -> Self {
-    Self { data: vec![] }
+  pub(crate) fn new(initial_value: Option<String>) -> Self {
+    let data = initial_value.map_or_else(Vec::new, |value| string_to_data(value));
+    println!("StyleDeclaration::new: {:?}", data);
+    Self { data }
   }
 
-  pub(crate) fn new_reference(env: Env) -> Result<Reference<Self>> {
-    let style_declaration = Self::new();
+  pub(crate) fn new_reference(env: Env, initial_value: Option<String>) -> Result<Reference<Self>> {
+    let style_declaration = Self::new(initial_value);
     Self::into_reference(style_declaration, env)
   }
 
@@ -86,7 +89,11 @@ impl StyleDeclaration {
       .data
       .iter()
       .map(|data| {
-        let property = data.property.from_case(Case::Camel).to_case(Case::Kebab);
+        let mut property = data.property.from_case(Case::Camel).to_case(Case::Kebab);
+
+        if property.starts_with("webkit") {
+          property = "-webkit".to_owned() + &property[6..];
+        }
 
         if data.important {
           format!("{}: {} !important;", property, data.value)
@@ -100,50 +107,12 @@ impl StyleDeclaration {
 
   #[napi(setter)]
   pub fn set_css_text(&mut self, css_text: String) {
-    self.data = css_text
-      .split(';')
-      .filter_map(|s| {
-        let s = s.trim();
-        if s.is_empty() {
-          None
-        } else {
-          Some(s)
-        }
-      })
-      .map(|item| {
-        let mut parts = item.split(':');
-        let mut property = parts
-          .next()
-          .unwrap()
-          .trim()
-          .from_case(Case::Kebab)
-          .to_case(Case::Camel);
-
-        if property.starts_with("webkit") {
-          property = "-webkit-".to_owned() + &property[6..];
-        }
-
-        let mut value = parts.next().unwrap().trim().to_string();
-
-        let important = value.ends_with("!important");
-
-        if important {
-          value = value.replace("!important", "").trim().to_string();
-        }
-
-        let data = Data {
-          property: property.into(),
-          value: value.into(),
-          important,
-        };
-        data
-      })
-      .collect();
+    self.data = string_to_data(css_text);
   }
 
   #[napi(getter)]
   pub fn get_css_float(&self) -> String {
-    self.get_property_value("cssFloat".into())
+    self.get_property_value("css-float".into())
   }
 
   #[napi(setter)]
@@ -155,4 +124,45 @@ impl StyleDeclaration {
   pub fn get_length(&self) -> u32 {
     self.data.len() as u32
   }
+}
+
+fn string_to_data(css_text: String) -> Vec<Data> {
+  css_text
+    .split(';')
+    .filter_map(|item| {
+      let item = item.trim();
+      if item.is_empty() {
+        return None;
+      }
+
+      let mut parts = item.split(':');
+
+      let property = match parts
+        .next()
+        .map(|s| s.trim().from_case(Case::Kebab).to_case(Case::Camel))
+      {
+        Some(property) => property,
+        None => return None,
+      };
+
+      let mut value = match parts.next().map(|s| s.trim().to_string()) {
+        Some(value) => value,
+        None => return None,
+      };
+
+      let important = value.ends_with("!important");
+
+      if important {
+        value = value.replace("!important", "").trim().to_string();
+      }
+
+      let data = Data {
+        property: property.into(),
+        value: value.into(),
+        important,
+      };
+
+      Some(data)
+    })
+    .collect()
 }

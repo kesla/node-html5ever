@@ -75,17 +75,18 @@ impl Element {
 
   #[napi(getter)]
   pub fn get_class_list(&mut self, element: Reference<Element>) -> Result<Reference<ClassList>> {
-    let attribute = self.get_attribute("class".to_string());
+    let initial_value = self.get_attribute("class".to_string());
     self
       .lazy_class_list
-      .get_or_init(|| ClassList::new(element.downgrade(), self.env, attribute))
+      .get_or_init(|| ClassList::new(element.downgrade(), self.env, initial_value))
   }
 
   #[napi(getter)]
   pub fn get_style(&mut self) -> Result<Reference<StyleDeclaration>> {
+    let initial_value = self.get_attribute("style".to_string());
     self
       .lazy_style
-      .get_or_init(|| StyleDeclaration::new_reference(self.env))
+      .get_or_init(|| StyleDeclaration::new_reference(self.env, initial_value))
   }
 
   #[napi(getter)]

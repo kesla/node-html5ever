@@ -161,6 +161,7 @@ test("style - single statement", (t) => {
     fontSize: "14px",
   };
   t.same(actual, expected);
+  t.strictSame(actual.fontSize, "14px");
 });
 
 test("style - multiple statements", (t) => {
@@ -179,6 +180,9 @@ test("style - multiple statements", (t) => {
     font: "14px/1.5 Helvetica, Arial, sans-serif",
   };
   t.same(actual, expected);
+  t.strictSame(actual.borderRadius, "10px");
+  t.strictSame(actual.webkitBorderRadius, "10px");
+  t.strictSame(actual.font, "14px/1.5 Helvetica, Arial, sans-serif");
 });
 
 test("style - no style", (t) => {
