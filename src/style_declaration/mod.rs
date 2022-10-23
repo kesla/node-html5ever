@@ -19,7 +19,6 @@ pub struct StyleDeclaration {
 impl StyleDeclaration {
   pub(crate) fn new(initial_value: Option<String>) -> Self {
     let data = initial_value.map_or_else(Vec::new, |value| string_to_data(value));
-    println!("StyleDeclaration::new: {:?}", data);
     Self { data }
   }
 
@@ -28,20 +27,28 @@ impl StyleDeclaration {
     Self::into_reference(style_declaration, env)
   }
 
-  fn get_data(&self, property: String) -> Option<&Data> {
+  fn get_data_mut(&mut self, property: &String) -> Option<&mut Data> {
+    let property = property.to_case(Case::Camel);
+
+    self.data.iter_mut().find(|data| data.property == property)
+  }
+
+  fn get_data(&self, property: &String) -> Option<&Data> {
+    let property = property.to_case(Case::Camel);
+
     self.data.iter().find(|data| data.property == property)
   }
 
   #[napi]
   pub fn get_property_value(&self, property: String) -> String {
     self
-      .get_data(property)
+      .get_data(&property)
       .map_or_else(|| String::from(""), |data| data.value.to_owned())
   }
 
   #[napi]
   pub fn get_property_priority(&self, property: String) -> String {
-    self.get_data(property).map_or_else(
+    self.get_data(&property).map_or_else(
       || String::from(""),
       |data| {
         if data.important {
@@ -55,7 +62,12 @@ impl StyleDeclaration {
 
   #[napi]
   pub fn remove_property(&mut self, property: String) -> String {
-    let pos = self.data.iter().position(|data| data.property == property);
+    let camel = property.to_case(Case::Camel);
+
+    let pos = self
+      .data
+      .iter()
+      .position(|data| data.property == property || data.property == camel);
 
     if let Some(pos) = pos {
       self.data.remove(pos).value
@@ -68,14 +80,14 @@ impl StyleDeclaration {
   pub fn set_property(&mut self, property: String, value: String, priority: Option<String>) {
     let important = priority.map_or(false, |priority| priority == "important");
 
-    match self.data.iter_mut().find(|data| data.property == property) {
+    match self.get_data_mut(&property) {
       Some(data) => {
         data.value = value;
         data.important = important;
       }
       None => {
         self.data.push(Data {
-          property,
+          property: property.to_case(Case::Camel),
           value,
           important,
         });
@@ -89,7 +101,7 @@ impl StyleDeclaration {
       .data
       .iter()
       .map(|data| {
-        let mut property = data.property.from_case(Case::Camel).to_case(Case::Kebab);
+        let mut property = data.property.to_case(Case::Kebab);
 
         if property.starts_with("webkit") {
           property = "-webkit".to_owned() + &property[6..];
@@ -137,10 +149,7 @@ fn string_to_data(css_text: String) -> Vec<Data> {
 
       let mut parts = item.split(':');
 
-      let property = match parts
-        .next()
-        .map(|s| s.trim().from_case(Case::Kebab).to_case(Case::Camel))
-      {
+      let property = match parts.next().map(|s| s.trim().to_case(Case::Camel)) {
         Some(property) => property,
         None => return None,
       };
