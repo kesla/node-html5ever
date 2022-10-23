@@ -142,21 +142,22 @@ fn string_to_data(css_text: String) -> Vec<Data> {
   css_text
     .split(';')
     .filter_map(|item| {
-      let item = item.trim();
-      if item.is_empty() {
-        return None;
-      }
+      let (property, mut value) = {
+        let mut parts = item.split(':');
 
-      let mut parts = item.split(':');
+        let (property, value): (String, String) = match (parts.next(), parts.next(), parts.next()) {
+          (Some(property), Some(value), None) => (
+            property.trim().to_case(Case::Camel),
+            value.trim().to_string(),
+          ),
+          _ => return None,
+        };
 
-      let property = match parts.next().map(|s| s.trim().to_case(Case::Camel)) {
-        Some(property) => property,
-        None => return None,
-      };
+        if property.is_empty() || value.is_empty() {
+          return None;
+        }
 
-      let mut value = match parts.next().map(|s| s.trim().to_string()) {
-        Some(value) => value,
-        None => return None,
+        (property, value)
       };
 
       let important = value.ends_with("!important");

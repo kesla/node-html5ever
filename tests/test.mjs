@@ -651,4 +651,12 @@ test('.style', (t) => {
     t.strictSame(div.style.getPropertyValue("font-size"), "14px", "getPropertyValue('font-size')");
     t.strictSame(div.style.getPropertyValue("-webkit-text-stroke-width"), "12px", "getPropertyValue('-webkit-text-stroke-width')");
   });
-});
+
+  t.test('weird input', (t) => {
+    const div = createDiv();
+    div.style.cssText = "font:; : red";
+
+    t.strictSame(div.style.length, 0, "length");
+    t.strictSame(div.style.cssText, "", "cssText");
+  })
+})
