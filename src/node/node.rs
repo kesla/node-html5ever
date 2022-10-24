@@ -31,15 +31,7 @@ macro_rules! impl_from {
   ($type:ty, $variant:ident) => {
     impl From<&$type> for Node {
       fn from(value: &$type) -> Self {
-        Node::$variant(
-          value
-            .weak_reference
-            .as_ref()
-            .unwrap()
-            .upgrade(value.env)
-            .unwrap()
-            .unwrap(),
-        )
+        Node::$variant(value.cyclic_reference.get().unwrap())
       }
     }
 

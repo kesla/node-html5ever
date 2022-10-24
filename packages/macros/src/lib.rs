@@ -221,7 +221,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     pub struct #name {
       pub(crate) env: napi::Env,
       pub(crate) node_handler: crate::NodeHandler,
-      pub(crate) weak_reference: Option<napi::bindgen_prelude::WeakReference<Self>>,
+      pub(crate) cyclic_reference: crate::CyclicReference<Self>,
       pub(crate) id: usize,
 
       #(#fields)*
@@ -239,17 +239,17 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) ->
           napi::Result<napi::bindgen_prelude::Reference<Self>> {
 
-        let inner = Self {
-          #(#argument_fields)*
-          env,
-          id: crate::get_id(),
-          node_handler: crate::NodeHandler::new(env),
-          weak_reference: None,
-        };
+        crate::CyclicReference::<Self>::new_cyclic(env, |cyclic_reference| {
+          let inner = Self {
+            #(#argument_fields)*
+            env,
+            id: crate::get_id(),
+            node_handler: crate::NodeHandler::new(env),
+            cyclic_reference,
+          };
 
-        let mut r = Self::into_reference(inner, env)?;
-        r.clone(env)?.weak_reference = Some(r.clone(env)?.downgrade());
-        Ok(r)
+          Self::into_reference(inner, env)
+        })
       }
 
       pub(crate) fn get_node_handler(&self) -> crate::NodeHandler {

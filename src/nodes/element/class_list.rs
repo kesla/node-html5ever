@@ -3,14 +3,14 @@ use napi::{
   Env, Error, JsString, NapiValue, Result,
 };
 
-use crate::Element;
+use crate::{CyclicReference, Element};
 
 #[napi]
 pub struct ClassList {
   list: Vec<String>,
   owner: WeakReference<Element>,
   env: Env,
-  weak: Option<WeakReference<Self>>,
+  cyclic_reference: CyclicReference<Self>,
 }
 
 #[napi]
@@ -20,14 +20,17 @@ impl ClassList {
     env: Env,
     initial_value: Option<String>,
   ) -> Result<Reference<Self>> {
-    let s = Self {
-      owner,
-      env,
-      list: initial_value.map(|s| as_list(&s)).unwrap_or_default(),
-      weak: None,
-    };
-    let r = Self::into_reference(s, env)?;
-    r.clone(env)?.weak = Some(r.downgrade());
+    let r = CyclicReference::<Self>::new_cyclic(env, |cyclic_reference| {
+      Self::into_reference(
+        Self {
+          owner,
+          env,
+          list: initial_value.map(|s| as_list(&s)).unwrap_or_default(),
+          cyclic_reference,
+        },
+        env,
+      )
+    })?;
 
     r.clone(env)?.set_properties()?;
 
@@ -35,7 +38,7 @@ impl ClassList {
   }
 
   fn set_properties(&self) -> Result<()> {
-    let val = self.weak.as_ref().unwrap().upgrade(self.env)?.unwrap();
+    let val = self.cyclic_reference.get()?;
 
     let mut this = unsafe {
       let ptr = <Reference<ClassList> as ToNapiValue>::to_napi_value(self.env.raw(), val)?;

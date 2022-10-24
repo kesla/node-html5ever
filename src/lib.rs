@@ -4,6 +4,7 @@ extern crate napi_derive;
 #[macro_use]
 extern crate node_html5ever_derive;
 
+mod cyclic_reference;
 mod dom;
 mod einar_cell;
 mod id;
@@ -19,6 +20,7 @@ mod serializer;
 mod style_declaration;
 
 pub use crate::selectors::Selectors;
+pub use cyclic_reference::CyclicReference;
 pub use dom::Html5everDom;
 pub use einar_cell::EinarCell;
 pub use id::get_id;

@@ -61,7 +61,7 @@ macro_rules! impl_from {
   ($type:ty, $variant:ident) => {
     impl From<&$type> for ParentNode {
       fn from(value: &$type) -> Self {
-        ParentNode::$variant(value.weak_reference.as_ref().unwrap().clone())
+        ParentNode::$variant(value.cyclic_reference.get_weak().unwrap())
       }
     }
 
