@@ -2,14 +2,11 @@ mod attributes;
 mod class_list;
 mod element_ref;
 
+use crate::StyleDeclaration;
 use html5ever::{LocalName, QualName};
-use napi::{
-  bindgen_prelude::{Object, Reference},
-  Result,
-};
-use regex::Regex;
+use napi::{bindgen_prelude::Reference, Result};
 
-use crate::{serialize, Text};
+use crate::{serialize, LazyReference, Text};
 
 use attributes::{Attr, AttributesWrapper};
 use class_list::ClassList;
@@ -19,9 +16,10 @@ pub use element_ref::ElementRef;
 pub struct Element {
   pub(crate) attributes_wrapper: AttributesWrapper,
 
-  pub(crate) class_list: Option<Reference<ClassList>>,
-
   pub(crate) name: QualName,
+
+  pub(crate) lazy_class_list: LazyReference<ClassList>,
+  pub(crate) lazy_style: LazyReference<StyleDeclaration>,
 }
 
 #[napi]
@@ -42,7 +40,7 @@ impl Element {
   #[napi]
   pub fn remove_attribute(&mut self, name: String) -> Result<()> {
     if name == "class".to_string() {
-      if let Some(class_list) = &mut self.class_list {
+      if let Some(class_list) = &mut self.lazy_class_list.get_mut() {
         class_list.clear()?;
       }
     }
@@ -55,7 +53,7 @@ impl Element {
   #[napi]
   pub fn set_attribute(&mut self, name: String, value: String) -> Result<()> {
     if name == "class".to_string() {
-      if let Some(class_list) = &mut self.class_list {
+      if let Some(class_list) = &mut self.lazy_class_list.get_mut() {
         // attribute is set in ClassList::set_value
         class_list.set_value(value)?;
 
@@ -77,70 +75,18 @@ impl Element {
 
   #[napi(getter)]
   pub fn get_class_list(&mut self, element: Reference<Element>) -> Result<Reference<ClassList>> {
-    if let Some(class_list) = &self.class_list {
-      class_list.clone(self.env)
-    } else {
-      let class_list = ClassList::new(
-        element.downgrade(),
-        self.env,
-        self.get_attribute("class".to_string()),
-      )?;
-
-      self.class_list = Some(class_list.clone(self.env)?);
-      Ok(class_list)
-    }
+    let initial_value = self.get_attribute("class".to_string());
+    self
+      .lazy_class_list
+      .get_or_init(|| ClassList::new(element.downgrade(), self.env, initial_value))
   }
 
   #[napi(getter)]
-  pub fn get_style(&self) -> Result<Object> {
-    let style = self
-      .attributes_wrapper
-      .get_attribute(LocalName::from("style"))
-      .map(|attribute| attribute.value.to_string())
-      .unwrap_or_default();
-
-    style
-      .split(';')
-      .try_fold(self.env.create_object()?, |mut obj, style| {
-        let mut style = style.split(':').map(|s| s.trim());
-        let key = style.next();
-        let value = style.next();
-
-        if let (Some(key), Some(value)) = (key, value) {
-          if key.len() > 0 && value.len() > 0 {
-            let re = Regex::new(r"(-?\w+)-?(.*)").unwrap();
-
-            let caps = re.captures(key).unwrap();
-
-            let mut key = String::new();
-            key.push_str(match &caps[1] {
-              "-webkit" => "Webkit",
-              "-moz" => "Moz",
-              "-ms" => "ms",
-              "-o" => "O",
-              _ => &caps[1],
-            });
-
-            if let Some(rest) = caps.get(2) {
-              rest
-                .as_str()
-                .split('-')
-                .filter(|part| part.trim().len() > 0)
-                .for_each(|part| {
-                  let mut chars = part.chars();
-                  let first = chars.next().unwrap().to_uppercase().to_string();
-                  let rest = chars.collect::<String>();
-                  key.push_str(&first);
-                  key.push_str(&rest);
-                });
-            }
-
-            obj.set(key, value.trim().to_string())?;
-          }
-        }
-
-        Ok(obj)
-      })
+  pub fn get_style(&mut self) -> Result<Reference<StyleDeclaration>> {
+    let initial_value = self.get_attribute("style".to_string());
+    self
+      .lazy_style
+      .get_or_init(|| StyleDeclaration::new_reference(self.env, initial_value))
   }
 
   #[napi(getter)]

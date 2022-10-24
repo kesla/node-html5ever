@@ -161,14 +161,13 @@ test("style - single statement", (t) => {
     fontSize: "14px",
   };
   t.same(actual, expected);
+  t.strictSame(actual.fontSize, "14px");
 });
 
 test("style - multiple statements", (t) => {
   const actual = parseFragment(`
       <div style="
         -webkit-border-radius: 10px;
-        -moz-border-radius: 10px;
-        -ms-border-radius: 10px;
         border-radius: 10px;
         border-color: ;
         font: 14px/1.5 Helvetica, Arial, sans-serif;
@@ -176,13 +175,14 @@ test("style - multiple statements", (t) => {
       "></div>
     `).children[0].style;
   const expected = {
-    WebkitBorderRadius: "10px",
-    MozBorderRadius: "10px",
-    msBorderRadius: "10px",
+    webkitBorderRadius: "10px",
     borderRadius: "10px",
     font: "14px/1.5 Helvetica, Arial, sans-serif",
   };
   t.same(actual, expected);
+  t.strictSame(actual.borderRadius, "10px");
+  t.strictSame(actual.webkitBorderRadius, "10px");
+  t.strictSame(actual.font, "14px/1.5 Helvetica, Arial, sans-serif");
 });
 
 test("style - no style", (t) => {
