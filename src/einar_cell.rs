@@ -1,23 +1,23 @@
 use std::cell::UnsafeCell;
 
 pub struct EinarCell<T> {
-  value: UnsafeCell<T>,
+  inner: UnsafeCell<T>,
 }
 
 impl<T> EinarCell<T> {
   pub fn new(value: T) -> Self {
     Self {
-      value: UnsafeCell::new(value),
+      inner: UnsafeCell::new(value),
     }
   }
 
   pub fn replace(&self, value: T) -> T {
-    unsafe { std::mem::replace(&mut *self.value.get(), value) }
+    unsafe { std::mem::replace(&mut *self.inner.get(), value) }
   }
 
   pub fn set(&self, value: T) {
     unsafe {
-      *self.value.get() = value;
+      *self.inner.get() = value;
     }
   }
 
@@ -25,7 +25,7 @@ impl<T> EinarCell<T> {
   where
     F: FnOnce(&T) -> R,
   {
-    let value = unsafe { &*self.value.get() };
+    let value = unsafe { &*self.inner.get() };
     f(value)
   }
 
@@ -33,7 +33,7 @@ impl<T> EinarCell<T> {
   where
     F: FnOnce(&mut T) -> R,
   {
-    let value = unsafe { &mut *self.value.get() };
+    let value = unsafe { &mut *self.inner.get() };
     f(value)
   }
 }
