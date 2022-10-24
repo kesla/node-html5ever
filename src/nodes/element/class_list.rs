@@ -5,7 +5,7 @@ use napi::{
 
 use crate::Element;
 
-#[napi(skip)]
+#[napi]
 pub struct ClassList {
   list: Vec<String>,
   owner: WeakReference<Element>,

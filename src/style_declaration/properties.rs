@@ -1,10 +1,8 @@
-use paste::paste;
-
 use super::StyleDeclaration;
 
 macro_rules! impl_style_getters_and_setters {
     ({ $($field:ident),* }) => {
-      paste! {
+      paste::paste! {
         #[napi]
         impl StyleDeclaration {
           $(
