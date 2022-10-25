@@ -3,9 +3,13 @@ use std::{
   ops::Deref,
 };
 
-use crate::{Comment, DocumentType, Element, Node, NodeHandler, ParentContext, Text};
+use crate::{
+  Comment, DocumentType, Element, Node, NodeHandler, ParentContext, Text,
+};
 use napi::{
-  bindgen_prelude::{FromNapiValue, Reference, Result, ToNapiValue, TypeName, ValidateNapiValue},
+  bindgen_prelude::{
+    FromNapiValue, Reference, Result, ToNapiValue, TypeName, ValidateNapiValue,
+  },
   Error, Status, ValueType,
 };
 
@@ -20,10 +24,11 @@ impl ChildNode {
   pub(crate) fn remove(&self) -> Result<()> {
     let node_handler: NodeHandler = self.into();
 
-    let parent_ctx: ParentContext = match node_handler.parent_context.replace(None) {
-      Some(parent) => parent,
-      None => return Ok(()),
-    };
+    let parent_ctx: ParentContext =
+      match node_handler.parent_context.replace(None) {
+        Some(parent) => parent,
+        None => return Ok(()),
+      };
 
     let parent_node = parent_ctx.get_node()?;
     let parent_node_handler: NodeHandler = parent_node.into();
@@ -35,7 +40,9 @@ impl PartialEq for ChildNode {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
       (Self::Comment(left), Self::Comment(right)) => left.id == right.id,
-      (Self::DocumentType(left), Self::DocumentType(right)) => left.id == right.id,
+      (Self::DocumentType(left), Self::DocumentType(right)) => {
+        left.id == right.id
+      }
       (Self::Element(left), Self::Element(right)) => left.id == right.id,
       (Self::Text(left), Self::Text(right)) => left.id == right.id,
       _ => false,
@@ -49,7 +56,9 @@ impl Clone for ChildNode {
   fn clone(&self) -> Self {
     match self {
       Self::Comment(arg0) => Self::Comment(arg0.clone(arg0.env).unwrap()),
-      Self::DocumentType(arg0) => Self::DocumentType(arg0.clone(arg0.env).unwrap()),
+      Self::DocumentType(arg0) => {
+        Self::DocumentType(arg0.clone(arg0.env).unwrap())
+      }
       Self::Element(arg0) => Self::Element(arg0.clone(arg0.env).unwrap()),
       Self::Text(arg0) => Self::Text(arg0.clone(arg0.env).unwrap()),
     }
@@ -57,10 +66,15 @@ impl Clone for ChildNode {
 }
 
 impl ToNapiValue for ChildNode {
-  unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
+  unsafe fn to_napi_value(
+    env: napi::sys::napi_env,
+    val: Self,
+  ) -> Result<napi::sys::napi_value> {
     match val {
       ChildNode::Comment(r) => Reference::<Comment>::to_napi_value(env, r),
-      ChildNode::DocumentType(r) => Reference::<DocumentType>::to_napi_value(env, r),
+      ChildNode::DocumentType(r) => {
+        Reference::<DocumentType>::to_napi_value(env, r)
+      }
       ChildNode::Element(r) => Reference::<Element>::to_napi_value(env, r),
       ChildNode::Text(r) => Reference::<Text>::to_napi_value(env, r),
     }
@@ -168,7 +182,9 @@ impl From<Node> for ChildNode {
       Node::Element(r) => ChildNode::Element(r.clone(r.env).unwrap()),
       Node::Text(r) => ChildNode::Text(r.clone(r.env).unwrap()),
       Node::Document(_) => panic!("Document is not a Node"),
-      Node::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
+      Node::DocumentFragment(_) => {
+        panic!("DocumentFragment is not a Node")
+      }
     }
   }
 }
@@ -181,7 +197,9 @@ impl From<&Node> for ChildNode {
       Node::Element(r) => ChildNode::Element(r.clone(r.env).unwrap()),
       Node::Text(r) => ChildNode::Text(r.clone(r.env).unwrap()),
       Node::Document(_) => panic!("Document is not a Node"),
-      Node::DocumentFragment(_) => panic!("DocumentFragment is not a Node"),
+      Node::DocumentFragment(_) => {
+        panic!("DocumentFragment is not a Node")
+      }
     }
   }
 }

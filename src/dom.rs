@@ -1,10 +1,12 @@
 use crate::{
-  serialize, ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, LazyReference,
-  Node, QuirksMode, Text,
+  serialize, ChildNode, Comment, Document, DocumentFragment, DocumentType,
+  Element, LazyReference, Node, QuirksMode, Text,
 };
 use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::{NodeOrText, TreeSink};
-use html5ever::{namespace_url, ns, parse_document, parse_fragment, ParseOpts, QualName};
+use html5ever::{
+  namespace_url, ns, parse_document, parse_fragment, ParseOpts, QualName,
+};
 use napi::{bindgen_prelude::Reference, Env, Result};
 
 #[napi]
@@ -21,13 +23,17 @@ pub struct Html5everDom {
 impl Html5everDom {
   #[napi(constructor)]
   pub fn new(env: Env, html: String) -> Result<Html5everDom> {
-    let dom: Html5everDom = parse_document(Self::create_sink(env)?, ParseOpts::default()).one(html);
+    let dom: Html5everDom =
+      parse_document(Self::create_sink(env)?, ParseOpts::default()).one(html);
 
     Ok(dom)
   }
 
   #[napi]
-  pub fn create_document_fragment(env: Env, html: String) -> Result<Reference<DocumentFragment>> {
+  pub fn create_document_fragment(
+    env: Env,
+    html: String,
+  ) -> Result<Reference<DocumentFragment>> {
     let dom: Html5everDom = parse_fragment(
       Self::create_sink(env)?,
       ParseOpts::default(),
@@ -55,7 +61,8 @@ impl Html5everDom {
   }
 
   fn create_sink(env: Env) -> Result<Html5everDom> {
-    let document_reference = Document::new_reference(env, QuirksMode::NoQuirks)?;
+    let document_reference =
+      Document::new_reference(env, QuirksMode::NoQuirks)?;
     let sink = Html5everDom {
       document_reference,
       errors: vec![],
@@ -104,7 +111,10 @@ impl TreeSink for Html5everDom {
     self.document_reference.clone(self.env).unwrap().into()
   }
 
-  fn elem_name<'a>(&'a self, target: &'a Self::Handle) -> html5ever::ExpandedName<'a> {
+  fn elem_name<'a>(
+    &'a self,
+    target: &'a Self::Handle,
+  ) -> html5ever::ExpandedName<'a> {
     let element: &Reference<Element> = target.as_element().unwrap();
     element.name.expanded()
   }
@@ -127,7 +137,10 @@ impl TreeSink for Html5everDom {
     r.into()
   }
 
-  fn create_comment(&mut self, text: html5ever::tendril::StrTendril) -> Self::Handle {
+  fn create_comment(
+    &mut self,
+    text: html5ever::tendril::StrTendril,
+  ) -> Self::Handle {
     let r = Comment::new_reference(self.env, text.to_string()).unwrap();
     r.into()
   }
@@ -200,7 +213,11 @@ impl TreeSink for Html5everDom {
     todo!()
   }
 
-  fn add_attrs_if_missing(&mut self, target: &Self::Handle, attrs: Vec<html5ever::Attribute>) {
+  fn add_attrs_if_missing(
+    &mut self,
+    target: &Self::Handle,
+    attrs: Vec<html5ever::Attribute>,
+  ) {
     todo!()
   }
 
@@ -208,7 +225,11 @@ impl TreeSink for Html5everDom {
     todo!()
   }
 
-  fn reparent_children(&mut self, node: &Self::Handle, new_parent: &Self::Handle) {
+  fn reparent_children(
+    &mut self,
+    node: &Self::Handle,
+    new_parent: &Self::Handle,
+  ) {
     todo!()
   }
 }

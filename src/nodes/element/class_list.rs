@@ -41,7 +41,10 @@ impl ClassList {
     let val = self.cyclic_reference.get()?;
 
     let mut this = unsafe {
-      let ptr = <Reference<ClassList> as ToNapiValue>::to_napi_value(self.env.raw(), val)?;
+      let ptr = <Reference<ClassList> as ToNapiValue>::to_napi_value(
+        self.env.raw(),
+        val,
+      )?;
       Object::from_raw(self.env.raw(), ptr)?
     };
 

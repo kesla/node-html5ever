@@ -32,9 +32,9 @@ where
     while let Some(node) = self.queue.pop() {
       if let ChildNode::Element(r) = &node {
         let node_handler = r.get_node_handler();
-        self
-          .queue
-          .extend(ShallowChildNodesIterator::<ChildNode>::new(&node_handler).rev());
+        self.queue.extend(
+          ShallowChildNodesIterator::<ChildNode>::new(&node_handler).rev(),
+        );
       }
 
       if let Ok(child) = node.try_into() {

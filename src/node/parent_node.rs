@@ -14,10 +14,17 @@ pub enum ParentNode {
 }
 
 impl ToNapiValue for ParentNode {
-  unsafe fn to_napi_value(env: napi::sys::napi_env, val: Self) -> Result<napi::sys::napi_value> {
+  unsafe fn to_napi_value(
+    env: napi::sys::napi_env,
+    val: Self,
+  ) -> Result<napi::sys::napi_value> {
     match val {
-      ParentNode::Document(r) => WeakReference::<Document>::to_napi_value(env, r),
-      ParentNode::DocumentFragment(r) => WeakReference::<DocumentFragment>::to_napi_value(env, r),
+      ParentNode::Document(r) => {
+        WeakReference::<Document>::to_napi_value(env, r)
+      }
+      ParentNode::DocumentFragment(r) => {
+        WeakReference::<DocumentFragment>::to_napi_value(env, r)
+      }
       ParentNode::Element(r) => WeakReference::<Element>::to_napi_value(env, r),
     }
   }
@@ -95,7 +102,9 @@ impl From<&Node> for ParentNode {
   fn from(val: &Node) -> Self {
     match val {
       Node::Comment(_) => panic!("Comment cannot be a parent node"),
-      Node::DocumentType(_) => panic!("DocumentType cannot be a parent node"),
+      Node::DocumentType(_) => {
+        panic!("DocumentType cannot be a parent node")
+      }
       Node::Element(r) => ParentNode::Element(r.downgrade()),
       Node::Text(_) => panic!("Text nodes cannot be a parent node"),
       Node::Document(r) => ParentNode::Document(r.downgrade()),
@@ -104,13 +113,18 @@ impl From<&Node> for ParentNode {
   }
 }
 
-impl TryInto<Either<WeakReference<Document>, WeakReference<DocumentFragment>>> for ParentNode {
+impl TryInto<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>
+  for ParentNode
+{
   type Error = Error;
 
-  fn try_into(self) -> Result<Either<WeakReference<Document>, WeakReference<DocumentFragment>>> {
+  fn try_into(
+    self,
+  ) -> Result<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>
+  {
     match self {
-      ParentNode::Document(r) => Ok(Either::A(r.clone())),
-      ParentNode::DocumentFragment(r) => Ok(Either::B(r.clone())),
+      ParentNode::Document(r) => Ok(Either::A(r)),
+      ParentNode::DocumentFragment(r) => Ok(Either::B(r)),
       _ => Err(Error::new(
         Status::InvalidArg,
         format!(

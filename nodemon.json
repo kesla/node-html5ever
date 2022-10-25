@@ -1,7 +1,4 @@
 {
-  "watch": [
-    "src",
-    "tests"
-  ],
+  "watch": ["src", "tests"],
   "ext": "rs,mjs"
 }

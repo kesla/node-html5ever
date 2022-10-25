@@ -11,7 +11,10 @@ pub(crate) mod children {
     node_handler.shallow_child_nodes_iter().collect()
   }
 
-  pub(crate) fn append_child(parent_node: Node, child_node: ChildNode) -> Result<ChildNode> {
+  pub(crate) fn append_child(
+    parent_node: Node,
+    child_node: ChildNode,
+  ) -> Result<ChildNode> {
     parent_node.append_node(&child_node)?;
     Ok(child_node)
   }
@@ -34,7 +37,11 @@ pub(crate) mod children {
     Ok(())
   }
 
-  pub(crate) fn append(env: Env, parent_node: Node, node: Either<ChildNode, String>) -> Result<()> {
+  pub(crate) fn append(
+    env: Env,
+    parent_node: Node,
+    node: Either<ChildNode, String>,
+  ) -> Result<()> {
     let child_node: ChildNode = match node {
       Either::A(child_node) => child_node,
       Either::B(data) => {
@@ -48,7 +55,10 @@ pub(crate) mod children {
     Ok(())
   }
 
-  pub(crate) fn remove_child(parent_node: Node, child_node: ChildNode) -> Result<ChildNode> {
+  pub(crate) fn remove_child(
+    parent_node: Node,
+    child_node: ChildNode,
+  ) -> Result<ChildNode> {
     parent_node.remove_node(&child_node)?;
     Ok(child_node)
   }
@@ -80,7 +90,9 @@ pub(crate) mod children {
 
     node_handler
       .deep_child_nodes_iter()
-      .filter(|e: &Reference<Element>| e.get_tag_name().eq_ignore_ascii_case(tag_name))
+      .filter(|e: &Reference<Element>| {
+        e.get_tag_name().eq_ignore_ascii_case(tag_name)
+      })
       .collect()
   }
 

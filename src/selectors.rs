@@ -1,4 +1,6 @@
-use cssparser::{serialize_identifier, CowRcStr, ParseError, SourceLocation, ToCss};
+use cssparser::{
+  serialize_identifier, CowRcStr, ParseError, SourceLocation, ToCss,
+};
 use napi::{bindgen_prelude::WeakReference, Either, Result};
 use selectors::{
   matching::{matches_selector, MatchingContext, MatchingMode, QuirksMode},
@@ -177,7 +179,10 @@ impl<'i> selectors::parser::Parser<'i> for Parser {
     &self,
     location: SourceLocation,
     name: CowRcStr<'i>,
-  ) -> std::result::Result<PseudoClass, ParseError<'i, SelectorParseErrorKind<'i>>> {
+  ) -> std::result::Result<
+    PseudoClass,
+    ParseError<'i, SelectorParseErrorKind<'i>>,
+  > {
     use self::PseudoClass::*;
     if name.eq_ignore_ascii_case("any-link") {
       Ok(AnyLink)
@@ -200,11 +205,9 @@ impl<'i> selectors::parser::Parser<'i> for Parser {
     } else if name.eq_ignore_ascii_case("indeterminate") {
       Ok(Indeterminate)
     } else {
-      Err(
-        location.new_custom_error(SelectorParseErrorKind::UnsupportedPseudoClassOrElement(
-          name,
-        )),
-      )
+      Err(location.new_custom_error(
+        SelectorParseErrorKind::UnsupportedPseudoClassOrElement(name),
+      ))
     }
   }
 }
@@ -212,7 +215,8 @@ impl<'i> selectors::parser::Parser<'i> for Parser {
 impl Selectors {
   pub fn compile(css: String) -> napi::Result<Selectors> {
     let mut parser = cssparser::ParserInput::new(css.as_str());
-    match SelectorList::parse(&Parser, &mut cssparser::Parser::new(&mut parser)) {
+    match SelectorList::parse(&Parser, &mut cssparser::Parser::new(&mut parser))
+    {
       Ok(list) => Ok(Selectors(list.0.into_iter().map(Selector).collect())),
       Err(e) => {
         let reason = format!("Failed to parse selector: {:?}", e);
@@ -223,19 +227,19 @@ impl Selectors {
 
   pub fn matches(&self, element: &ElementRef) -> Result<bool> {
     let quirks_mode = element
-      .node_handler
-      .parent_iterator::<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>()
-      .try_next()?
-      .map_or(QuirksMode::NoQuirks, |parent| match parent {
-        Either::A(weak_document) => {
-          let document = weak_document.upgrade(element.env).unwrap().unwrap();
-          document.quirks_mode.into()
-        }
-        Either::B(weak_fragment) => {
-          let fragment = weak_fragment.upgrade(element.env).unwrap().unwrap();
-          fragment.quirks_mode.into()
-        }
-      });
+            .node_handler
+            .parent_iterator::<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>()
+            .try_next()?
+            .map_or(QuirksMode::NoQuirks, |parent| match parent {
+                Either::A(weak_document) => {
+                    let document = weak_document.upgrade(element.env).unwrap().unwrap();
+                    document.quirks_mode.into()
+                }
+                Either::B(weak_fragment) => {
+                    let fragment = weak_fragment.upgrade(element.env).unwrap().unwrap();
+                    fragment.quirks_mode.into()
+                }
+            });
 
     let m = self
       .0
@@ -247,7 +251,8 @@ impl Selectors {
 
 impl Selector {
   pub fn matches(&self, element: &ElementRef, quirks_mode: QuirksMode) -> bool {
-    let mut context = MatchingContext::new(MatchingMode::Normal, None, None, quirks_mode);
+    let mut context =
+      MatchingContext::new(MatchingMode::Normal, None, None, quirks_mode);
 
     matches_selector(&self.0, 0, None, element, &mut context, &mut |_, _| {})
   }

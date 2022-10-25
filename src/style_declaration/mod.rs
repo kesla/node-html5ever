@@ -18,11 +18,14 @@ pub struct StyleDeclaration {
 #[napi]
 impl StyleDeclaration {
   pub(crate) fn new(initial_value: Option<String>) -> Self {
-    let data = initial_value.map_or_else(Vec::new, |value| string_to_data(value));
+    let data = initial_value.map_or_else(Vec::new, string_to_data);
     Self { data }
   }
 
-  pub(crate) fn new_reference(env: Env, initial_value: Option<String>) -> Result<Reference<Self>> {
+  pub(crate) fn new_reference(
+    env: Env,
+    initial_value: Option<String>,
+  ) -> Result<Reference<Self>> {
     let style_declaration = Self::new(initial_value);
     Self::into_reference(style_declaration, env)
   }
@@ -77,7 +80,12 @@ impl StyleDeclaration {
   }
 
   #[napi]
-  pub fn set_property(&mut self, property: String, value: String, priority: Option<String>) {
+  pub fn set_property(
+    &mut self,
+    property: String,
+    value: String,
+    priority: Option<String>,
+  ) {
     let important = priority.map_or(false, |priority| priority == "important");
 
     match self.get_data_mut(&property) {
@@ -145,13 +153,14 @@ fn string_to_data(css_text: String) -> Vec<Data> {
       let (property, mut value) = {
         let mut parts = item.split(':');
 
-        let (property, value): (String, String) = match (parts.next(), parts.next(), parts.next()) {
-          (Some(property), Some(value), None) => (
-            property.trim().to_case(Case::Camel),
-            value.trim().to_string(),
-          ),
-          _ => return None,
-        };
+        let (property, value): (String, String) =
+          match (parts.next(), parts.next(), parts.next()) {
+            (Some(property), Some(value), None) => (
+              property.trim().to_case(Case::Camel),
+              value.trim().to_string(),
+            ),
+            _ => return None,
+          };
 
         if property.is_empty() || value.is_empty() {
           return None;
@@ -167,8 +176,8 @@ fn string_to_data(css_text: String) -> Vec<Data> {
       }
 
       let data = Data {
-        property: property.into(),
-        value: value.into(),
+        property,
+        value,
         important,
       };
 

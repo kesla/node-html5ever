@@ -1,4 +1,6 @@
-use html5ever::{tendril::StrTendril, Attribute, LocalName, Namespace, QualName};
+use html5ever::{
+  tendril::StrTendril, Attribute, LocalName, Namespace, QualName,
+};
 use napi::{
   bindgen_prelude::{Reference, WeakReference},
   Env, Result,

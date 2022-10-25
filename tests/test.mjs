@@ -1,6 +1,15 @@
 import tap from "tap";
 
-import { Html5EverDom, QuirksMode, Element, Document, DocumentFragment, Comment, Text, DocumentType } from "../index.js";
+import {
+  Html5EverDom,
+  QuirksMode,
+  Element,
+  Document,
+  DocumentFragment,
+  Comment,
+  Text,
+  DocumentType,
+} from "../index.js";
 
 /**
  *
@@ -263,29 +272,29 @@ test("appendChild() remove element from previous parent", (t) => {
   );
 });
 
-test('.append works w both strings and elements', (t) => {
+test(".append works w both strings and elements", (t) => {
   let { document } = new Html5EverDom("");
   let body = document.body;
-  body.append("hello"/*, "world" */);
+  body.append("hello" /*, "world" */);
   t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
   t.matchSnapshot(body.outerHTML, "body.outerHTML");
   const div = document.createElement("div");
   body.append(div);
   t.strictSame(div, body.lastChild, "div is body.lastChild");
   t.matchSnapshot(body.outerHTML, "body.outerHTML");
-})
+});
 
-test('.prepend works w both strings and elements', (t) => {
+test(".prepend works w both strings and elements", (t) => {
   let { document } = new Html5EverDom("");
   let body = document.body;
-  body.prepend("hello"/*, "world" */);
+  body.prepend("hello" /*, "world" */);
   t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
   t.matchSnapshot(body.outerHTML, "body.outerHTML");
   const div = document.createElement("div");
   body.prepend(div);
   t.strictSame(div, body.firstChild, "div is body.firstChild");
   t.matchSnapshot(body.outerHTML, "body.outerHTML");
-})
+});
 
 test("Element.id & Element.className", (t) => {
   let { document } = new Html5EverDom("");
@@ -347,7 +356,9 @@ test("previousSibling & nextSibling", (t) => {
 });
 
 test("Instance of", (t) => {
-  let fragment = Html5EverDom.createDocumentFragment("text<div></div><!-- comment -->");
+  let fragment = Html5EverDom.createDocumentFragment(
+    "text<div></div><!-- comment -->"
+  );
 
   t.ok(fragment instanceof DocumentFragment);
   t.ok(fragment.childNodes[0] instanceof Text);
@@ -360,7 +371,7 @@ test("Instance of", (t) => {
   t.ok(document.head instanceof Element);
   t.ok(document.documentElement instanceof Element);
   t.ok(document.docType instanceof DocumentType);
-})
+});
 
 test(".firstChild & .lastChild", (t) => {
   let { document } = new Html5EverDom(
@@ -383,7 +394,7 @@ test(".firstChild & .lastChild", (t) => {
   t.strictSame(bar?.lastElementChild, bar?.children[bar.children.length - 1]);
 });
 
-test('.removeChild errors if the node is not a child', (t) => {
+test(".removeChild errors if the node is not a child", (t) => {
   let { document } = new Html5EverDom(
     `<div id="foo"></div><div id="bar"></div>`
   );
@@ -398,9 +409,9 @@ test('.removeChild errors if the node is not a child', (t) => {
   t.throws(() => {
     foo.removeChild(bar);
   });
-})
+});
 
-test('basic querySelectorAll', (t) => {
+test("basic querySelectorAll", (t) => {
   let { document } = new Html5EverDom(`
     <div id="foo">
       <div id="bar" class="baz">First</div>
@@ -415,7 +426,7 @@ test('basic querySelectorAll', (t) => {
   t.strictSame(div[2].id, "");
 });
 
-test('ClassList', (t) => {
+test("ClassList", (t) => {
   function createDiv() {
     let { document } = new Html5EverDom(`
     <div id="foo" class="bar baz"></div>
@@ -429,8 +440,7 @@ test('ClassList', (t) => {
     return div;
   }
 
-
-  t.test('initial state', (t) => {
+  t.test("initial state", (t) => {
     const div = createDiv();
 
     t.strictSame(div.classList.length, 2);
@@ -447,9 +457,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList.item(2), null);
     t.strictSame(div.classList[2], undefined);
     t.strictSame(div.classList.item(-1), null);
-  })
+  });
 
-  t.test('add', (t) => {
+  t.test("add", (t) => {
     const div = createDiv();
 
     div.classList.add("qux");
@@ -467,9 +477,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList[1], "baz");
     t.strictSame(div.classList.item(2), "qux");
     t.strictSame(div.classList[2], "qux");
-  })
+  });
 
-  t.test('remove', (t) => {
+  t.test("remove", (t) => {
     const div = createDiv();
 
     div.classList.remove("baz");
@@ -486,7 +496,7 @@ test('ClassList', (t) => {
     t.strictSame(div.classList[1], undefined);
   });
 
-  t.test('toggle (add)', (t) => {
+  t.test("toggle (add)", (t) => {
     const div = createDiv();
 
     t.ok(div.classList.toggle("qux"));
@@ -505,7 +515,7 @@ test('ClassList', (t) => {
     t.strictSame(div.classList[2], "qux");
   });
 
-  t.test('toggle (remove)', (t) => {
+  t.test("toggle (remove)", (t) => {
     const div = createDiv();
 
     div.classList.toggle("baz");
@@ -521,7 +531,7 @@ test('ClassList', (t) => {
     t.strictSame(div.classList[1], undefined);
   });
 
-  t.test('set .value', (t) => {
+  t.test("set .value", (t) => {
     const div = createDiv();
 
     div.classList.value = "hello world";
@@ -538,9 +548,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList[0], "hello");
     t.strictSame(div.classList.item(1), "world");
     t.strictSame(div.classList[1], "world");
-  })
+  });
 
-  t.test('set .className', (t) => {
+  t.test("set .className", (t) => {
     const div = createDiv();
 
     div.className = "hello world";
@@ -557,9 +567,9 @@ test('ClassList', (t) => {
     t.strictSame(div.classList[0], "hello");
     t.strictSame(div.classList.item(1), "world");
     t.strictSame(div.classList[1], "world");
-  })
+  });
 
-  t.test('set .className to empty string', (t) => {
+  t.test("set .className to empty string", (t) => {
     const div = createDiv();
 
     div.className = "";
@@ -571,7 +581,7 @@ test('ClassList', (t) => {
     t.strictSame(div.className, "");
     t.strictSame(div.classList.item(0), null);
     t.strictSame(div.classList[0], undefined);
-  })
+  });
 
   t.test('removeAttribute("class")', (t) => {
     const div = createDiv();
@@ -603,7 +613,7 @@ test('ClassList', (t) => {
     t.strictSame(classList[0], undefined);
   });
 
-  t.test('throw on invalid input', (t) => {
+  t.test("throw on invalid input", (t) => {
     const div = createDiv();
     t.throws(() => div.classList.add(""));
     t.throws(() => div.classList.remove(""));
@@ -623,7 +633,7 @@ test('ClassList', (t) => {
   });
 });
 
-test('.style', (t) => {
+test(".style", (t) => {
   function createDiv() {
     let { document } = new Html5EverDom(`
     <div id="foo" style="font-size: 14px; -webkit-text-stroke-width: 12px"></div>
@@ -637,26 +647,42 @@ test('.style', (t) => {
     return div;
   }
 
-  t.test('get', (t) => {
+  t.test("get", (t) => {
     const div = createDiv();
 
     t.strictSame(div.style.fontSize, "14px", "fontSize");
-    t.strictSame(div.style.webkitTextStrokeWidth, "12px", "webkitTextStrokeWidth");
-    t.strictSame(div.style.cssText, "font-size: 14px; -webkit-text-stroke-width: 12px;", "cssText");
+    t.strictSame(
+      div.style.webkitTextStrokeWidth,
+      "12px",
+      "webkitTextStrokeWidth"
+    );
+    t.strictSame(
+      div.style.cssText,
+      "font-size: 14px; -webkit-text-stroke-width: 12px;",
+      "cssText"
+    );
     t.strictSame(div.style.length, 2, "length");
     // t.strictSame(div.style.item(0), "font-size");
     // t.strictSame(div.style[0], "font-size");
     // t.strictSame(div.style.item(1), "-webkit-text-stroke-width");
     // t.strictSame(div.style[1], "-webkit-text-stroke-width");
-    t.strictSame(div.style.getPropertyValue("font-size"), "14px", "getPropertyValue('font-size')");
-    t.strictSame(div.style.getPropertyValue("-webkit-text-stroke-width"), "12px", "getPropertyValue('-webkit-text-stroke-width')");
+    t.strictSame(
+      div.style.getPropertyValue("font-size"),
+      "14px",
+      "getPropertyValue('font-size')"
+    );
+    t.strictSame(
+      div.style.getPropertyValue("-webkit-text-stroke-width"),
+      "12px",
+      "getPropertyValue('-webkit-text-stroke-width')"
+    );
   });
 
-  t.test('weird input', (t) => {
+  t.test("weird input", (t) => {
     const div = createDiv();
     div.style.cssText = "font:; : red";
 
     t.strictSame(div.style.length, 0, "length");
     t.strictSame(div.style.cssText, "", "cssText");
-  })
-})
+  });
+});

@@ -33,7 +33,7 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
         ops.extend(
           node_handler
             .shallow_child_nodes_iter()
-            .map(|child| SerializeOp::Open(child)),
+            .map(SerializeOp::Open),
         );
       }
     };
@@ -42,14 +42,17 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
       match op {
         SerializeOp::Open(node) => {
           match &node {
-            ChildNode::Comment(comment) => serializer.write_comment(&comment.data)?,
-            ChildNode::DocumentType(doc_type) => serializer.write_doctype(&doc_type.name)?,
+            ChildNode::Comment(comment) => {
+              serializer.write_comment(&comment.data)?
+            }
+            ChildNode::DocumentType(doc_type) => {
+              serializer.write_doctype(&doc_type.name)?
+            }
             ChildNode::Element(element) => {
               let node_handler = element.get_node_handler();
 
-              node_handler
-                .child_nodes
-                .borrow::<_, std::io::Result<()>>(|child_nodes| {
+              node_handler.child_nodes.borrow::<_, std::io::Result<()>>(
+                |child_nodes| {
                   serializer.start_elem(
                     // TODO: Is this actually copying the data? Need to figure that out
                     element.name.clone(),
@@ -65,7 +68,8 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
                     ops.push_front(SerializeOp::Open(child.clone()));
                   }
                   Ok(())
-                })?;
+                },
+              )?;
             }
             ChildNode::Text(text) => serializer.write_text(&text.data)?,
           }
@@ -79,7 +83,8 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
 }
 
 pub fn serialize(handle: Node, traversal_scope: TraversalScope) -> String {
-  let serializable_node_handler: SerializableNodeHandler = SerializableNodeHandler(handle);
+  let serializable_node_handler: SerializableNodeHandler =
+    SerializableNodeHandler(handle);
   let mut serialized = Vec::new();
   html5ever::serialize::serialize(
     &mut serialized,

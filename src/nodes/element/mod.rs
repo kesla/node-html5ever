@@ -39,7 +39,7 @@ impl Element {
 
   #[napi]
   pub fn remove_attribute(&mut self, name: String) -> Result<()> {
-    if name == "class".to_string() {
+    if name == *"class" {
       if let Some(class_list) = &mut self.lazy_class_list.get_mut() {
         class_list.clear()?;
       }
@@ -52,7 +52,7 @@ impl Element {
 
   #[napi]
   pub fn set_attribute(&mut self, name: String, value: String) -> Result<()> {
-    if name == "class".to_string() {
+    if name == *"class" {
       if let Some(class_list) = &mut self.lazy_class_list.get_mut() {
         // attribute is set in ClassList::set_value
         class_list.set_value(value)?;
@@ -74,11 +74,14 @@ impl Element {
   }
 
   #[napi(getter)]
-  pub fn get_class_list(&mut self, element: Reference<Element>) -> Result<Reference<ClassList>> {
+  pub fn get_class_list(
+    &mut self,
+    element: Reference<Element>,
+  ) -> Result<Reference<ClassList>> {
     let initial_value = self.get_attribute("class".to_string());
-    self
-      .lazy_class_list
-      .get_or_init(|| ClassList::new(element.downgrade(), self.env, initial_value))
+    self.lazy_class_list.get_or_init(|| {
+      ClassList::new(element.downgrade(), self.env, initial_value)
+    })
   }
 
   #[napi(getter)]

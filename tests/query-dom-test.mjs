@@ -1,7 +1,14 @@
 // this is based on the test from https://raw.githubusercontent.com/micnews/query-dom/master/test.js
 
 import tap, { skip } from "tap";
-import { DocumentFragment, Text, Html5EverDom, QuirksMode, Element, Document } from "../index.js";
+import {
+  DocumentFragment,
+  Text,
+  Html5EverDom,
+  QuirksMode,
+  Element,
+  Document,
+} from "../index.js";
 
 /**
  *
@@ -17,8 +24,8 @@ const test = (name, fn) => {
 test.skip = skip;
 
 /**
- * 
- * @param {String} input 
+ *
+ * @param {String} input
  * @returns {DocumentFragment}
  */
 function parseFragment(input) {
@@ -26,8 +33,8 @@ function parseFragment(input) {
 }
 
 /**
- * 
- * @param {String} input 
+ *
+ * @param {String} input
  * @returns {Document}
  */
 function parse(input) {
@@ -78,8 +85,7 @@ test("getAttribute()", (t) => {
 });
 
 test("attributes", (t) => {
-  const actual = parseFragment('<div foo="bar"></div>').children[0]
-    .attributes;
+  const actual = parseFragment('<div foo="bar"></div>').children[0].attributes;
 
   t.strictSame(actual.length, 1);
   t.strictSame(actual[0].name, "foo");
@@ -278,8 +284,7 @@ test("element().querySelector()", (t) => {
 test("element().innerHTML", (t) => {
   const innerHTML =
     '<flipp hello="world"><flopp foo="bar">text</flopp></flipp>';
-  const actual = parseFragment(`<div>${innerHTML}</div>`).children[0]
-    .innerHTML;
+  const actual = parseFragment(`<div>${innerHTML}</div>`).children[0].innerHTML;
   const expected = innerHTML;
   t.strictSame(expected, actual);
 });

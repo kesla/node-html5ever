@@ -27,6 +27,7 @@
     "@types/tap": "^15.0.7",
     "ava": "^4.3.0",
     "nodemon": "^2.0.20",
+    "prettier": "^2.7.1",
     "tap": "^16.3.0",
     "typescript": "^4.8.3"
   },
@@ -34,7 +35,7 @@
     "node": ">= 10"
   },
   "scripts": {
-    "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header",
+    "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header --pipe=\"prettier --write\"",
     "artifacts": "napi artifacts",
     "build": "yarn _build --release && yarn merge-dts",
     "build:debug": "yarn _build && yarn merge-dts",
@@ -45,7 +46,8 @@
     "test:update": "yarn build:debug && tap --snapshot",
     "version": "napi version",
     "watch:test": "nodemon --exec \"yarn test\"",
-    "watch:test:update": "nodemon --exec \"yarn test:update\""
+    "watch:test:update": "nodemon --exec \"yarn test:update\"",
+    "format": "yarn prettier -w . && cargo clippy --fix --allow-dirty --allow-staged && cargo fmt"
   },
   "packageManager": "yarn@3.2.3",
   "tap": {

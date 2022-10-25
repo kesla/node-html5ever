@@ -1,6 +1,6 @@
 use crate::{
-  ChildNode, Comment, Document, DocumentFragment, DocumentType, Element, NodeHandler,
-  ParentContext, ParentNode, Text,
+  ChildNode, Comment, Document, DocumentFragment, DocumentType, Element,
+  NodeHandler, ParentContext, ParentNode, Text,
 };
 use napi::{
   bindgen_prelude::{Error, Reference, Result},
@@ -54,9 +54,13 @@ impl PartialEq for Node {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
       (Self::Comment(left), Self::Comment(right)) => left.id == right.id,
-      (Self::DocumentType(left), Self::DocumentType(right)) => left.id == right.id,
+      (Self::DocumentType(left), Self::DocumentType(right)) => {
+        left.id == right.id
+      }
       (Self::Document(left), Self::Document(right)) => left.id == right.id,
-      (Self::DocumentFragment(left), Self::DocumentFragment(right)) => left.id == right.id,
+      (Self::DocumentFragment(left), Self::DocumentFragment(right)) => {
+        left.id == right.id
+      }
       (Self::Element(left), Self::Element(right)) => left.id == right.id,
       (Self::Text(left), Self::Text(right)) => left.id == right.id,
       _ => false,
@@ -70,9 +74,13 @@ impl Clone for Node {
   fn clone(&self) -> Self {
     match self {
       Self::Comment(arg0) => Self::Comment(arg0.clone(arg0.env).unwrap()),
-      Self::DocumentType(arg0) => Self::DocumentType(arg0.clone(arg0.env).unwrap()),
+      Self::DocumentType(arg0) => {
+        Self::DocumentType(arg0.clone(arg0.env).unwrap())
+      }
       Self::Document(arg0) => Self::Document(arg0.clone(arg0.env).unwrap()),
-      Self::DocumentFragment(arg0) => Self::DocumentFragment(arg0.clone(arg0.env).unwrap()),
+      Self::DocumentFragment(arg0) => {
+        Self::DocumentFragment(arg0.clone(arg0.env).unwrap())
+      }
       Self::Element(arg0) => Self::Element(arg0.clone(arg0.env).unwrap()),
       Self::Text(arg0) => Self::Text(arg0.clone(arg0.env).unwrap()),
     }
@@ -80,8 +88,8 @@ impl Clone for Node {
 }
 
 enum AppendOrPrepend {
-  APPEND,
-  PREPEND,
+  Append,
+  Prepend,
 }
 
 impl Node {
@@ -95,7 +103,11 @@ impl Node {
     }
   }
 
-  fn append_or_prepend(&self, child_node: &ChildNode, mode: AppendOrPrepend) -> Result<()> {
+  fn append_or_prepend(
+    &self,
+    child_node: &ChildNode,
+    mode: AppendOrPrepend,
+  ) -> Result<()> {
     // remove from old parent
     let node_handler: NodeHandler = child_node.into();
 
@@ -108,14 +120,14 @@ impl Node {
 
     let node_handler: NodeHandler = self.into();
     match mode {
-      AppendOrPrepend::APPEND => node_handler.append_node(child_node),
-      AppendOrPrepend::PREPEND => node_handler.prepend_node(child_node),
+      AppendOrPrepend::Append => node_handler.append_node(child_node),
+      AppendOrPrepend::Prepend => node_handler.prepend_node(child_node),
     }
 
     let parent_node: ParentNode = self.into();
 
     let parent_context = Some(ParentContext::new(
-      node_handler.env.clone(),
+      node_handler.env,
       parent_node,
       node_handler.child_nodes_len() - 1,
     ));
@@ -126,11 +138,11 @@ impl Node {
   }
 
   pub(crate) fn append_node(&self, child_node: &ChildNode) -> Result<()> {
-    self.append_or_prepend(child_node, AppendOrPrepend::APPEND)
+    self.append_or_prepend(child_node, AppendOrPrepend::Append)
   }
 
   pub(crate) fn prepend_node(&self, child_node: &ChildNode) -> Result<()> {
-    self.append_or_prepend(child_node, AppendOrPrepend::PREPEND)
+    self.append_or_prepend(child_node, AppendOrPrepend::Prepend)
   }
 
   pub(crate) fn remove_node(&self, child_node: &ChildNode) -> Result<()> {

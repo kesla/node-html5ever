@@ -51,10 +51,9 @@ impl<T> CyclicReference<T> {
   }
 
   pub fn get(&self) -> Result<Reference<T>> {
-    self
-      .get_weak()
-      .upgrade(self.env)?
-      .ok_or_else(|| Error::from_reason("self reference is not available anymore".to_string()))
+    self.get_weak().upgrade(self.env)?.ok_or_else(|| {
+      Error::from_reason("self reference is not available anymore".to_string())
+    })
   }
 
   pub fn get_weak(&self) -> WeakReference<T> {

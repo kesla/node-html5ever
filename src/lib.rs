@@ -28,7 +28,9 @@ pub use iterators::*;
 pub use lazy_reference::LazyReference;
 pub use node::{ChildNode, Node, ParentNode};
 pub use node_handler::{NodeHandler, ParentContext};
-pub use nodes::{Comment, Document, DocumentFragment, DocumentType, Element, ElementRef, Text};
+pub use nodes::{
+  Comment, Document, DocumentFragment, DocumentType, Element, ElementRef, Text,
+};
 pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;
 pub use style_declaration::StyleDeclaration;

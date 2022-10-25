@@ -8,7 +8,10 @@ pub struct SelectorsIterator {
 }
 
 impl SelectorsIterator {
-  pub fn new(selectors: Selectors, iter: DeepChildNodesIterator<ElementRef>) -> Self {
+  pub fn new(
+    selectors: Selectors,
+    iter: DeepChildNodesIterator<ElementRef>,
+  ) -> Self {
     Self { selectors, iter }
   }
 }
@@ -17,7 +20,7 @@ impl Iterator for SelectorsIterator {
   type Item = Result<Reference<Element>>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    while let Some(element_ref) = self.iter.next() {
+    for element_ref in self.iter.by_ref() {
       match self.selectors.matches(&element_ref) {
         Ok(true) => return Some(Ok(element_ref.into())),
         Ok(false) => continue,

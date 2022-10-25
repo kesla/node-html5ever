@@ -11,13 +11,13 @@ use selectors::{
 use crate::{ChildNode, Element, ParentNode};
 
 pub struct ElementRef {
-  r: Reference<Element>,
+  inner: Reference<Element>,
 }
 
 impl Clone for ElementRef {
   fn clone(&self) -> Self {
     Self {
-      r: self.r.clone(self.r.env).unwrap(),
+      inner: self.inner.clone(self.inner.env).unwrap(),
     }
   }
 }
@@ -32,19 +32,19 @@ impl Deref for ElementRef {
   type Target = Element;
 
   fn deref(&self) -> &Self::Target {
-    self.r.deref()
+    self.inner.deref()
   }
 }
 
 impl Into<Reference<Element>> for ElementRef {
   fn into(self) -> Reference<Element> {
-    self.r
+    self.inner
   }
 }
 
 impl From<Reference<Element>> for ElementRef {
   fn from(r: Reference<Element>) -> Self {
-    ElementRef { r }
+    ElementRef { inner: r }
   }
 }
 
@@ -73,7 +73,7 @@ impl selectors::Element for ElementRef {
     self
       .get_parent_element()
       .unwrap()
-      .map(|r| r.upgrade(self.r.env).unwrap().unwrap().into())
+      .map(|r| r.upgrade(self.inner.env).unwrap().unwrap().into())
   }
 
   fn parent_node_is_shadow_root(&self) -> bool {
@@ -103,11 +103,17 @@ impl selectors::Element for ElementRef {
     self.name.ns == ns!(html)
   }
 
-  fn has_local_name(&self, local_name: &<Self::Impl as SelectorImpl>::BorrowedLocalName) -> bool {
+  fn has_local_name(
+    &self,
+    local_name: &<Self::Impl as SelectorImpl>::BorrowedLocalName,
+  ) -> bool {
     self.name.local == local_name.to_string()
   }
 
-  fn has_namespace(&self, ns: &<Self::Impl as SelectorImpl>::BorrowedNamespaceUrl) -> bool {
+  fn has_namespace(
+    &self,
+    ns: &<Self::Impl as SelectorImpl>::BorrowedNamespaceUrl,
+  ) -> bool {
     self.name.ns == ns.to_string()
   }
 
@@ -122,16 +128,18 @@ impl selectors::Element for ElementRef {
     operation: &AttrSelectorOperation<&<Self::Impl as SelectorImpl>::AttrValue>,
   ) -> bool {
     match ns {
-      NamespaceConstraint::Any => self
-        .attributes_wrapper
-        .iter()
-        .any(|attr| attr.name.local == local_name.to_string() && operation.eval_str(&attr.value)),
-
-      NamespaceConstraint::Specific(namespace_url) => self.attributes_wrapper.iter().any(|attr| {
-        attr.name.ns == namespace_url.to_string()
-          && attr.name.local == local_name.to_string()
+      NamespaceConstraint::Any => self.attributes_wrapper.iter().any(|attr| {
+        attr.name.local == local_name.to_string()
           && operation.eval_str(&attr.value)
       }),
+
+      NamespaceConstraint::Specific(namespace_url) => {
+        self.attributes_wrapper.iter().any(|attr| {
+          attr.name.ns == namespace_url.to_string()
+            && attr.name.local == local_name.to_string()
+            && operation.eval_str(&attr.value)
+        })
+      }
     }
   }
 

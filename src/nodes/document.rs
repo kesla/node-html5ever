@@ -23,13 +23,15 @@ impl Document {
 
     match node_handler.get_child_node::<Reference<Element>, Error>(0) {
       Some(r) => Ok(r),
-      None => match node_handler.try_get_child_node::<Reference<Element>, Error>(1) {
-        Ok(Some(e)) => Ok(e),
-        Ok(None) => Err(Error::from_reason(
-          "Document has no document Element (<html>)".to_string(),
-        )),
-        Err(e) => Err(e),
-      },
+      None => {
+        match node_handler.try_get_child_node::<Reference<Element>, Error>(1) {
+          Ok(Some(e)) => Ok(e),
+          Ok(None) => Err(Error::from_reason(
+            "Document has no document Element (<html>)".to_string(),
+          )),
+          Err(e) => Err(e),
+        }
+      }
     }
   }
 
