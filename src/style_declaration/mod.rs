@@ -2,7 +2,9 @@ mod properties;
 
 use napi::{bindgen_prelude::Reference, Env, Result};
 
-use crate::{to_css_camel_case, to_css_kebab_case};
+use crate::{
+  to_css_camel_case, to_css_kebab_case, CyclicReference, WithDataInBrackets,
+};
 
 #[derive(Debug)]
 struct Data {
@@ -14,21 +16,47 @@ struct Data {
 #[napi]
 pub struct StyleDeclaration {
   data: Vec<Data>,
+  env: Env,
+  cyclic_reference: CyclicReference<Self>,
+}
+
+impl WithDataInBrackets for StyleDeclaration {
+  #[inline]
+  fn raw_item(&self, index: usize) -> Option<String> {
+    self.data.get(index).map(|d| to_css_kebab_case(&d.property))
+  }
+
+  #[inline]
+  fn get_reference(&self) -> Result<Reference<Self>> {
+    self.cyclic_reference.get()
+  }
+
+  #[inline]
+  fn get_env(&self) -> Env {
+    self.env
+  }
 }
 
 #[napi]
 impl StyleDeclaration {
-  pub(crate) fn new(initial_value: Option<String>) -> Self {
-    let data = initial_value.map_or_else(Vec::new, string_to_data);
-    Self { data }
-  }
-
   pub(crate) fn new_reference(
     env: Env,
     initial_value: Option<String>,
   ) -> Result<Reference<Self>> {
-    let style_declaration = Self::new(initial_value);
-    Self::into_reference(style_declaration, env)
+    let data = initial_value.map_or_else(Vec::new, string_to_data);
+    let r = CyclicReference::<Self>::new_cyclic(env, |cyclic_reference| {
+      Self::into_reference(
+        Self {
+          data,
+          env,
+          cyclic_reference,
+        },
+        env,
+      )
+    })?;
+
+    r.clone(env)?.set_properties()?;
+    r.clone(env)
   }
 
   fn get_data_mut(&mut self, property: &String) -> Option<&mut Data> {
@@ -65,15 +93,17 @@ impl StyleDeclaration {
   }
 
   #[napi]
-  pub fn remove_property(&mut self, property: String) -> String {
+  pub fn remove_property(&mut self, property: String) -> Result<String> {
     let camel = to_css_camel_case(property);
 
     let pos = self.data.iter().position(|data| data.property == camel);
 
     if let Some(pos) = pos {
-      self.data.remove(pos).value
+      let result = self.data.remove(pos).value;
+      self.set_properties()?;
+      Ok(result)
     } else {
-      String::from("")
+      Ok(String::from(""))
     }
   }
 
@@ -83,7 +113,7 @@ impl StyleDeclaration {
     property: String,
     value: String,
     priority: Option<String>,
-  ) {
+  ) -> Result<()> {
     let important = priority.map_or(false, |priority| priority == "important");
 
     match self.get_data_mut(&property) {
@@ -98,7 +128,9 @@ impl StyleDeclaration {
           important,
         });
       }
-    }
+    };
+
+    self.set_properties()
   }
 
   #[napi(getter)]
@@ -120,8 +152,9 @@ impl StyleDeclaration {
   }
 
   #[napi(setter)]
-  pub fn set_css_text(&mut self, css_text: String) {
+  pub fn set_css_text(&mut self, css_text: String) -> Result<()> {
     self.data = string_to_data(css_text);
+    self.set_properties()
   }
 
   #[napi(getter)]
@@ -130,8 +163,15 @@ impl StyleDeclaration {
   }
 
   #[napi(setter)]
-  pub fn set_css_float(&mut self, value: String) {
-    self.set_property("cssFloat".to_string(), value, None);
+  pub fn set_css_float(&mut self, value: String) -> Result<()> {
+    self.set_property("cssFloat".to_string(), value, None)
+  }
+
+  #[napi]
+  pub fn item(&self, index: i64) -> Option<String> {
+    usize::try_from(index)
+      .ok()
+      .and_then(|index| self.raw_item(index))
   }
 
   #[napi(getter)]

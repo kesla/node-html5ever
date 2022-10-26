@@ -662,10 +662,10 @@ test(".style", (t) => {
       "cssText"
     );
     t.strictSame(div.style.length, 2, "length");
-    // t.strictSame(div.style.item(0), "font-size");
-    // t.strictSame(div.style[0], "font-size");
-    // t.strictSame(div.style.item(1), "-webkit-text-stroke-width");
-    // t.strictSame(div.style[1], "-webkit-text-stroke-width");
+    t.strictSame(div.style.item(0), "font-size");
+    t.strictSame(div.style[0], "font-size");
+    t.strictSame(div.style.item(1), "-webkit-text-stroke-width");
+    t.strictSame(div.style[1], "-webkit-text-stroke-width");
     t.strictSame(
       div.style.getPropertyValue("font-size"),
       "14px",
@@ -684,5 +684,22 @@ test(".style", (t) => {
 
     t.strictSame(div.style.length, 0, "length");
     t.strictSame(div.style.cssText, "", "cssText");
+  });
+
+  t.test("set", (t) => {
+    const div = createDiv();
+    div.style.fontSize = "12px";
+    div.style.fontWeight = "400";
+    div.style.webkitTextStrokeWidth = null;
+
+    t.strictSame(div.style.fontSize, "12px", "fontSize");
+    t.strictSame(div.style.fontWeight, "400", "fontWeight");
+    t.strictSame(div.style.webkitTextStrokeWidth, "", "webkitTextStrokeWidth");
+    t.strictSame(div.style.length, 2, "length");
+    t.strictSame(div.style.item(0), "font-size");
+    t.strictSame(div.style[0], "font-size");
+    t.strictSame(div.style.item(1), "font-weight");
+    t.strictSame(div.style[1], "font-weight");
+    t.strictSame(div.style.cssText, "font-size: 12px; font-weight: 400;");
   });
 });

@@ -19,6 +19,7 @@ mod quirks_mode;
 mod selectors;
 mod serializer;
 mod style_declaration;
+mod traits;
 
 pub use crate::selectors::Selectors;
 pub use case::*;
@@ -36,3 +37,4 @@ pub use nodes::{
 pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;
 pub use style_declaration::StyleDeclaration;
+pub use traits::*;

@@ -12,8 +12,13 @@ macro_rules! impl_style_getters_and_setters {
             }
 
             #[napi(setter)]
-            pub fn [<set_ $field:snake>](&mut self, value: String) {
-              self.set_property(stringify!($field).into(), value.into(), None);
+            pub fn [<set_ $field:snake>](&mut self, value: Option<String>) -> napi::Result<()> {
+              if let Some(value) = value {
+                self.set_property(stringify!($field).into(), value, None)
+              } else {
+                self.remove_property(stringify!($field).into())?;
+                Ok(())
+              }
             }
           )*
         }

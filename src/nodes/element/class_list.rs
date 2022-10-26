@@ -1,9 +1,9 @@
 use napi::{
-  bindgen_prelude::{Object, Reference, ToNapiValue, WeakReference},
-  Env, Error, JsString, NapiValue, Result,
+  bindgen_prelude::{Reference, WeakReference},
+  Env, Error, Result,
 };
 
-use crate::{CyclicReference, Element};
+use crate::{CyclicReference, Element, WithDataInBrackets};
 
 #[napi]
 pub struct ClassList {
@@ -11,6 +11,23 @@ pub struct ClassList {
   owner: WeakReference<Element>,
   env: Env,
   cyclic_reference: CyclicReference<Self>,
+}
+
+impl WithDataInBrackets for ClassList {
+  #[inline]
+  fn raw_item(&self, index: usize) -> Option<String> {
+    self.list.get(index).cloned()
+  }
+
+  #[inline]
+  fn get_reference(&self) -> Result<Reference<Self>> {
+    self.cyclic_reference.get()
+  }
+
+  #[inline]
+  fn get_env(&self) -> Env {
+    self.env
+  }
 }
 
 #[napi]
@@ -37,33 +54,6 @@ impl ClassList {
     r.clone(env)
   }
 
-  fn set_properties(&self) -> Result<()> {
-    let val = self.cyclic_reference.get()?;
-
-    let mut this = unsafe {
-      let ptr = <Reference<ClassList> as ToNapiValue>::to_napi_value(
-        self.env.raw(),
-        val,
-      )?;
-      Object::from_raw(self.env.raw(), ptr)?
-    };
-
-    let mut index: u32 = 0;
-    loop {
-      if let Some(s) = self.list.get(index as usize) {
-        let value: JsString = self.env.create_string(s)?;
-        this.set_element(index, value)?;
-      } else if this.has_element(index)? {
-        this.delete_element(index)?;
-      } else {
-        break;
-      }
-      index += 1;
-    }
-
-    Ok(())
-  }
-
   fn sync(&self, value: &str) -> Result<()> {
     self.set_properties()?;
 
@@ -88,7 +78,7 @@ impl ClassList {
   pub fn item(&self, index: i64) -> Option<String> {
     usize::try_from(index)
       .ok()
-      .and_then(|index| self.list.get(index).cloned())
+      .and_then(|index| self.raw_item(index))
   }
 
   #[napi]
