@@ -31,7 +31,7 @@ pub fn to_css_kebab_case<T: AsRef<str>>(input: T) -> String {
     iter.nth(5);
   }
 
-  while let Some(char) = iter.next() {
+  for char in iter {
     if char.is_ascii_uppercase() {
       result.push('-');
       result.push(char.to_ascii_lowercase());

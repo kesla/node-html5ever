@@ -189,10 +189,9 @@ fn string_to_data(css_text: String) -> Vec<Data> {
 
         let (property, value): (String, String) =
           match (parts.next(), parts.next(), parts.next()) {
-            (Some(property), Some(value), None) => (
-              to_css_camel_case(property.trim().to_string()),
-              value.trim().to_string(),
-            ),
+            (Some(property), Some(value), None) => {
+              (to_css_camel_case(property.trim()), value.trim().to_string())
+            }
             _ => return None,
           };
 
