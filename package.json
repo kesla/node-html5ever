@@ -40,7 +40,7 @@
     "build": "yarn _build --release && yarn merge-dts",
     "build:debug": "yarn _build && yarn merge-dts",
     "build:json-debug": "yarn _build --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
-    "merge-dts": "mkdir -p /tmp/node-html5ever/ && cat types/additional.d.ts types/generated.d.ts > /tmp/node-html5ever/index.d.ts && mv /tmp/node-html5ever/index.d.ts ./index.d.ts",
+    "merge-dts": "cat types/additional.d.ts types/generated.d.ts > index.d.ts",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "yarn build:debug && tap",
     "test:update": "yarn build:debug && tap --snapshot",
