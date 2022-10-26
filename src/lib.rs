@@ -1,12 +1,10 @@
 #[macro_use]
-extern crate lazy_static;
-
-#[macro_use]
 extern crate napi_derive;
 
 #[macro_use]
 extern crate node_html5ever_derive;
 
+mod case;
 mod cyclic_reference;
 mod dom;
 mod einar_cell;
@@ -23,6 +21,7 @@ mod serializer;
 mod style_declaration;
 
 pub use crate::selectors::Selectors;
+pub use case::*;
 pub use cyclic_reference::CyclicReference;
 pub use dom::Html5everDom;
 pub use einar_cell::EinarCell;

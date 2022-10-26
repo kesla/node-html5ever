@@ -41,7 +41,7 @@
     "build:json-debug": "yarn _build --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
     "merge-dts": "cat types/additional.d.ts types/generated.d.ts > index.d.ts",
     "prepublishOnly": "napi prepublish -t npm",
-    "test": "yarn build:debug && tap",
+    "test": "cargo test && yarn build:debug && tap",
     "test:update": "yarn build:debug && tap --snapshot",
     "version": "napi version",
     "watch:test": "nodemon --exec \"yarn test\"",
