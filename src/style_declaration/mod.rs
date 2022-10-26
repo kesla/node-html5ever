@@ -1,7 +1,14 @@
 mod properties;
 
-use convert_case::{Case, Casing};
+use convert_case::{Case, Converter as CaseConverter};
 use napi::{bindgen_prelude::Reference, Env, Result};
+
+lazy_static! {
+  static ref TO_CAMEL_CASE: CaseConverter =
+    CaseConverter::new().to_case(Case::Camel);
+  static ref TO_KEBAB_CASE: CaseConverter =
+    CaseConverter::new().to_case(Case::Kebab);
+}
 
 #[derive(Debug)]
 struct Data {
@@ -31,13 +38,13 @@ impl StyleDeclaration {
   }
 
   fn get_data_mut(&mut self, property: &String) -> Option<&mut Data> {
-    let property = property.to_case(Case::Camel);
+    let property = TO_CAMEL_CASE.convert(property);
 
     self.data.iter_mut().find(|data| data.property == property)
   }
 
   fn get_data(&self, property: &String) -> Option<&Data> {
-    let property = property.to_case(Case::Camel);
+    let property = TO_CAMEL_CASE.convert(property);
 
     self.data.iter().find(|data| data.property == property)
   }
@@ -65,12 +72,9 @@ impl StyleDeclaration {
 
   #[napi]
   pub fn remove_property(&mut self, property: String) -> String {
-    let camel = property.to_case(Case::Camel);
+    let camel = TO_CAMEL_CASE.convert(property);
 
-    let pos = self
-      .data
-      .iter()
-      .position(|data| data.property == property || data.property == camel);
+    let pos = self.data.iter().position(|data| data.property == camel);
 
     if let Some(pos) = pos {
       self.data.remove(pos).value
@@ -95,7 +99,7 @@ impl StyleDeclaration {
       }
       None => {
         self.data.push(Data {
-          property: property.to_case(Case::Camel),
+          property: TO_CAMEL_CASE.convert(property),
           value,
           important,
         });
@@ -109,7 +113,7 @@ impl StyleDeclaration {
       .data
       .iter()
       .map(|data| {
-        let mut property = data.property.to_case(Case::Kebab);
+        let mut property = TO_KEBAB_CASE.convert(&data.property);
 
         if property.starts_with("webkit") {
           property = "-webkit".to_owned() + &property[6..];
@@ -156,7 +160,7 @@ fn string_to_data(css_text: String) -> Vec<Data> {
         let (property, value): (String, String) =
           match (parts.next(), parts.next(), parts.next()) {
             (Some(property), Some(value), None) => (
-              property.trim().to_case(Case::Camel),
+              TO_CAMEL_CASE.convert(property.trim().to_string()),
               value.trim().to_string(),
             ),
             _ => return None,
