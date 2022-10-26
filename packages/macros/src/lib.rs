@@ -12,10 +12,11 @@ struct Features {
 #[proc_macro_attribute]
 pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
   let mut features: Features = Default::default();
-  for f in syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated
-    .parse(args)
-    .unwrap()
-    .into_iter()
+  for f in
+    syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated
+      .parse(args)
+      .unwrap()
+      .into_iter()
   {
     match f.get_ident().unwrap().to_string().as_str() {
       "has_children" => features.has_children = true,
@@ -52,12 +53,14 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
     true => quote!(
       #[napi(getter)]
       pub fn get_child_nodes(&self) -> Vec<crate::ChildNode> {
-        macro_backend::children::children(self.into())
+        macro_backend::has_children::children(self.into())
       }
 
       #[napi(getter)]
-      pub fn get_children(&self) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::children(self.into())
+      pub fn get_children(
+        &self,
+      ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
+        macro_backend::has_children::children(self.into())
       }
 
       #[napi]
@@ -65,7 +68,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         child_node_or_text: napi::Either<crate::ChildNode, String>,
       ) -> napi::Result<()> {
-        macro_backend::children::append(self.env, self.into(), child_node_or_text.into())
+        macro_backend::has_children::append(
+          self.env,
+          self.into(),
+          child_node_or_text.into(),
+        )
       }
 
       #[napi]
@@ -73,7 +80,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         child_node_or_text: napi::Either<crate::ChildNode, String>,
       ) -> napi::Result<()> {
-        macro_backend::children::prepend(self.env, self.into(), child_node_or_text.into())
+        macro_backend::has_children::prepend(
+          self.env,
+          self.into(),
+          child_node_or_text.into(),
+        )
       }
 
       #[napi(
@@ -81,8 +92,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         ts_args_type = "child: T",
         ts_return_type = "T"
       )]
-      pub fn append_child(&self, child: crate::ChildNode) -> napi::Result<crate::ChildNode> {
-        macro_backend::children::append_child(self.into(), child.into())
+      pub fn append_child(
+        &self,
+        child: crate::ChildNode,
+      ) -> napi::Result<crate::ChildNode> {
+        macro_backend::has_children::append_child(self.into(), child.into())
       }
 
       #[napi(
@@ -90,8 +104,11 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         ts_args_type = "child: T",
         ts_return_type = "T"
       )]
-      pub fn remove_child(&self, child: crate::ChildNode) -> napi::Result<crate::ChildNode> {
-        macro_backend::children::remove_child(self.into(), child.into())
+      pub fn remove_child(
+        &self,
+        child: crate::ChildNode,
+      ) -> napi::Result<crate::ChildNode> {
+        macro_backend::has_children::remove_child(self.into(), child.into())
       }
 
       #[napi]
@@ -99,7 +116,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         id: String,
       ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::get_element_by_id(self.into(), id)
+        macro_backend::has_children::get_element_by_id(self.into(), id)
       }
 
       #[napi]
@@ -107,7 +124,10 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         class_name: String,
       ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::get_elements_by_class_name(self.into(), class_name)
+        macro_backend::has_children::get_elements_by_class_name(
+          self.into(),
+          class_name,
+        )
       }
 
       #[napi]
@@ -115,47 +135,52 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
         &self,
         qualified_name: String,
       ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::get_elements_by_tag_name(self.into(), qualified_name)
+        macro_backend::has_children::get_elements_by_tag_name(
+          self.into(),
+          qualified_name,
+        )
       }
 
       #[napi]
       pub fn query_selector(
         &self,
         selectors: String,
-      ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::children::query_selector(self.into(), selectors)
+      ) -> napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>>
+      {
+        macro_backend::has_children::query_selector(self.into(), selectors)
       }
 
       #[napi]
       pub fn query_selector_all(
         &self,
         selectors: String,
-      ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::children::query_selector_all(self.into(), selectors)
+      ) -> napi::Result<Vec<napi::bindgen_prelude::Reference<crate::Element>>>
+      {
+        macro_backend::has_children::query_selector_all(self.into(), selectors)
       }
 
       #[napi(getter)]
       pub fn get_first_child(&self) -> Option<crate::ChildNode> {
-        macro_backend::children::first_child(self.into())
+        macro_backend::has_children::first_child(self.into())
       }
 
       #[napi(getter)]
       pub fn get_first_element_child(
         &self,
       ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::first_child(self.into())
+        macro_backend::has_children::first_child(self.into())
       }
 
       #[napi(getter)]
       pub fn get_last_child(&self) -> Option<crate::ChildNode> {
-        macro_backend::children::last_child(self.into())
+        macro_backend::has_children::last_child(self.into())
       }
 
       #[napi(getter)]
       pub fn get_last_element_child(
         &self,
       ) -> Option<napi::bindgen_prelude::Reference<crate::Element>> {
-        macro_backend::children::last_child(self.into())
+        macro_backend::has_children::last_child(self.into())
       }
     ),
     false => quote!(),
@@ -166,49 +191,49 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
       #[napi(getter)]
       pub fn get_parent_element(&self) ->
           napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
-        macro_backend::parent::parent(self.into())
+        macro_backend::is_child::parent(self.into())
       }
 
       #[napi(getter)]
       pub fn get_parent_node(&self) ->
           napi::Result<Option<crate::ParentNode>> {
-        macro_backend::parent::parent(self.into())
+        macro_backend::is_child::parent(self.into())
       }
 
       #[napi(getter)]
       pub fn get_owner_document(
         &self,
       ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
-        macro_backend::parent::parent(self.into())
+        macro_backend::is_child::parent(self.into())
       }
 
       #[napi]
       pub fn remove(&self) -> napi::Result<()> {
-        macro_backend::parent::remove(self.into())
+        macro_backend::is_child::remove(self.into())
       }
 
       #[napi(getter)]
       pub fn get_previous_sibling(&self) ->
         napi::Result<Option<crate::ChildNode>> {
-        macro_backend::parent::previous(self.into())
+        macro_backend::is_child::previous(self.into())
       }
 
       #[napi(getter)]
       pub fn get_previous_element_sibling(&self) ->
         napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::parent::previous(self.into())
+        macro_backend::is_child::previous(self.into())
       }
 
       #[napi(getter)]
       pub fn get_next_sibling(&self) ->
         napi::Result<Option<crate::ChildNode>> {
-        macro_backend::parent::next(self.into())
+        macro_backend::is_child::next(self.into())
       }
 
       #[napi(getter)]
       pub fn get_next_element_sibling(&self) ->
         napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-        macro_backend::parent::next(self.into())
+        macro_backend::is_child::next(self.into())
       }
     },
     false => quote! {},
@@ -258,7 +283,7 @@ pub fn create_node(args: TokenStream, input: TokenStream) -> TokenStream {
 
       #[napi(getter)]
       pub fn get_node_name(&self) -> String {
-        crate::macro_backend::get_node_name(self.into())
+        crate::macro_backend::all::get_node_name(self.into())
       }
 
       #is_child_impl
