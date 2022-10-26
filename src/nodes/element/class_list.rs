@@ -50,7 +50,6 @@ impl ClassList {
     })?;
 
     r.clone(env)?.set_properties()?;
-
     r.clone(env)
   }
 

@@ -61,6 +61,15 @@ impl Element {
       }
     }
 
+    if name == *"style" {
+      if let Some(style) = &mut self.lazy_style.get_mut() {
+        // attribute is set in StyleDeclaration::set_css_text
+        style.set_css_text(value)?;
+
+        return Ok(());
+      }
+    }
+
     self
       .attributes_wrapper
       .set_attribute(LocalName::from(name), value.into());
@@ -85,11 +94,14 @@ impl Element {
   }
 
   #[napi(getter)]
-  pub fn get_style(&mut self) -> Result<Reference<StyleDeclaration>> {
+  pub fn get_style(
+    &mut self,
+    element: Reference<Element>,
+  ) -> Result<Reference<StyleDeclaration>> {
     let initial_value = self.get_attribute("style".to_string());
-    self
-      .lazy_style
-      .get_or_init(|| StyleDeclaration::new_reference(self.env, initial_value))
+    self.lazy_style.get_or_init(|| {
+      StyleDeclaration::new(element.downgrade(), self.env, initial_value)
+    })
   }
 
   #[napi(getter)]

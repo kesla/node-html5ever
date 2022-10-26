@@ -661,11 +661,18 @@ test(".style", (t) => {
       "font-size: 14px; -webkit-text-stroke-width: 12px;",
       "cssText"
     );
+    t.strictSame(
+      div.getAttribute("style"),
+      "font-size: 14px; -webkit-text-stroke-width: 12px",
+      "getAttribute is unchanged from input"
+    );
     t.strictSame(div.style.length, 2, "length");
     t.strictSame(div.style.item(0), "font-size");
     t.strictSame(div.style[0], "font-size");
     t.strictSame(div.style.item(1), "-webkit-text-stroke-width");
     t.strictSame(div.style[1], "-webkit-text-stroke-width");
+    t.strictSame(div.style.item(2), null);
+    t.strictSame(div.style[2], undefined);
     t.strictSame(
       div.style.getPropertyValue("font-size"),
       "14px",
@@ -683,7 +690,10 @@ test(".style", (t) => {
     div.style.cssText = "font:; : red";
 
     t.strictSame(div.style.length, 0, "length");
+    t.strictSame(div.style.item(0), null);
+    t.strictSame(div.style[0], undefined);
     t.strictSame(div.style.cssText, "", "cssText");
+    t.strictSame(div.getAttribute("style"), "", "getAttribute");
   });
 
   t.test("set", (t) => {
@@ -700,6 +710,37 @@ test(".style", (t) => {
     t.strictSame(div.style[0], "font-size");
     t.strictSame(div.style.item(1), "font-weight");
     t.strictSame(div.style[1], "font-weight");
+    t.strictSame(div.style.item(2), null);
+    t.strictSame(div.style[2], undefined);
     t.strictSame(div.style.cssText, "font-size: 12px; font-weight: 400;");
+    t.strictSame(
+      div.getAttribute("style"),
+      "font-size: 12px; font-weight: 400;"
+    );
+  });
+
+  t.test(".setAttribte", (t) => {
+    const div = createDiv();
+    div.setAttribute("style", "font-size: 9px; font-weight: 100");
+
+    t.strictSame(div.style.fontSize, "9px", "fontSize");
+    t.strictSame(div.style.fontWeight, "100", "fontWeight");
+    t.strictSame(div.style.length, 2, "length");
+    t.strictSame(div.style.item(0), "font-size");
+    t.strictSame(div.style[0], "font-size");
+    t.strictSame(div.style.item(1), "font-weight");
+    t.strictSame(div.style[1], "font-weight");
+    t.strictSame(div.style.item(2), null);
+    t.strictSame(div.style[2], undefined);
+    t.strictSame(div.style.cssText, "font-size: 9px; font-weight: 100;");
+
+    div.setAttribute("style", "background-color: red");
+    t.strictSame(div.style.backgroundColor, "red", "backgroundColor");
+    t.strictSame(div.style.length, 1, "length");
+    t.strictSame(div.style.item(0), "background-color");
+    t.strictSame(div.style[0], "background-color");
+    t.strictSame(div.style.item(1), null);
+    t.strictSame(div.style[1], undefined);
+    t.strictSame(div.style.cssText, "background-color: red;");
   });
 });

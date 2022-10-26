@@ -1,9 +1,13 @@
 mod properties;
 
-use napi::{bindgen_prelude::Reference, Env, Result};
+use napi::{
+  bindgen_prelude::{Reference, WeakReference},
+  Env, Error, Result,
+};
 
 use crate::{
-  to_css_camel_case, to_css_kebab_case, CyclicReference, WithDataInBrackets,
+  to_css_camel_case, to_css_kebab_case, CyclicReference, Element,
+  WithDataInBrackets,
 };
 
 #[derive(Debug)]
@@ -15,7 +19,8 @@ struct Data {
 
 #[napi]
 pub struct StyleDeclaration {
-  data: Vec<Data>,
+  list: Vec<Data>,
+  owner: WeakReference<Element>,
   env: Env,
   cyclic_reference: CyclicReference<Self>,
 }
@@ -23,7 +28,7 @@ pub struct StyleDeclaration {
 impl WithDataInBrackets for StyleDeclaration {
   #[inline]
   fn raw_item(&self, index: usize) -> Option<String> {
-    self.data.get(index).map(|d| to_css_kebab_case(&d.property))
+    self.list.get(index).map(|d| to_css_kebab_case(&d.property))
   }
 
   #[inline]
@@ -39,16 +44,17 @@ impl WithDataInBrackets for StyleDeclaration {
 
 #[napi]
 impl StyleDeclaration {
-  pub(crate) fn new_reference(
+  pub(crate) fn new(
+    owner: WeakReference<Element>,
     env: Env,
     initial_value: Option<String>,
   ) -> Result<Reference<Self>> {
-    let data = initial_value.map_or_else(Vec::new, string_to_data);
     let r = CyclicReference::<Self>::new_cyclic(env, |cyclic_reference| {
       Self::into_reference(
         Self {
-          data,
+          owner,
           env,
+          list: initial_value.map_or_else(Vec::new, string_to_data),
           cyclic_reference,
         },
         env,
@@ -59,16 +65,31 @@ impl StyleDeclaration {
     r.clone(env)
   }
 
+  fn sync(&self, value: &str) -> Result<()> {
+    self.set_properties()?;
+
+    self.owner.upgrade(self.env)?.map_or_else(
+      || Err(Error::from_reason("Element not found")),
+      |mut owner| {
+        owner
+          .attributes_wrapper
+          .set_attribute("style".into(), value.into());
+
+        Ok(())
+      },
+    )
+  }
+
   fn get_data_mut(&mut self, property: &String) -> Option<&mut Data> {
     let property = to_css_camel_case(property);
 
-    self.data.iter_mut().find(|data| data.property == property)
+    self.list.iter_mut().find(|data| data.property == property)
   }
 
   fn get_data(&self, property: &String) -> Option<&Data> {
     let property = to_css_camel_case(property);
 
-    self.data.iter().find(|data| data.property == property)
+    self.list.iter().find(|data| data.property == property)
   }
 
   #[napi]
@@ -96,11 +117,11 @@ impl StyleDeclaration {
   pub fn remove_property(&mut self, property: String) -> Result<String> {
     let camel = to_css_camel_case(property);
 
-    let pos = self.data.iter().position(|data| data.property == camel);
+    let pos = self.list.iter().position(|data| data.property == camel);
 
     if let Some(pos) = pos {
-      let result = self.data.remove(pos).value;
-      self.set_properties()?;
+      let result = self.list.remove(pos).value;
+      self.sync(&self.get_css_text())?;
       Ok(result)
     } else {
       Ok(String::from(""))
@@ -122,7 +143,7 @@ impl StyleDeclaration {
         data.important = important;
       }
       None => {
-        self.data.push(Data {
+        self.list.push(Data {
           property: to_css_camel_case(property),
           value,
           important,
@@ -130,13 +151,13 @@ impl StyleDeclaration {
       }
     };
 
-    self.set_properties()
+    self.sync(&self.get_css_text())
   }
 
   #[napi(getter)]
   pub fn get_css_text(&self) -> String {
     self
-      .data
+      .list
       .iter()
       .map(|data| {
         let property = to_css_kebab_case(&data.property);
@@ -153,8 +174,8 @@ impl StyleDeclaration {
 
   #[napi(setter)]
   pub fn set_css_text(&mut self, css_text: String) -> Result<()> {
-    self.data = string_to_data(css_text);
-    self.set_properties()
+    self.list = string_to_data(css_text);
+    self.sync(&self.get_css_text())
   }
 
   #[napi(getter)]
@@ -176,7 +197,7 @@ impl StyleDeclaration {
 
   #[napi(getter)]
   pub fn get_length(&self) -> u32 {
-    self.data.len() as u32
+    self.list.len() as u32
   }
 }
 
