@@ -21,18 +21,20 @@ where
 
     let mut index: u32 = 0;
     loop {
+      let name = &index.to_string();
       if let Some(ref s) = self.raw_item(index as usize) {
         let value: JsString = env.create_string(s)?;
-        // this.set_element(index, value)?;
-        let property = Property::new(&index.to_string())?
+        let property = Property::new(name)?
           .with_value(&value)
           .with_property_attributes(napi::PropertyAttributes::Configurable);
+
         this.define_properties(&[property])?;
-      } else if this.has_element(index)? {
-        this.delete_element(index)?;
+      } else if this.has_named_property(name)? {
+        this.delete_named_property(name)?;
       } else {
         break;
       }
+
       index += 1;
     }
 
