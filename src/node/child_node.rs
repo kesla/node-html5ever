@@ -180,17 +180,16 @@ macro_rules! impl_into_from {
             }
         }
 
-        impl TryInto<Reference<$type>> for ChildNode {
+        impl TryFrom<ChildNode> for Reference<$type> {
             type Error = Error;
 
-            fn try_into(self) -> Result<Reference<$type>> {
-                match self {
+            fn try_from(value: ChildNode) -> Result<Self> {
+                match value {
                     ChildNode::$variant(r) => Ok(r),
                     _ => Err(Error::new(
                         Status::InvalidArg,
                         format!(
-                            "Could not convert {:?} to {}",
-                            self,
+                            "Could not convert ChildNode to {}",
                             stringify!($type)
                         ),
                     )),

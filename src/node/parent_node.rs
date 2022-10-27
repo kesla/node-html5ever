@@ -100,17 +100,16 @@ macro_rules! impl_from {
             }
         }
 
-        impl TryInto<WeakReference<$type>> for ParentNode {
+        impl TryFrom<ParentNode> for WeakReference<$type> {
             type Error = Error;
 
-            fn try_into(self) -> Result<WeakReference<$type>> {
-                match self {
+            fn try_from(value: ParentNode) -> Result<WeakReference<$type>> {
+                match value {
                     ParentNode::$variant(r) => Ok(r),
                     _ => Err(Error::new(
                         Status::InvalidArg,
                         format!(
-                            "Could not convert {:?} to {}",
-                            self,
+                            "Could not convert ParentNode to {}",
                             stringify!($type)
                         ),
                     )),
@@ -141,24 +140,22 @@ impl From<&Node> for ParentNode {
     }
 }
 
-impl TryInto<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>
-    for ParentNode
+impl TryFrom<ParentNode>
+    for Either<WeakReference<Document>, WeakReference<DocumentFragment>>
 {
     type Error = Error;
 
-    fn try_into(
-        self
+    fn try_from(
+        value: ParentNode
     ) -> Result<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>
     {
-        match self {
+        match value {
             ParentNode::Document(r) => Ok(Either::A(r)),
             ParentNode::DocumentFragment(r) => Ok(Either::B(r)),
             _ => Err(Error::new(
                 Status::InvalidArg,
-                format!(
-                    "Could not convert {:?} to Document or DocumentFragment",
-                    self
-                ),
+                "Could not convert ParentNode to Document or DocumentFragment"
+                    .to_string(),
             )),
         }
     }
