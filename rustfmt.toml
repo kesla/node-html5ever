@@ -1,3 +1,12 @@
-tab_spaces = 2
+tab_spaces = 4
 edition = "2021"
 max_width = 80
+fn_args_layout = "Vertical"
+format_macro_matchers = true
+imports_layout = "Vertical"
+match_block_trailing_comma = true
+imports_granularity = "Crate"
+reorder_impl_items = true
+group_imports = "StdExternalCrate"
+struct_lit_single_line = false
+use_field_init_shorthand= true

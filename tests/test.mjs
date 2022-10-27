@@ -1,14 +1,14 @@
 import tap from "tap";
 
 import {
-  Html5EverDom,
-  QuirksMode,
-  Element,
-  Document,
-  DocumentFragment,
-  Comment,
-  Text,
-  DocumentType,
+    Html5EverDom,
+    QuirksMode,
+    Element,
+    Document,
+    DocumentFragment,
+    Comment,
+    Text,
+    DocumentType,
 } from "../index.js";
 
 /**
@@ -17,754 +17,761 @@ import {
  * @param {(t:Tap.Test) => void} fn
  */
 const test = (name, fn) => {
-  tap.test(name, (t) => {
-    // @ts-ignore
-    t.test = test;
+    tap.test(name, (t) => {
+        // @ts-ignore
+        t.test = test;
 
-    fn(t);
-    t.end();
-  });
+        fn(t);
+        t.end();
+    });
 };
 
 test("parse works", (t) => {
-  let dom = new Html5EverDom("<html></html>");
-  t.ok(dom);
-  t.matchSnapshot(dom, "dom");
-  t.matchSnapshot(dom.serialize(), ".serialize()");
-  t.matchSnapshot(dom.document, ".document");
-  t.strictSame(dom.document.nodeName, "#document");
-  t.strictSame(dom.quirksMode, QuirksMode.Quirks, "Correct quirks mode");
-  t.strictSame(dom.document.docType, null, ".document.docType is not set");
+    let dom = new Html5EverDom("<html></html>");
+    t.ok(dom);
+    t.matchSnapshot(dom, "dom");
+    t.matchSnapshot(dom.serialize(), ".serialize()");
+    t.matchSnapshot(dom.document, ".document");
+    t.strictSame(dom.document.nodeName, "#document");
+    t.strictSame(dom.quirksMode, QuirksMode.Quirks, "Correct quirks mode");
+    t.strictSame(dom.document.docType, null, ".document.docType is not set");
 
-  t.strictSame(
-    dom.document instanceof Document,
-    true,
-    ".document is a Document"
-  );
+    t.strictSame(
+        dom.document instanceof Document,
+        true,
+        ".document is a Document",
+    );
 });
 
 test("doc type / Quirks mode", (t) => {
-  let dom = new Html5EverDom("<!DOCTYPE html><html></html>");
-  t.ok(dom);
-  t.strictSame(dom.quirksMode, QuirksMode.NoQuirks, "Correct quircks mode");
-  t.ok(dom.document.docType, ".document.docType is truthy");
-  t.strictSame(dom.document.docType?.name, "html");
-  t.strictSame(dom.document.docType?.publicId, "");
-  t.strictSame(dom.document.docType?.systemId, "");
-  t.matchSnapshot(dom.serialize(), ".serialize()");
+    let dom = new Html5EverDom("<!DOCTYPE html><html></html>");
+    t.ok(dom);
+    t.strictSame(dom.quirksMode, QuirksMode.NoQuirks, "Correct quircks mode");
+    t.ok(dom.document.docType, ".document.docType is truthy");
+    t.strictSame(dom.document.docType?.name, "html");
+    t.strictSame(dom.document.docType?.publicId, "");
+    t.strictSame(dom.document.docType?.systemId, "");
+    t.matchSnapshot(dom.serialize(), ".serialize()");
 
-  let dom2 = new Html5EverDom(`
+    let dom2 = new Html5EverDom(`
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   `);
-  t.ok(dom2.document.docType, ".document.docType is truthy");
-  t.strictSame(dom2.document.docType?.name, "html");
-  t.strictSame(
-    dom2.document.docType?.publicId,
-    "-//W3C//DTD HTML 4.01 Transitional//EN"
-  );
-  t.strictSame(
-    dom2.document.docType?.systemId,
-    "http://www.w3.org/TR/html4/loose.dtd"
-  );
+    t.ok(dom2.document.docType, ".document.docType is truthy");
+    t.strictSame(dom2.document.docType?.name, "html");
+    t.strictSame(
+        dom2.document.docType?.publicId,
+        "-//W3C//DTD HTML 4.01 Transitional//EN",
+    );
+    t.strictSame(
+        dom2.document.docType?.systemId,
+        "http://www.w3.org/TR/html4/loose.dtd",
+    );
 });
 
 test(".document is initiated once", (t) => {
-  let dom = new Html5EverDom("");
-  let document1 = dom.document;
-  let document2 = dom.document;
-  t.strictSame(document1, document2);
+    let dom = new Html5EverDom("");
+    let document1 = dom.document;
+    let document2 = dom.document;
+    t.strictSame(document1, document2);
 });
 
 test("element", (t) => {
-  let dom = new Html5EverDom(
-    `<!DOCTYPE html>
+    let dom = new Html5EverDom(
+        `<!DOCTYPE html>
     <html id="main">
       <body class="foo"><div>Body content</div></body>
-    </html>`
-  );
-  let document = dom.document;
+    </html>`,
+    );
+    let document = dom.document;
 
-  let { documentElement: html, head, body } = document;
-  let { documentElement: html2, head: head2, body: body2 } = document;
+    let { documentElement: html, head, body } = document;
+    let { documentElement: html2, head: head2, body: body2 } = document;
 
-  t.strictSame(html.tagName, "HTML");
-  t.strictSame(html.getAttribute("id"), "main");
-  t.strictSame(body.tagName, "BODY");
-  t.strictSame(body.nodeName, "BODY");
-  t.strictSame(body.getAttribute("class"), "foo");
+    t.strictSame(html.tagName, "HTML");
+    t.strictSame(html.getAttribute("id"), "main");
+    t.strictSame(body.tagName, "BODY");
+    t.strictSame(body.nodeName, "BODY");
+    t.strictSame(body.getAttribute("class"), "foo");
 
-  t.strictSame(html instanceof Element, true);
-  t.strictSame(body instanceof Element, true);
+    t.strictSame(html instanceof Element, true);
+    t.strictSame(body instanceof Element, true);
 
-  t.matchSnapshot(html.outerHTML, "html.outerHTML");
-  t.matchSnapshot(html.innerHTML, "html.innerHTML");
-  t.matchSnapshot(body.outerHTML, "body.outerHTML");
-  t.matchSnapshot(body.innerHTML, "body.innerHTML");
+    t.matchSnapshot(html.outerHTML, "html.outerHTML");
+    t.matchSnapshot(html.innerHTML, "html.innerHTML");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML");
+    t.matchSnapshot(body.innerHTML, "body.innerHTML");
 
-  t.strictSame(html, html2);
-  t.strictSame(body, body2);
-  t.strictSame(head, head2);
+    t.strictSame(html, html2);
+    t.strictSame(body, body2);
+    t.strictSame(head, head2);
 
-  t.strictSame(html.children[0], head);
-  t.strictSame(html.children[1], body);
+    t.strictSame(html.children[0], head);
+    t.strictSame(html.children[1], body);
 
-  t.strictSame(head.parentNode, html);
-  t.strictSame(head.parentElement, head.parentElement);
-  t.strictSame(head.parentElement, html);
+    t.strictSame(head.parentNode, html);
+    t.strictSame(head.parentElement, head.parentElement);
+    t.strictSame(head.parentElement, html);
 
-  t.strictSame(body.parentNode, html);
-  t.strictSame(body.parentElement, html);
+    t.strictSame(body.parentNode, html);
+    t.strictSame(body.parentElement, html);
 
-  let div = body.children[0];
-  t.strictSame(div.tagName, "DIV");
-  t.strictSame(div.parentNode, body);
-  t.strictSame(div.parentElement, body);
+    let div = body.children[0];
+    t.strictSame(div.tagName, "DIV");
+    t.strictSame(div.parentNode, body);
+    t.strictSame(div.parentElement, body);
 
-  t.strictSame(html.parentNode, document);
-  t.strictSame(html.parentElement, null);
+    t.strictSame(html.parentNode, document);
+    t.strictSame(html.parentElement, null);
 });
 
 test("comment", (t) => {
-  let dom = new Html5EverDom("<!-- Hello, world -->");
+    let dom = new Html5EverDom("<!-- Hello, world -->");
 
-  t.matchSnapshot(dom.serialize(), "Comment dom");
+    t.matchSnapshot(dom.serialize(), "Comment dom");
 });
 
 test("createElement + set attributes", (t) => {
-  let dom = new Html5EverDom("");
+    let dom = new Html5EverDom("");
 
-  let element = dom.document.createElement("div");
+    let element = dom.document.createElement("div");
 
-  t.matchSnapshot(element.outerHTML, "empty div");
-  t.strictSame(element.parentElement, null);
-  t.strictSame(element.parentNode, null);
+    t.matchSnapshot(element.outerHTML, "empty div");
+    t.strictSame(element.parentElement, null);
+    t.strictSame(element.parentNode, null);
 
-  t.strictSame(element.hasAttribute("foo"), false);
-  t.strictSame(element.getAttribute("foo"), null);
+    t.strictSame(element.hasAttribute("foo"), false);
+    t.strictSame(element.getAttribute("foo"), null);
 
-  element.setAttribute("foo", "bar");
-  t.strictSame(element.hasAttribute("foo"), true);
-  t.strictSame(element.getAttribute("foo"), "bar");
-  t.matchSnapshot(element.outerHTML, 'foo="bar"');
+    element.setAttribute("foo", "bar");
+    t.strictSame(element.hasAttribute("foo"), true);
+    t.strictSame(element.getAttribute("foo"), "bar");
+    t.matchSnapshot(element.outerHTML, 'foo="bar"');
 
-  element.setAttribute("foo", "baz");
-  t.strictSame(element.hasAttribute("foo"), true);
-  t.strictSame(element.getAttribute("foo"), "baz");
-  t.matchSnapshot(element.outerHTML, 'foo="baz"');
+    element.setAttribute("foo", "baz");
+    t.strictSame(element.hasAttribute("foo"), true);
+    t.strictSame(element.getAttribute("foo"), "baz");
+    t.matchSnapshot(element.outerHTML, 'foo="baz"');
 
-  element.setAttribute("hello", "world");
+    element.setAttribute("hello", "world");
 
-  element.removeAttribute("foo");
-  t.strictSame(element.hasAttribute("foo"), false);
-  t.strictSame(element.getAttribute("foo"), null);
-  t.strictSame(element.getAttribute("hello"), "world");
-  t.matchSnapshot(element.outerHTML, "attribute foo removed, hello added");
+    element.removeAttribute("foo");
+    t.strictSame(element.hasAttribute("foo"), false);
+    t.strictSame(element.getAttribute("foo"), null);
+    t.strictSame(element.getAttribute("hello"), "world");
+    t.matchSnapshot(element.outerHTML, "attribute foo removed, hello added");
 });
 
 test("Text node", (t) => {
-  let dom = new Html5EverDom("");
-  let text = dom.document.createTextNode("Hello, world");
-  t.strictSame(text.parentElement, null);
-  t.strictSame(text.parentNode, null);
-  t.strictSame(text.ownerDocument, null);
+    let dom = new Html5EverDom("");
+    let text = dom.document.createTextNode("Hello, world");
+    t.strictSame(text.parentElement, null);
+    t.strictSame(text.parentNode, null);
+    t.strictSame(text.ownerDocument, null);
 
-  let text2 = dom.document.body.appendChild(text);
-  t.strictSame(text2, text, "text2 is text");
+    let text2 = dom.document.body.appendChild(text);
+    t.strictSame(text2, text, "text2 is text");
 
-  t.matchSnapshot(dom.serialize(), "Text node in body");
-  t.strictSame(text.parentElement, dom.document.body);
-  t.strictSame(text.parentNode, dom.document.body);
-  t.strictSame(text.ownerDocument, dom.document);
+    t.matchSnapshot(dom.serialize(), "Text node in body");
+    t.strictSame(text.parentElement, dom.document.body);
+    t.strictSame(text.parentNode, dom.document.body);
+    t.strictSame(text.ownerDocument, dom.document);
 });
 
 test("basic appendChild & remove", (t) => {
-  let { document } = new Html5EverDom("");
+    let { document } = new Html5EverDom("");
 
-  let body = document.body;
-  let child = document.createElement("div");
-  body.appendChild(child);
+    let body = document.body;
+    let child = document.createElement("div");
+    body.appendChild(child);
 
-  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML");
 
-  t.ok(child.parentElement, "child.parentElement is truthy");
-  t.strictSame(child.parentElement, body, "child.parentElement is body");
+    t.ok(child.parentElement, "child.parentElement is truthy");
+    t.strictSame(child.parentElement, body, "child.parentElement is body");
 
-  t.ok(child.parentNode, "child.parentNode is truthy");
-  t.strictSame(child.parentNode, body, "child.parentNode is body");
+    t.ok(child.parentNode, "child.parentNode is truthy");
+    t.strictSame(child.parentNode, body, "child.parentNode is body");
 
-  t.strictSame(body.children[0], child, "body.children[0] is child");
+    t.strictSame(body.children[0], child, "body.children[0] is child");
 
-  child.remove();
+    child.remove();
 
-  t.strictSame(child.parentElement, null, "child.parentElement is null");
-  t.strictSame(child.parentNode, null, "child.parentNode is null");
-  t.strictSame(body.children.length, 0, "body.children.length is 0");
-  t.matchSnapshot(body.outerHTML, "body.outerHTML after remove");
+    t.strictSame(child.parentElement, null, "child.parentElement is null");
+    t.strictSame(child.parentNode, null, "child.parentNode is null");
+    t.strictSame(body.children.length, 0, "body.children.length is 0");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML after remove");
 });
 
 test("basic appendChild & removeChild", (t) => {
-  let { document } = new Html5EverDom("");
+    let { document } = new Html5EverDom("");
 
-  let body = document.body;
-  let child = document.createElement("div");
-  body.appendChild(child);
+    let body = document.body;
+    let child = document.createElement("div");
+    body.appendChild(child);
 
-  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML");
 
-  t.ok(child.parentElement, "child.parentElement is truthy");
-  t.strictSame(child.parentElement, body, "child.parentElement is body");
+    t.ok(child.parentElement, "child.parentElement is truthy");
+    t.strictSame(child.parentElement, body, "child.parentElement is body");
 
-  t.ok(child.parentNode, "child.parentNode is truthy");
-  t.strictSame(child.parentNode, body, "child.parentNode is body");
+    t.ok(child.parentNode, "child.parentNode is truthy");
+    t.strictSame(child.parentNode, body, "child.parentNode is body");
 
-  t.strictSame(body.children[0], child, "body.children[0] is child");
+    t.strictSame(body.children[0], child, "body.children[0] is child");
 
-  let child2 = body.removeChild(child);
+    let child2 = body.removeChild(child);
 
-  t.strictSame(child2, child, "child2 is child");
-  t.strictSame(child.parentElement, null, "child.parentElement is null");
-  t.strictSame(child.parentNode, null, "child.parentNode is null");
-  t.strictSame(body.children.length, 0, "body.children.length is 0");
-  t.matchSnapshot(body.outerHTML, "body.outerHTML after remove");
+    t.strictSame(child2, child, "child2 is child");
+    t.strictSame(child.parentElement, null, "child.parentElement is null");
+    t.strictSame(child.parentNode, null, "child.parentNode is null");
+    t.strictSame(body.children.length, 0, "body.children.length is 0");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML after remove");
 });
 
 test("appendChild() remove element from previous parent", (t) => {
-  let { document } = new Html5EverDom(`
+    let { document } = new Html5EverDom(`
     <div id="parent1">
       <div id="child1"></div>
       <div id="child2"></div>
     </div>
     <div id="parent2"></div>
   `);
-  let parent1 = document.getElementById("parent1");
-  let parent2 = document.getElementById("parent2");
-  let child1 = document.getElementById("child1");
-  let child2 = document.getElementById("child2");
-  if (!parent1 || !parent2 || !child1 || !child2) {
-    throw new Error("missing element");
-  }
+    let parent1 = document.getElementById("parent1");
+    let parent2 = document.getElementById("parent2");
+    let child1 = document.getElementById("child1");
+    let child2 = document.getElementById("child2");
+    if (!parent1 || !parent2 || !child1 || !child2) {
+        throw new Error("missing element");
+    }
 
-  parent2.appendChild(child1);
+    parent2.appendChild(child1);
 
-  t.strictSame(
-    child1.parentElement,
-    parent2,
-    "child1.parentElement is parent2"
-  );
-  t.strictSame(parent1.children.length, 1, "parent1.children.length is 1");
-  t.strictSame(parent2.children.length, 1, "parent2.children.length is 1");
-  t.strictSame(
-    child1.nextElementSibling,
-    null,
-    "child1.nextElementSibling is null"
-  );
-  t.strictSame(child1.previousElementSibling, null),
-    "child1.previousElementSibling is null";
-  t.strictSame(
-    child2.nextElementSibling,
-    null,
-    "child2.nextElementSibling is null"
-  );
-  t.strictSame(
-    child2.previousElementSibling,
-    null,
-    "child2.previousElementSibling is null"
-  );
+    t.strictSame(
+        child1.parentElement,
+        parent2,
+        "child1.parentElement is parent2",
+    );
+    t.strictSame(parent1.children.length, 1, "parent1.children.length is 1");
+    t.strictSame(parent2.children.length, 1, "parent2.children.length is 1");
+    t.strictSame(
+        child1.nextElementSibling,
+        null,
+        "child1.nextElementSibling is null",
+    );
+    t.strictSame(child1.previousElementSibling, null),
+        "child1.previousElementSibling is null";
+    t.strictSame(
+        child2.nextElementSibling,
+        null,
+        "child2.nextElementSibling is null",
+    );
+    t.strictSame(
+        child2.previousElementSibling,
+        null,
+        "child2.previousElementSibling is null",
+    );
 });
 
 test(".append works w both strings and elements", (t) => {
-  let { document } = new Html5EverDom("");
-  let body = document.body;
-  body.append("hello" /*, "world" */);
-  t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
-  t.matchSnapshot(body.outerHTML, "body.outerHTML");
-  const div = document.createElement("div");
-  body.append(div);
-  t.strictSame(div, body.lastChild, "div is body.lastChild");
-  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+    let { document } = new Html5EverDom("");
+    let body = document.body;
+    body.append("hello" /*, "world" */);
+    t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML");
+    const div = document.createElement("div");
+    body.append(div);
+    t.strictSame(div, body.lastChild, "div is body.lastChild");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML");
 });
 
 test(".prepend works w both strings and elements", (t) => {
-  let { document } = new Html5EverDom("");
-  let body = document.body;
-  body.prepend("hello" /*, "world" */);
-  t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
-  t.matchSnapshot(body.outerHTML, "body.outerHTML");
-  const div = document.createElement("div");
-  body.prepend(div);
-  t.strictSame(div, body.firstChild, "div is body.firstChild");
-  t.matchSnapshot(body.outerHTML, "body.outerHTML");
+    let { document } = new Html5EverDom("");
+    let body = document.body;
+    body.prepend("hello" /*, "world" */);
+    t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML");
+    const div = document.createElement("div");
+    body.prepend(div);
+    t.strictSame(div, body.firstChild, "div is body.firstChild");
+    t.matchSnapshot(body.outerHTML, "body.outerHTML");
 });
 
 test("Element.id & Element.className", (t) => {
-  let { document } = new Html5EverDom("");
+    let { document } = new Html5EverDom("");
 
-  let div = document.createElement("div");
-  t.strictSame(div.id, "");
-  t.strictSame(div.className, "");
+    let div = document.createElement("div");
+    t.strictSame(div.id, "");
+    t.strictSame(div.className, "");
 
-  div.id = "foo";
-  div.className = "bar baz";
+    div.id = "foo";
+    div.className = "bar baz";
 
-  t.matchSnapshot(div.outerHTML, "div.outerHTML");
+    t.matchSnapshot(div.outerHTML, "div.outerHTML");
 
-  t.strictSame(div.id, "foo");
-  t.strictSame(div.className, "bar baz");
+    t.strictSame(div.id, "foo");
+    t.strictSame(div.className, "bar baz");
 });
 
 test("Element.getElementById + Element.getElementsByClassName", (t) => {
-  let { document } = new Html5EverDom(`
+    let { document } = new Html5EverDom(`
     <div id="foo">
       <div id="bar" class="baz">First</div>
     </div>
     <div class="baz">Second</div>
   `);
 
-  let div = document.getElementById("foo");
-  t.strictSame(div?.id, "foo");
+    let div = document.getElementById("foo");
+    t.strictSame(div?.id, "foo");
 
-  let bar = document.getElementById("bar");
-  t.strictSame(bar?.id, "bar");
+    let bar = document.getElementById("bar");
+    t.strictSame(bar?.id, "bar");
 
-  let baz = document.getElementsByClassName("baz");
-  t.strictSame(baz.length, 2);
-  t.strictSame(baz[0].id, "bar");
-  t.strictSame(baz[0].className, "baz");
-  t.strictSame(baz[1].id, "");
-  t.strictSame(baz[0].className, "baz");
+    let baz = document.getElementsByClassName("baz");
+    t.strictSame(baz.length, 2);
+    t.strictSame(baz[0].id, "bar");
+    t.strictSame(baz[0].className, "baz");
+    t.strictSame(baz[1].id, "");
+    t.strictSame(baz[0].className, "baz");
 });
 
 test("previousSibling & nextSibling", (t) => {
-  let { document } = new Html5EverDom(
-    `
+    let { document } = new Html5EverDom(
+        `
     <div id="foo"></div><div id="bar"></div>
-    `.trim()
-  );
+    `.trim(),
+    );
 
-  let foo = document.getElementById("foo");
-  let bar = document.getElementById("bar");
+    let foo = document.getElementById("foo");
+    let bar = document.getElementById("bar");
 
-  t.strictSame(foo?.previousSibling, null);
-  t.strictSame(foo?.previousElementSibling, null);
-  t.strictSame(foo?.nextSibling, bar);
-  t.strictSame(foo?.nextElementSibling, bar);
+    t.strictSame(foo?.previousSibling, null);
+    t.strictSame(foo?.previousElementSibling, null);
+    t.strictSame(foo?.nextSibling, bar);
+    t.strictSame(foo?.nextElementSibling, bar);
 
-  t.strictSame(bar?.previousSibling, foo);
-  t.strictSame(bar?.previousElementSibling, foo);
-  t.strictSame(bar?.nextSibling, null);
-  t.strictSame(bar?.nextElementSibling, null);
+    t.strictSame(bar?.previousSibling, foo);
+    t.strictSame(bar?.previousElementSibling, foo);
+    t.strictSame(bar?.nextSibling, null);
+    t.strictSame(bar?.nextElementSibling, null);
 });
 
 test("Instance of", (t) => {
-  let fragment = Html5EverDom.createDocumentFragment(
-    "text<div></div><!-- comment -->"
-  );
+    let fragment = Html5EverDom.createDocumentFragment(
+        "text<div></div><!-- comment -->",
+    );
 
-  t.ok(fragment instanceof DocumentFragment);
-  t.ok(fragment.childNodes[0] instanceof Text);
-  t.ok(fragment.childNodes[1] instanceof Element);
-  t.ok(fragment.childNodes[2] instanceof Comment);
+    t.ok(fragment instanceof DocumentFragment);
+    t.ok(fragment.childNodes[0] instanceof Text);
+    t.ok(fragment.childNodes[1] instanceof Element);
+    t.ok(fragment.childNodes[2] instanceof Comment);
 
-  let { document } = new Html5EverDom("<!DOCTYPE html>");
-  t.ok(document instanceof Document);
-  t.ok(document.body instanceof Element);
-  t.ok(document.head instanceof Element);
-  t.ok(document.documentElement instanceof Element);
-  t.ok(document.docType instanceof DocumentType);
+    let { document } = new Html5EverDom("<!DOCTYPE html>");
+    t.ok(document instanceof Document);
+    t.ok(document.body instanceof Element);
+    t.ok(document.head instanceof Element);
+    t.ok(document.documentElement instanceof Element);
+    t.ok(document.docType instanceof DocumentType);
 });
 
 test(".firstChild & .lastChild", (t) => {
-  let { document } = new Html5EverDom(
-    `<div id="foo"></div>
+    let { document } = new Html5EverDom(
+        `<div id="foo"></div>
     <div id="bar">First text<div id="hello"></div><div id="world"></div>End text</div>
-    `.trim()
-  );
+    `.trim(),
+    );
 
-  let foo = document.getElementById("foo");
-  let bar = document.getElementById("bar");
+    let foo = document.getElementById("foo");
+    let bar = document.getElementById("bar");
 
-  t.strictSame(foo?.firstChild, null);
-  t.strictSame(foo?.lastChild, null);
-  t.strictSame(foo?.firstElementChild, null);
-  t.strictSame(foo?.lastElementChild, null);
+    t.strictSame(foo?.firstChild, null);
+    t.strictSame(foo?.lastChild, null);
+    t.strictSame(foo?.firstElementChild, null);
+    t.strictSame(foo?.lastElementChild, null);
 
-  t.strictSame(bar?.firstChild, bar?.childNodes[0]);
-  t.strictSame(bar?.lastChild, bar?.childNodes[bar.childNodes.length - 1]);
-  t.strictSame(bar?.firstElementChild, bar?.children[0]);
-  t.strictSame(bar?.lastElementChild, bar?.children[bar.children.length - 1]);
+    t.strictSame(bar?.firstChild, bar?.childNodes[0]);
+    t.strictSame(bar?.lastChild, bar?.childNodes[bar.childNodes.length - 1]);
+    t.strictSame(bar?.firstElementChild, bar?.children[0]);
+    t.strictSame(bar?.lastElementChild, bar?.children[bar.children.length - 1]);
 });
 
 test(".removeChild errors if the node is not a child", (t) => {
-  let { document } = new Html5EverDom(
-    `<div id="foo"></div><div id="bar"></div>`
-  );
+    let { document } = new Html5EverDom(
+        `<div id="foo"></div><div id="bar"></div>`,
+    );
 
-  const foo = document.getElementById("foo");
-  const bar = document.getElementById("bar");
+    const foo = document.getElementById("foo");
+    const bar = document.getElementById("bar");
 
-  if (!foo || !bar) {
-    throw new Error("missing element");
-  }
+    if (!foo || !bar) {
+        throw new Error("missing element");
+    }
 
-  t.throws(() => {
-    foo.removeChild(bar);
-  });
+    t.throws(() => {
+        foo.removeChild(bar);
+    });
 });
 
 test("basic querySelectorAll", (t) => {
-  let { document } = new Html5EverDom(`
+    let { document } = new Html5EverDom(`
     <div id="foo">
       <div id="bar" class="baz">First</div>
     </div>
     <div class="baz">Second</div>
   `);
 
-  let div = document.querySelectorAll("div");
-  t.strictSame(div.length, 3);
-  t.strictSame(div[0].id, "foo");
-  t.strictSame(div[1].id, "bar");
-  t.strictSame(div[2].id, "");
+    let div = document.querySelectorAll("div");
+    t.strictSame(div.length, 3);
+    t.strictSame(div[0].id, "foo");
+    t.strictSame(div[1].id, "bar");
+    t.strictSame(div[2].id, "");
 });
 
 test("ClassList", (t) => {
-  function createDiv() {
-    let { document } = new Html5EverDom(`
+    function createDiv() {
+        let { document } = new Html5EverDom(`
     <div id="foo" class="bar baz"></div>
     `);
 
-    const div = document.getElementById("foo");
+        const div = document.getElementById("foo");
 
-    if (!div) {
-      throw new Error("missing element");
+        if (!div) {
+            throw new Error("missing element");
+        }
+        return div;
     }
-    return div;
-  }
 
-  t.test("initial state", (t) => {
-    const div = createDiv();
+    t.test("initial state", (t) => {
+        const div = createDiv();
 
-    t.strictSame(div.classList.length, 2);
-    t.ok(div.classList.contains("bar"));
-    t.ok(div.classList.contains("baz"));
-    t.notOk(div.classList.contains("qux"));
-    t.strictSame(div.getAttribute("class"), "bar baz");
-    t.strictSame(div.classList.value, "bar baz");
-    t.strictSame(div.className, "bar baz");
-    t.strictSame(div.classList.item(0), "bar");
-    t.strictSame(div.classList[0], "bar");
-    t.strictSame(div.classList.item(1), "baz");
-    t.strictSame(div.classList[1], "baz");
-    t.strictSame(div.classList.item(2), null);
-    t.strictSame(div.classList[2], undefined);
-    t.strictSame(div.classList.item(-1), null);
-  });
+        t.strictSame(div.classList.length, 2);
+        t.ok(div.classList.contains("bar"));
+        t.ok(div.classList.contains("baz"));
+        t.notOk(div.classList.contains("qux"));
+        t.strictSame(div.getAttribute("class"), "bar baz");
+        t.strictSame(div.classList.value, "bar baz");
+        t.strictSame(div.className, "bar baz");
+        t.strictSame(div.classList.item(0), "bar");
+        t.strictSame(div.classList[0], "bar");
+        t.strictSame(div.classList.item(1), "baz");
+        t.strictSame(div.classList[1], "baz");
+        t.strictSame(div.classList.item(2), null);
+        t.strictSame(div.classList[2], undefined);
+        t.strictSame(div.classList.item(-1), null);
+    });
 
-  t.test("add", (t) => {
-    const div = createDiv();
+    t.test("add", (t) => {
+        const div = createDiv();
 
-    div.classList.add("qux");
-    div.classList.add("qux");
-    t.strictSame(div.classList.length, 3);
-    t.ok(div.classList.contains("bar"));
-    t.ok(div.classList.contains("baz"));
-    t.ok(div.classList.contains("qux"));
-    t.strictSame(div.getAttribute("class"), "bar baz qux");
-    t.strictSame(div.classList.value, "bar baz qux");
-    t.strictSame(div.className, "bar baz qux");
-    t.strictSame(div.classList.item(0), "bar");
-    t.strictSame(div.classList[0], "bar");
-    t.strictSame(div.classList.item(1), "baz");
-    t.strictSame(div.classList[1], "baz");
-    t.strictSame(div.classList.item(2), "qux");
-    t.strictSame(div.classList[2], "qux");
-  });
+        div.classList.add("qux");
+        div.classList.add("qux");
+        t.strictSame(div.classList.length, 3);
+        t.ok(div.classList.contains("bar"));
+        t.ok(div.classList.contains("baz"));
+        t.ok(div.classList.contains("qux"));
+        t.strictSame(div.getAttribute("class"), "bar baz qux");
+        t.strictSame(div.classList.value, "bar baz qux");
+        t.strictSame(div.className, "bar baz qux");
+        t.strictSame(div.classList.item(0), "bar");
+        t.strictSame(div.classList[0], "bar");
+        t.strictSame(div.classList.item(1), "baz");
+        t.strictSame(div.classList[1], "baz");
+        t.strictSame(div.classList.item(2), "qux");
+        t.strictSame(div.classList[2], "qux");
+    });
 
-  t.test("remove", (t) => {
-    const div = createDiv();
+    t.test("remove", (t) => {
+        const div = createDiv();
 
-    div.classList.remove("baz");
-    div.classList.remove("baz");
-    t.strictSame(div.classList.length, 1);
-    t.ok(div.classList.contains("bar"));
-    t.notOk(div.classList.contains("baz"));
-    t.strictSame(div.getAttribute("class"), "bar");
-    t.strictSame(div.classList.value, "bar");
-    t.strictSame(div.className, "bar");
-    t.strictSame(div.classList.item(0), "bar");
-    t.strictSame(div.classList[0], "bar");
-    t.strictSame(div.classList.item(1), null);
-    t.strictSame(div.classList[1], undefined);
-  });
+        div.classList.remove("baz");
+        div.classList.remove("baz");
+        t.strictSame(div.classList.length, 1);
+        t.ok(div.classList.contains("bar"));
+        t.notOk(div.classList.contains("baz"));
+        t.strictSame(div.getAttribute("class"), "bar");
+        t.strictSame(div.classList.value, "bar");
+        t.strictSame(div.className, "bar");
+        t.strictSame(div.classList.item(0), "bar");
+        t.strictSame(div.classList[0], "bar");
+        t.strictSame(div.classList.item(1), null);
+        t.strictSame(div.classList[1], undefined);
+    });
 
-  t.test("toggle (add)", (t) => {
-    const div = createDiv();
+    t.test("toggle (add)", (t) => {
+        const div = createDiv();
 
-    t.ok(div.classList.toggle("qux"));
-    t.strictSame(div.classList.length, 3);
-    t.ok(div.classList.contains("bar"));
-    t.ok(div.classList.contains("baz"));
-    t.ok(div.classList.contains("qux"));
-    t.strictSame(div.getAttribute("class"), "bar baz qux");
-    t.strictSame(div.classList.value, "bar baz qux");
-    t.strictSame(div.className, "bar baz qux");
-    t.strictSame(div.classList.item(0), "bar");
-    t.strictSame(div.classList[0], "bar");
-    t.strictSame(div.classList.item(1), "baz");
-    t.strictSame(div.classList[1], "baz");
-    t.strictSame(div.classList.item(2), "qux");
-    t.strictSame(div.classList[2], "qux");
-  });
+        t.ok(div.classList.toggle("qux"));
+        t.strictSame(div.classList.length, 3);
+        t.ok(div.classList.contains("bar"));
+        t.ok(div.classList.contains("baz"));
+        t.ok(div.classList.contains("qux"));
+        t.strictSame(div.getAttribute("class"), "bar baz qux");
+        t.strictSame(div.classList.value, "bar baz qux");
+        t.strictSame(div.className, "bar baz qux");
+        t.strictSame(div.classList.item(0), "bar");
+        t.strictSame(div.classList[0], "bar");
+        t.strictSame(div.classList.item(1), "baz");
+        t.strictSame(div.classList[1], "baz");
+        t.strictSame(div.classList.item(2), "qux");
+        t.strictSame(div.classList[2], "qux");
+    });
 
-  t.test("toggle (remove)", (t) => {
-    const div = createDiv();
+    t.test("toggle (remove)", (t) => {
+        const div = createDiv();
 
-    div.classList.toggle("baz");
-    t.strictSame(div.classList.length, 1);
-    t.ok(div.classList.contains("bar"));
-    t.notOk(div.classList.contains("baz"));
-    t.strictSame(div.getAttribute("class"), "bar");
-    t.strictSame(div.classList.value, "bar");
-    t.strictSame(div.className, "bar");
-    t.strictSame(div.classList.item(0), "bar");
-    t.strictSame(div.classList[0], "bar");
-    t.strictSame(div.classList.item(1), null);
-    t.strictSame(div.classList[1], undefined);
-  });
+        div.classList.toggle("baz");
+        t.strictSame(div.classList.length, 1);
+        t.ok(div.classList.contains("bar"));
+        t.notOk(div.classList.contains("baz"));
+        t.strictSame(div.getAttribute("class"), "bar");
+        t.strictSame(div.classList.value, "bar");
+        t.strictSame(div.className, "bar");
+        t.strictSame(div.classList.item(0), "bar");
+        t.strictSame(div.classList[0], "bar");
+        t.strictSame(div.classList.item(1), null);
+        t.strictSame(div.classList[1], undefined);
+    });
 
-  t.test("set .value", (t) => {
-    const div = createDiv();
+    t.test("set .value", (t) => {
+        const div = createDiv();
 
-    div.classList.value = "hello world";
-    t.strictSame(div.classList.length, 2);
-    t.notOk(div.classList.contains("bar"));
-    t.notOk(div.classList.contains("baz"));
-    t.notOk(div.classList.contains("qux"));
-    t.ok(div.classList.contains("hello"));
-    t.ok(div.classList.contains("world"));
-    t.strictSame(div.getAttribute("class"), "hello world");
-    t.strictSame(div.classList.value, "hello world");
-    t.strictSame(div.className, "hello world");
-    t.strictSame(div.classList.item(0), "hello");
-    t.strictSame(div.classList[0], "hello");
-    t.strictSame(div.classList.item(1), "world");
-    t.strictSame(div.classList[1], "world");
-  });
+        div.classList.value = "hello world";
+        t.strictSame(div.classList.length, 2);
+        t.notOk(div.classList.contains("bar"));
+        t.notOk(div.classList.contains("baz"));
+        t.notOk(div.classList.contains("qux"));
+        t.ok(div.classList.contains("hello"));
+        t.ok(div.classList.contains("world"));
+        t.strictSame(div.getAttribute("class"), "hello world");
+        t.strictSame(div.classList.value, "hello world");
+        t.strictSame(div.className, "hello world");
+        t.strictSame(div.classList.item(0), "hello");
+        t.strictSame(div.classList[0], "hello");
+        t.strictSame(div.classList.item(1), "world");
+        t.strictSame(div.classList[1], "world");
+    });
 
-  t.test("set .className", (t) => {
-    const div = createDiv();
+    t.test("set .className", (t) => {
+        const div = createDiv();
 
-    div.className = "hello world";
-    t.strictSame(div.classList.length, 2);
-    t.notOk(div.classList.contains("bar"));
-    t.notOk(div.classList.contains("baz"));
-    t.notOk(div.classList.contains("qux"));
-    t.ok(div.classList.contains("hello"));
-    t.ok(div.classList.contains("world"));
-    t.strictSame(div.getAttribute("class"), "hello world");
-    t.strictSame(div.classList.value, "hello world");
-    t.strictSame(div.className, "hello world");
-    t.strictSame(div.classList.item(0), "hello");
-    t.strictSame(div.classList[0], "hello");
-    t.strictSame(div.classList.item(1), "world");
-    t.strictSame(div.classList[1], "world");
-  });
+        div.className = "hello world";
+        t.strictSame(div.classList.length, 2);
+        t.notOk(div.classList.contains("bar"));
+        t.notOk(div.classList.contains("baz"));
+        t.notOk(div.classList.contains("qux"));
+        t.ok(div.classList.contains("hello"));
+        t.ok(div.classList.contains("world"));
+        t.strictSame(div.getAttribute("class"), "hello world");
+        t.strictSame(div.classList.value, "hello world");
+        t.strictSame(div.className, "hello world");
+        t.strictSame(div.classList.item(0), "hello");
+        t.strictSame(div.classList[0], "hello");
+        t.strictSame(div.classList.item(1), "world");
+        t.strictSame(div.classList[1], "world");
+    });
 
-  t.test("set .className to empty string", (t) => {
-    const div = createDiv();
+    t.test("set .className to empty string", (t) => {
+        const div = createDiv();
 
-    div.className = "";
-    t.strictSame(div.classList.length, 0);
-    t.notOk(div.classList.contains("bar"));
-    t.notOk(div.classList.contains("baz"));
-    t.strictSame(div.getAttribute("class"), "");
-    t.strictSame(div.classList.value, "");
-    t.strictSame(div.className, "");
-    t.strictSame(div.classList.item(0), null);
-    t.strictSame(div.classList[0], undefined);
-  });
+        div.className = "";
+        t.strictSame(div.classList.length, 0);
+        t.notOk(div.classList.contains("bar"));
+        t.notOk(div.classList.contains("baz"));
+        t.strictSame(div.getAttribute("class"), "");
+        t.strictSame(div.classList.value, "");
+        t.strictSame(div.className, "");
+        t.strictSame(div.classList.item(0), null);
+        t.strictSame(div.classList[0], undefined);
+    });
 
-  t.test('removeAttribute("class")', (t) => {
-    const div = createDiv();
+    t.test('removeAttribute("class")', (t) => {
+        const div = createDiv();
 
-    div.removeAttribute("class");
-    t.strictSame(div.classList.length, 0);
-    t.notOk(div.classList.contains("bar"));
-    t.notOk(div.classList.contains("baz"));
-    t.strictSame(div.getAttribute("class"), null);
-    t.strictSame(div.classList.value, "");
-    t.strictSame(div.className, "");
-    t.strictSame(div.classList.item(0), null);
-    t.strictSame(div.classList[0], undefined);
-  });
+        div.removeAttribute("class");
+        t.strictSame(div.classList.length, 0);
+        t.notOk(div.classList.contains("bar"));
+        t.notOk(div.classList.contains("baz"));
+        t.strictSame(div.getAttribute("class"), null);
+        t.strictSame(div.classList.value, "");
+        t.strictSame(div.className, "");
+        t.strictSame(div.classList.item(0), null);
+        t.strictSame(div.classList[0], undefined);
+    });
 
-  t.test('removeAttribute("class") after .classList has been created', (t) => {
-    const div = createDiv();
+    t.test(
+        'removeAttribute("class") after .classList has been created',
+        (t) => {
+            const div = createDiv();
 
-    let classList = div.classList;
+            let classList = div.classList;
 
-    div.removeAttribute("class");
-    t.strictSame(classList.length, 0);
-    t.notOk(classList.contains("bar"));
-    t.notOk(classList.contains("baz"));
-    t.strictSame(div.getAttribute("class"), null);
-    t.strictSame(classList.value, "");
-    t.strictSame(div.className, "");
-    t.strictSame(classList.item(0), null);
-    t.strictSame(classList[0], undefined);
-  });
+            div.removeAttribute("class");
+            t.strictSame(classList.length, 0);
+            t.notOk(classList.contains("bar"));
+            t.notOk(classList.contains("baz"));
+            t.strictSame(div.getAttribute("class"), null);
+            t.strictSame(classList.value, "");
+            t.strictSame(div.className, "");
+            t.strictSame(classList.item(0), null);
+            t.strictSame(classList[0], undefined);
+        },
+    );
 
-  t.test("throw on invalid input", (t) => {
-    const div = createDiv();
-    t.throws(() => div.classList.add(""));
-    t.throws(() => div.classList.remove(""));
-    t.throws(() => div.classList.toggle(""));
+    t.test("throw on invalid input", (t) => {
+        const div = createDiv();
+        t.throws(() => div.classList.add(""));
+        t.throws(() => div.classList.remove(""));
+        t.throws(() => div.classList.toggle(""));
 
-    t.throws(() => div.classList.add(" "));
-    t.throws(() => div.classList.remove(" "));
-    t.throws(() => div.classList.toggle(" "));
+        t.throws(() => div.classList.add(" "));
+        t.throws(() => div.classList.remove(" "));
+        t.throws(() => div.classList.toggle(" "));
 
-    t.throws(() => div.classList.add("\t"));
-    t.throws(() => div.classList.remove("\t"));
-    t.throws(() => div.classList.toggle("\t"));
+        t.throws(() => div.classList.add("\t"));
+        t.throws(() => div.classList.remove("\t"));
+        t.throws(() => div.classList.toggle("\t"));
 
-    t.throws(() => div.classList.add("\n"));
-    t.throws(() => div.classList.remove("\n"));
-    t.throws(() => div.classList.toggle("\n"));
-  });
+        t.throws(() => div.classList.add("\n"));
+        t.throws(() => div.classList.remove("\n"));
+        t.throws(() => div.classList.toggle("\n"));
+    });
 });
 
 test(".style", (t) => {
-  function createDiv() {
-    let { document } = new Html5EverDom(`
+    function createDiv() {
+        let { document } = new Html5EverDom(`
     <div id="foo" style="font-size: 14px; -webkit-text-stroke-width: 12px"></div>
     `);
 
-    const div = document.getElementById("foo");
+        const div = document.getElementById("foo");
 
-    if (!div) {
-      throw new Error("missing element");
+        if (!div) {
+            throw new Error("missing element");
+        }
+        return div;
     }
-    return div;
-  }
 
-  t.test("get", (t) => {
-    const div = createDiv();
+    t.test("get", (t) => {
+        const div = createDiv();
 
-    t.strictSame(div.style.fontSize, "14px", "fontSize");
-    t.strictSame(
-      div.style.webkitTextStrokeWidth,
-      "12px",
-      "webkitTextStrokeWidth"
-    );
-    t.strictSame(
-      div.style.cssText,
-      "font-size: 14px; -webkit-text-stroke-width: 12px;",
-      "cssText"
-    );
-    t.strictSame(
-      div.getAttribute("style"),
-      "font-size: 14px; -webkit-text-stroke-width: 12px",
-      "getAttribute is unchanged from input"
-    );
-    t.strictSame(div.style.length, 2, "length");
-    t.strictSame(div.style.item(0), "font-size");
-    t.strictSame(div.style[0], "font-size");
-    t.strictSame(div.style.item(1), "-webkit-text-stroke-width");
-    t.strictSame(div.style[1], "-webkit-text-stroke-width");
-    t.strictSame(div.style.item(2), null);
-    t.strictSame(div.style[2], undefined);
-    t.strictSame(
-      div.style.getPropertyValue("font-size"),
-      "14px",
-      "getPropertyValue('font-size')"
-    );
-    t.strictSame(
-      div.style.getPropertyValue("-webkit-text-stroke-width"),
-      "12px",
-      "getPropertyValue('-webkit-text-stroke-width')"
-    );
-  });
+        t.strictSame(div.style.fontSize, "14px", "fontSize");
+        t.strictSame(
+            div.style.webkitTextStrokeWidth,
+            "12px",
+            "webkitTextStrokeWidth",
+        );
+        t.strictSame(
+            div.style.cssText,
+            "font-size: 14px; -webkit-text-stroke-width: 12px;",
+            "cssText",
+        );
+        t.strictSame(
+            div.getAttribute("style"),
+            "font-size: 14px; -webkit-text-stroke-width: 12px",
+            "getAttribute is unchanged from input",
+        );
+        t.strictSame(div.style.length, 2, "length");
+        t.strictSame(div.style.item(0), "font-size");
+        t.strictSame(div.style[0], "font-size");
+        t.strictSame(div.style.item(1), "-webkit-text-stroke-width");
+        t.strictSame(div.style[1], "-webkit-text-stroke-width");
+        t.strictSame(div.style.item(2), null);
+        t.strictSame(div.style[2], undefined);
+        t.strictSame(
+            div.style.getPropertyValue("font-size"),
+            "14px",
+            "getPropertyValue('font-size')",
+        );
+        t.strictSame(
+            div.style.getPropertyValue("-webkit-text-stroke-width"),
+            "12px",
+            "getPropertyValue('-webkit-text-stroke-width')",
+        );
+    });
 
-  t.test("weird input", (t) => {
-    const div = createDiv();
-    div.style.cssText = "font:; : red";
+    t.test("weird input", (t) => {
+        const div = createDiv();
+        div.style.cssText = "font:; : red";
 
-    t.strictSame(div.style.length, 0, "length");
-    t.strictSame(div.style.item(0), null);
-    t.strictSame(div.style[0], undefined);
-    t.strictSame(div.style.cssText, "", "cssText");
-    t.strictSame(div.getAttribute("style"), "", "getAttribute");
-  });
+        t.strictSame(div.style.length, 0, "length");
+        t.strictSame(div.style.item(0), null);
+        t.strictSame(div.style[0], undefined);
+        t.strictSame(div.style.cssText, "", "cssText");
+        t.strictSame(div.getAttribute("style"), "", "getAttribute");
+    });
 
-  t.test("set", (t) => {
-    const div = createDiv();
-    div.style.fontSize = "12px";
-    div.style.fontWeight = "400";
-    div.style.webkitTextStrokeWidth = null;
+    t.test("set", (t) => {
+        const div = createDiv();
+        div.style.fontSize = "12px";
+        div.style.fontWeight = "400";
+        div.style.webkitTextStrokeWidth = null;
 
-    t.strictSame(div.style.fontSize, "12px", "fontSize");
-    t.strictSame(div.style.fontWeight, "400", "fontWeight");
-    t.strictSame(div.style.webkitTextStrokeWidth, "", "webkitTextStrokeWidth");
-    t.strictSame(div.style.length, 2, "length");
-    t.strictSame(div.style.item(0), "font-size");
-    t.strictSame(div.style[0], "font-size");
-    t.strictSame(div.style.item(1), "font-weight");
-    t.strictSame(div.style[1], "font-weight");
-    t.strictSame(div.style.item(2), null);
-    t.strictSame(div.style[2], undefined);
-    t.strictSame(div.style.cssText, "font-size: 12px; font-weight: 400;");
-    t.strictSame(
-      div.getAttribute("style"),
-      "font-size: 12px; font-weight: 400;"
-    );
-  });
+        t.strictSame(div.style.fontSize, "12px", "fontSize");
+        t.strictSame(div.style.fontWeight, "400", "fontWeight");
+        t.strictSame(
+            div.style.webkitTextStrokeWidth,
+            "",
+            "webkitTextStrokeWidth",
+        );
+        t.strictSame(div.style.length, 2, "length");
+        t.strictSame(div.style.item(0), "font-size");
+        t.strictSame(div.style[0], "font-size");
+        t.strictSame(div.style.item(1), "font-weight");
+        t.strictSame(div.style[1], "font-weight");
+        t.strictSame(div.style.item(2), null);
+        t.strictSame(div.style[2], undefined);
+        t.strictSame(div.style.cssText, "font-size: 12px; font-weight: 400;");
+        t.strictSame(
+            div.getAttribute("style"),
+            "font-size: 12px; font-weight: 400;",
+        );
+    });
 
-  t.test(".setAttribte", (t) => {
-    const div = createDiv();
-    div.setAttribute("style", "font-size: 9px; font-weight: 100");
+    t.test(".setAttribte", (t) => {
+        const div = createDiv();
+        div.setAttribute("style", "font-size: 9px; font-weight: 100");
 
-    t.strictSame(div.style.fontSize, "9px", "fontSize");
-    t.strictSame(div.style.fontWeight, "100", "fontWeight");
-    t.strictSame(div.style.length, 2, "length");
-    t.strictSame(div.style.item(0), "font-size");
-    t.strictSame(div.style[0], "font-size");
-    t.strictSame(div.style.item(1), "font-weight");
-    t.strictSame(div.style[1], "font-weight");
-    t.strictSame(div.style.item(2), null);
-    t.strictSame(div.style[2], undefined);
-    t.strictSame(div.style.cssText, "font-size: 9px; font-weight: 100;");
+        t.strictSame(div.style.fontSize, "9px", "fontSize");
+        t.strictSame(div.style.fontWeight, "100", "fontWeight");
+        t.strictSame(div.style.length, 2, "length");
+        t.strictSame(div.style.item(0), "font-size");
+        t.strictSame(div.style[0], "font-size");
+        t.strictSame(div.style.item(1), "font-weight");
+        t.strictSame(div.style[1], "font-weight");
+        t.strictSame(div.style.item(2), null);
+        t.strictSame(div.style[2], undefined);
+        t.strictSame(div.style.cssText, "font-size: 9px; font-weight: 100;");
 
-    div.setAttribute("style", "background-color: red");
-    t.strictSame(div.style.backgroundColor, "red", "backgroundColor");
-    t.strictSame(div.style.length, 1, "length");
-    t.strictSame(div.style.item(0), "background-color");
-    t.strictSame(div.style[0], "background-color");
-    t.strictSame(div.style.item(1), null);
-    t.strictSame(div.style[1], undefined);
-    t.strictSame(div.style.cssText, "background-color: red;");
-  });
+        div.setAttribute("style", "background-color: red");
+        t.strictSame(div.style.backgroundColor, "red", "backgroundColor");
+        t.strictSame(div.style.length, 1, "length");
+        t.strictSame(div.style.item(0), "background-color");
+        t.strictSame(div.style[0], "background-color");
+        t.strictSame(div.style.item(1), null);
+        t.strictSame(div.style[1], undefined);
+        t.strictSame(div.style.cssText, "background-color: red;");
+    });
 
-  t.test(".removeAttribute", (t) => {
-    const div = createDiv();
+    t.test(".removeAttribute", (t) => {
+        const div = createDiv();
 
-    div.removeAttribute("style");
-    //  check when .style is not set
-    t.strictSame(div.style.length, 0, "length");
-    t.strictSame(div.style.item(0), null);
-    t.strictSame(div.style[0], undefined);
-    t.strictSame(div.style.cssText, "");
-    t.strictSame(div.getAttribute("style"), null);
+        div.removeAttribute("style");
+        //  check when .style is not set
+        t.strictSame(div.style.length, 0, "length");
+        t.strictSame(div.style.item(0), null);
+        t.strictSame(div.style[0], undefined);
+        t.strictSame(div.style.cssText, "");
+        t.strictSame(div.getAttribute("style"), null);
 
-    // do this so we can remove the style attribute and check that it is removed
-    div.setAttribute("style", "font-size: 9px; font-weight: 100");
-    t.strictSame(div.style.length, 2, "length");
+        // do this so we can remove the style attribute and check that it is removed
+        div.setAttribute("style", "font-size: 9px; font-weight: 100");
+        t.strictSame(div.style.length, 2, "length");
 
-    // remove the style attribute
-    div.removeAttribute("style");
-    t.strictSame(div.style.length, 0, "length");
-    t.strictSame(div.style.item(0), null);
-    t.strictSame(div.style[0], undefined);
-    t.strictSame(div.style.cssText, "");
-    t.strictSame(div.getAttribute("style"), null);
-  });
+        // remove the style attribute
+        div.removeAttribute("style");
+        t.strictSame(div.style.length, 0, "length");
+        t.strictSame(div.style.item(0), null);
+        t.strictSame(div.style[0], undefined);
+        t.strictSame(div.style.cssText, "");
+        t.strictSame(div.getAttribute("style"), null);
+    });
 });

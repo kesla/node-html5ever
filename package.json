@@ -1,55 +1,55 @@
 {
-  "name": "html5ever",
-  "version": "0.0.0",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "napi": {
     "name": "html5ever",
-    "triples": {
-      "additional": [
-        "aarch64-apple-darwin",
-        "aarch64-linux-android",
-        "aarch64-unknown-linux-gnu",
-        "aarch64-unknown-linux-musl",
-        "aarch64-pc-windows-msvc",
-        "armv7-unknown-linux-gnueabihf",
-        "x86_64-unknown-linux-musl",
-        "x86_64-unknown-freebsd",
-        "i686-pc-windows-msvc",
-        "armv7-linux-androideabi"
-      ]
+    "version": "0.0.0",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "napi": {
+        "name": "html5ever",
+        "triples": {
+            "additional": [
+                "aarch64-apple-darwin",
+                "aarch64-linux-android",
+                "aarch64-unknown-linux-gnu",
+                "aarch64-unknown-linux-musl",
+                "aarch64-pc-windows-msvc",
+                "armv7-unknown-linux-gnueabihf",
+                "x86_64-unknown-linux-musl",
+                "x86_64-unknown-freebsd",
+                "i686-pc-windows-msvc",
+                "armv7-linux-androideabi"
+            ]
+        }
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "@napi-rs/cli": "^2.11.4",
+        "@types/node": "^18.7.18",
+        "@types/tap": "^15.0.7",
+        "nodemon": "^2.0.20",
+        "prettier": "^2.7.1",
+        "tap": "^16.3.0",
+        "typescript": "^4.8.3"
+    },
+    "engines": {
+        "node": ">= 10"
+    },
+    "scripts": {
+        "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header --pipe=\"prettier --write\"",
+        "artifacts": "napi artifacts",
+        "build": "yarn _build --release && yarn merge-dts",
+        "build:debug": "yarn _build && yarn merge-dts",
+        "build:json-debug": "yarn _build --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
+        "merge-dts": "cat types/additional.d.ts types/generated.d.ts > index.d.ts",
+        "prepublishOnly": "napi prepublish -t npm",
+        "test": "cargo test && yarn build:debug && tap",
+        "test:update": "yarn build:debug && tap --snapshot",
+        "version": "napi version",
+        "watch:test": "nodemon --exec \"yarn test\"",
+        "watch:test:update": "nodemon --exec \"yarn test:update\"",
+        "format": "yarn prettier -w --cache . && cargo clippy --fix --allow-dirty --allow-staged && cargo +nightly fmt"
+    },
+    "packageManager": "yarn@3.2.3",
+    "tap": {
+        "coverage": false
     }
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "@napi-rs/cli": "^2.11.4",
-    "@types/node": "^18.7.18",
-    "@types/tap": "^15.0.7",
-    "nodemon": "^2.0.20",
-    "prettier": "^2.7.1",
-    "tap": "^16.3.0",
-    "typescript": "^4.8.3"
-  },
-  "engines": {
-    "node": ">= 10"
-  },
-  "scripts": {
-    "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header --pipe=\"prettier --write\"",
-    "artifacts": "napi artifacts",
-    "build": "yarn _build --release && yarn merge-dts",
-    "build:debug": "yarn _build && yarn merge-dts",
-    "build:json-debug": "yarn _build --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
-    "merge-dts": "cat types/additional.d.ts types/generated.d.ts > index.d.ts",
-    "prepublishOnly": "napi prepublish -t npm",
-    "test": "cargo test && yarn build:debug && tap",
-    "test:update": "yarn build:debug && tap --snapshot",
-    "version": "napi version",
-    "watch:test": "nodemon --exec \"yarn test\"",
-    "watch:test:update": "nodemon --exec \"yarn test:update\"",
-    "format": "yarn prettier -w . && cargo clippy --fix --allow-dirty --allow-staged && cargo fmt"
-  },
-  "packageManager": "yarn@3.2.3",
-  "tap": {
-    "coverage": false
-  }
 }

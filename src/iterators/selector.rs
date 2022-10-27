@@ -1,39 +1,50 @@
-use napi::{bindgen_prelude::Reference, Result};
+use napi::{
+    bindgen_prelude::Reference,
+    Result,
+};
 
-use crate::{DeepChildNodesIterator, Element, ElementRef, Selectors};
+use crate::{
+    DeepChildNodesIterator,
+    Element,
+    ElementRef,
+    Selectors,
+};
 
 pub struct SelectorsIterator {
-  selectors: Selectors,
-  iter: DeepChildNodesIterator<ElementRef>,
+    selectors: Selectors,
+    iter: DeepChildNodesIterator<ElementRef>,
 }
 
 impl SelectorsIterator {
-  pub fn new(
-    selectors: Selectors,
-    iter: DeepChildNodesIterator<ElementRef>,
-  ) -> Self {
-    Self { selectors, iter }
-  }
+    pub fn new(
+        selectors: Selectors,
+        iter: DeepChildNodesIterator<ElementRef>,
+    ) -> Self {
+        Self {
+            selectors,
+            iter,
+        }
+    }
 }
 
 impl Iterator for SelectorsIterator {
-  type Item = Result<Reference<Element>>;
+    type Item = Result<Reference<Element>>;
 
-  fn next(&mut self) -> Option<Self::Item> {
-    for element_ref in self.iter.by_ref() {
-      match self.selectors.matches(&element_ref) {
-        Ok(true) => return Some(Ok(element_ref.into())),
-        Ok(false) => continue,
-        Err(err) => return Some(Err(err)),
-      }
+    fn next(&mut self) -> Option<Self::Item> {
+        for element_ref in self.iter.by_ref() {
+            match self.selectors.matches(&element_ref) {
+                Ok(true) => return Some(Ok(element_ref.into())),
+                Ok(false) => continue,
+                Err(err) => return Some(Err(err)),
+            }
+        }
+
+        None
     }
-
-    None
-  }
 }
 
 impl SelectorsIterator {
-  pub fn try_next(&mut self) -> Result<Option<Reference<Element>>> {
-    self.next().transpose()
-  }
+    pub fn try_next(&mut self) -> Result<Option<Reference<Element>>> {
+        self.next().transpose()
+    }
 }

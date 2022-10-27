@@ -21,7 +21,6 @@ mod serializer;
 mod style_declaration;
 mod traits;
 
-pub use crate::selectors::Selectors;
 pub use case::*;
 pub use cyclic_reference::CyclicReference;
 pub use dom::Html5everDom;
@@ -29,12 +28,27 @@ pub use einar_cell::EinarCell;
 pub use id::get_id;
 pub use iterators::*;
 pub use lazy_reference::LazyReference;
-pub use node::{ChildNode, Node, ParentNode};
-pub use node_handler::{NodeHandler, ParentContext};
+pub use node::{
+    ChildNode,
+    Node,
+    ParentNode,
+};
+pub use node_handler::{
+    NodeHandler,
+    ParentContext,
+};
 pub use nodes::{
-  Comment, Document, DocumentFragment, DocumentType, Element, ElementRef, Text,
+    Comment,
+    Document,
+    DocumentFragment,
+    DocumentType,
+    Element,
+    ElementRef,
+    Text,
 };
 pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;
 pub use style_declaration::StyleDeclaration;
 pub use traits::*;
+
+pub use crate::selectors::Selectors;
