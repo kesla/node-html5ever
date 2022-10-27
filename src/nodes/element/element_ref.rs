@@ -63,9 +63,9 @@ impl Deref for ElementRef {
     }
 }
 
-impl Into<Reference<Element>> for ElementRef {
-    fn into(self) -> Reference<Element> {
-        self.inner
+impl From<ElementRef> for Reference<Element> {
+    fn from(val: ElementRef) -> Self {
+        val.inner
     }
 }
 
