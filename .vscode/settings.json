@@ -1,5 +1,4 @@
 {
   "editor.tabSize": 4,
-  "editor.formatOnSave": true,
-  "rust-analyzer.checkOnSave.overrideCommand": ["yarn", "build:json-debug"]
+  "editor.formatOnSave": true
 }
