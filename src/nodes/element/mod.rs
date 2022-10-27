@@ -45,6 +45,12 @@ impl Element {
       }
     }
 
+    if name == *"style" {
+      if let Some(style) = &mut self.lazy_style.get_mut() {
+        style.clear()?;
+      }
+    }
+
     self.attributes_wrapper.remove_attribute(name.into());
 
     Ok(())

@@ -743,4 +743,28 @@ test(".style", (t) => {
     t.strictSame(div.style[1], undefined);
     t.strictSame(div.style.cssText, "background-color: red;");
   });
+
+  t.test(".removeAttribute", (t) => {
+    const div = createDiv();
+
+    div.removeAttribute("style");
+    //  check when .style is not set
+    t.strictSame(div.style.length, 0, "length");
+    t.strictSame(div.style.item(0), null);
+    t.strictSame(div.style[0], undefined);
+    t.strictSame(div.style.cssText, "");
+    t.strictSame(div.getAttribute("style"), null);
+
+    // do this so we can remove the style attribute and check that it is removed
+    div.setAttribute("style", "font-size: 9px; font-weight: 100");
+    t.strictSame(div.style.length, 2, "length");
+
+    // remove the style attribute
+    div.removeAttribute("style");
+    t.strictSame(div.style.length, 0, "length");
+    t.strictSame(div.style.item(0), null);
+    t.strictSame(div.style[0], undefined);
+    t.strictSame(div.style.cssText, "");
+    t.strictSame(div.getAttribute("style"), null);
+  });
 });

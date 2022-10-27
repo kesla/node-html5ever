@@ -80,6 +80,11 @@ impl StyleDeclaration {
     )
   }
 
+  pub(crate) fn clear(&mut self) -> Result<()> {
+    self.list.clear();
+    self.set_properties()
+  }
+
   fn get_data_mut(&mut self, property: &String) -> Option<&mut Data> {
     let property = to_css_camel_case(property);
 
