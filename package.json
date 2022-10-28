@@ -46,7 +46,7 @@
         "version": "napi version",
         "watch:test": "nodemon --exec \"yarn test\"",
         "watch:test:update": "nodemon --exec \"yarn test:update\"",
-        "format": "yarn prettier -write --cache . && cargo clippy --fix --allow-dirty --allow-staged && cargo +nightly fmt"
+        "format": "yarn prettier --write --cache . && cargo clippy --fix --allow-dirty --allow-staged && cargo +nightly fmt"
     },
     "packageManager": "yarn@3.2.3",
     "tap": {
