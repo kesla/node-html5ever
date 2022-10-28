@@ -60,6 +60,7 @@ export class Document {
     get textContent(): string | null;
     createElement(name: string): Element;
     createTextNode(data: string): Text;
+    createDocumentFragment(html: string): DocumentFragment;
 }
 export class DocumentFragment {
     get nodeName(): string;

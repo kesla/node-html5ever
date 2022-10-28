@@ -9,8 +9,10 @@ use napi::{
 };
 
 use crate::{
+    DocumentFragment,
     DocumentType,
     Element,
+    Html5everDom,
     LazyReference,
     QuirksMode,
     Text,
@@ -101,5 +103,17 @@ impl Document {
         data: String,
     ) -> Result<Reference<Text>> {
         Text::new_reference(self.env, data)
+    }
+
+    #[napi]
+    pub fn create_document_fragment(
+        &self,
+        html: String,
+    ) -> Result<Reference<DocumentFragment>> {
+        Html5everDom::create_document_fragment(
+            self.env,
+            html,
+            Some(self.quirks_mode),
+        )
     }
 }
