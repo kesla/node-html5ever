@@ -1,6 +1,4 @@
 use html5ever::{
-    namespace_url,
-    ns,
     parse_document,
     parse_fragment,
     tendril::TendrilSink,
@@ -9,7 +7,6 @@ use html5ever::{
         TreeSink,
     },
     ParseOpts,
-    QualName,
 };
 use napi::{
     bindgen_prelude::Reference,
@@ -59,32 +56,44 @@ impl Html5everDom {
     pub fn create_document_fragment(
         env: Env,
         html: String,
+        maybe_quirks_mode: Option<QuirksMode>,
     ) -> Result<Reference<DocumentFragment>> {
+        let quirks_mode = maybe_quirks_mode.unwrap_or(QuirksMode::NoQuirks);
+        let fragment: Reference<DocumentFragment> =
+            DocumentFragment::new_reference(env, quirks_mode)?;
+        let fragment_node: Node = fragment.clone(env)?.into();
+
+        Self::parse_and_append(env, fragment_node, html)?;
+
+        Ok(fragment)
+    }
+
+    fn parse_and_append(
+        env: Env,
+        node: Node,
+        html: String,
+    ) -> Result<()> {
         let dom: Html5everDom = parse_fragment(
             Self::create_sink(env)?,
             ParseOpts::default(),
-            QualName::new(None, ns!(html), "#document-fragment".into()),
+            node.get_qual_name(),
             Vec::new(),
         )
         .one(html);
-
-        let fragment: Reference<DocumentFragment> =
-            DocumentFragment::new_reference(env, dom.get_quirks_mode())?;
 
         let node_handler = dom
             .document_reference
             .get_document_element()?
             .get_node_handler();
+
         let tmp: Vec<ChildNode> =
             node_handler.shallow_child_nodes_iter().collect();
 
-        let fragment_node: Node = fragment.clone(env)?.into();
-
         for child in tmp {
-            fragment_node.append_node(&child.clone())?;
+            node.append_node(&child.clone())?;
         }
 
-        Ok(fragment)
+        Ok(())
     }
 
     fn create_sink(env: Env) -> Result<Html5everDom> {

@@ -1,3 +1,8 @@
+use html5ever::{
+    namespace_url,
+    ns,
+    QualName,
+};
 use napi::{
     bindgen_prelude::{
         Error,
@@ -192,6 +197,13 @@ impl Node {
             Node::DocumentFragment(_) => "#document-fragment".to_string(),
             Node::Element(r) => r.name.local.to_string().to_uppercase(),
             Node::Text(_) => "#text".to_string(),
+        }
+    }
+
+    pub(crate) fn get_qual_name(&self) -> QualName {
+        match self {
+            Node::Element(r) => r.name.clone(),
+            _ => QualName::new(None, ns!(html), self.get_node_name().into()),
         }
     }
 }

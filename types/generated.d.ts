@@ -7,7 +7,10 @@ export type Html5everDom = Html5EverDom;
 export class Html5EverDom {
     errors: Array<string>;
     constructor(html: string);
-    static createDocumentFragment(html: string): DocumentFragment;
+    static createDocumentFragment(
+        html: string,
+        maybeQuirksMode?: QuirksMode | undefined | null,
+    ): DocumentFragment;
     get document(): Document;
     get quirksMode(): QuirksMode;
     serialize(): string;
