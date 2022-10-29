@@ -266,4 +266,28 @@ impl Node {
             self.deep_child_nodes_iter(),
         ))
     }
+
+    pub(crate) fn try_get_child_node<T>(
+        &self,
+        index: usize,
+    ) -> Result<Option<T>>
+    where
+        ChildNode: TryInto<T, Error = Error>,
+    {
+        let maybe_child_node = self.get_child_node(index);
+        maybe_child_node
+            .map(|child_node| child_node.try_into())
+            .transpose()
+    }
+
+    pub(crate) fn get_child_node(
+        &self,
+        index: usize,
+    ) -> Option<ChildNode> {
+        let node_handler: NodeHandler = self.into();
+
+        node_handler
+            .child_nodes
+            .borrow(|child_nodes| child_nodes.get(index).cloned())
+    }
 }

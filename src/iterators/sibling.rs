@@ -4,7 +4,7 @@ use napi::Result;
 
 use crate::{
     ChildNode,
-    NodeHandler,
+    Node,
     ParentContext,
 };
 
@@ -14,7 +14,7 @@ pub enum SiblingIteratorType {
 }
 
 pub struct SiblingIterator<T> {
-    pub(crate) data: Option<(NodeHandler, usize)>,
+    pub(crate) data: Option<(Node, usize)>,
     pub(crate) next_index: &'static dyn Fn(usize) -> Option<usize>,
     _phantom: PhantomData<T>,
 }
@@ -25,7 +25,7 @@ impl<T> SiblingIterator<T> {
         sibling_type: SiblingIteratorType,
     ) -> Result<Self> {
         let data = match &maybe_parent_ctx {
-            Some(parent) => Some((parent.try_into()?, parent.index)),
+            Some(parent) => Some((parent.get_node()?, parent.index)),
             None => None,
         };
 
@@ -44,8 +44,8 @@ impl<T> SiblingIterator<T> {
     }
 
     pub(crate) fn next_child_node(&mut self) -> Option<ChildNode> {
-        let (node_handler, index) = match self.data {
-            Some((ref node_handler, ref mut index)) => (node_handler, index),
+        let (node, index) = match self.data {
+            Some((ref node, ref mut index)) => (node, index),
             None => return None,
         };
 
@@ -55,7 +55,7 @@ impl<T> SiblingIterator<T> {
             None => return None,
         };
 
-        match node_handler.get_child_node(next_index) {
+        match node.get_child_node(next_index) {
             Some(child_node) => {
                 *index = next_index;
                 Some(child_node)

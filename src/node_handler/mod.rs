@@ -53,39 +53,6 @@ impl NodeHandler {
             parent_context: Default::default(),
         }))
     }
-
-    pub(crate) fn try_get_child_node<T, U>(
-        &self,
-        index: usize,
-    ) -> std::result::Result<Option<T>, U>
-    where
-        ChildNode: TryInto<T, Error = U>,
-    {
-        self.child_nodes.borrow(|child_nodes| {
-            let child_node = child_nodes.get(index).cloned();
-
-            let result = if let Some(child_node) = child_node {
-                Some(child_node.try_into()?)
-            } else {
-                None
-            };
-
-            Ok(result)
-        })
-    }
-
-    pub(crate) fn get_child_node<T, U>(
-        &self,
-        index: usize,
-    ) -> Option<T>
-    where
-        ChildNode: TryInto<T, Error = U>,
-    {
-        match self.try_get_child_node(index) {
-            Ok(Some(child_node)) => Some(child_node),
-            _ => None,
-        }
-    }
 }
 
 impl TryFrom<&ParentContext> for NodeHandler {

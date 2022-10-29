@@ -14,6 +14,7 @@ use crate::{
     Element,
     Html5everDom,
     LazyReference,
+    Node,
     QuirksMode,
     Text,
 };
@@ -27,39 +28,34 @@ pub struct Document {
 impl Document {
     #[napi(getter)]
     pub fn get_doc_type(&self) -> Option<Reference<DocumentType>> {
-        self.get_node_handler()
-            .get_child_node::<Reference<DocumentType>, Error>(0)
+        let node: Node = self.into();
+
+        node.try_get_child_node(0).ok().flatten()
     }
 
     #[napi(getter)]
     pub fn get_document_element(&self) -> Result<Reference<Element>> {
-        let node_handler = self.get_node_handler();
+        let node: Node = self.into();
 
-        match node_handler.get_child_node::<Reference<Element>, Error>(0) {
-            Some(r) => Ok(r),
-            None => {
-                match node_handler
-                    .try_get_child_node::<Reference<Element>, Error>(1)
-                {
-                    Ok(Some(e)) => Ok(e),
-                    Ok(None) => Err(Error::from_reason(
-                        "Document has no document Element (<html>)".to_string(),
-                    )),
-                    Err(e) => Err(e),
-                }
-            },
+        if let Ok(Some(r)) = node.try_get_child_node(0) {
+            Ok(r)
+        } else if let Ok(Some(r)) = node.try_get_child_node(1) {
+            Ok(r)
+        } else {
+            Err(Error::from_reason(
+                "Document has no document Element (<html>)".to_string(),
+            ))
         }
     }
 
     #[napi(getter)]
     pub fn get_head(&mut self) -> Result<Reference<Element>> {
         let document_element = self.get_document_element()?;
+        let node: Node = document_element.into();
 
-        let node_handler = document_element.get_node_handler();
-
-        match node_handler.try_get_child_node::<Reference<Element>, Error>(0)? {
-            Some(e) => Ok(e),
-            None => Err(Error::from_reason(
+        match node.try_get_child_node(0) {
+            Ok(Some(e)) => Ok(e),
+            _ => Err(Error::from_reason(
                 "Document has no head Element (<head>)".to_string(),
             )),
         }
@@ -68,11 +64,11 @@ impl Document {
     #[napi(getter)]
     pub fn get_body(&mut self) -> Result<Reference<Element>> {
         let document_element = self.get_document_element()?;
-        let node_handler = document_element.get_node_handler();
+        let node: Node = document_element.into();
 
-        match node_handler.try_get_child_node::<Reference<Element>, Error>(1)? {
-            Some(e) => Ok(e),
-            None => Err(Error::from_reason(
+        match node.try_get_child_node(1) {
+            Ok(Some(e)) => Ok(e),
+            _ => Err(Error::from_reason(
                 "Document has no body Element (<body>)".to_string(),
             )),
         }
