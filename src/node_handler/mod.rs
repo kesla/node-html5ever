@@ -12,19 +12,13 @@ use napi::{
 use crate::{
     ChildNode,
     Comment,
-    DeepChildNodesIterator,
     Document,
     DocumentFragment,
     DocumentType,
     EinarCell,
     Element,
     Node,
-    ParentIterator,
     ParentNode,
-    SelectorsIterator,
-    ShallowChildNodesIterator,
-    SiblingIterator,
-    SiblingIteratorType,
     Text,
 };
 
@@ -60,24 +54,6 @@ impl NodeHandler {
         }))
     }
 
-    pub(crate) fn previous_iterator<T>(&self) -> Result<SiblingIterator<T>> {
-        SiblingIterator::new(
-            self.parent_context.cloned(),
-            SiblingIteratorType::Previous,
-        )
-    }
-
-    pub(crate) fn next_iterator<T>(&self) -> Result<SiblingIterator<T>> {
-        SiblingIterator::new(
-            self.parent_context.cloned(),
-            SiblingIteratorType::Next,
-        )
-    }
-
-    pub(crate) fn parent_iterator<T>(&self) -> ParentIterator<T> {
-        ParentIterator::new(self.parent_context.cloned())
-    }
-
     pub(crate) fn try_get_child_node<T, U>(
         &self,
         index: usize,
@@ -109,36 +85,6 @@ impl NodeHandler {
             Ok(Some(child_node)) => Some(child_node),
             _ => None,
         }
-    }
-
-    pub(crate) fn deep_child_nodes_iter<T>(&self) -> DeepChildNodesIterator<T>
-    where
-        ChildNode: TryInto<T>,
-    {
-        DeepChildNodesIterator::new(self)
-    }
-
-    pub(crate) fn shallow_child_nodes_iter<T>(
-        &self
-    ) -> ShallowChildNodesIterator<T>
-    where
-        ChildNode: TryInto<T>,
-    {
-        ShallowChildNodesIterator::new(self)
-    }
-
-    pub(crate) fn selectors_iter(
-        &self,
-        selectors: String,
-    ) -> Result<SelectorsIterator> {
-        Ok(SelectorsIterator::new(
-            crate::Selectors::compile(selectors)?,
-            self.deep_child_nodes_iter(),
-        ))
-    }
-
-    pub(crate) fn child_nodes_len(&self) -> usize {
-        self.child_nodes.borrow(|child_nodes| child_nodes.len())
     }
 }
 

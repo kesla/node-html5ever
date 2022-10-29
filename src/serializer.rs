@@ -11,7 +11,6 @@ use html5ever::{
 use crate::{
     ChildNode,
     Node,
-    NodeHandler,
 };
 
 struct SerializableNodeHandler(Node);
@@ -36,11 +35,8 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
                 ops.push_back(SerializeOp::Open((&self.0).into()))
             },
             html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-                let node_handler: NodeHandler = (&self.0).into();
                 ops.extend(
-                    node_handler
-                        .shallow_child_nodes_iter()
-                        .map(SerializeOp::Open),
+                    self.0.shallow_child_nodes_iter().map(SerializeOp::Open),
                 );
             },
         };

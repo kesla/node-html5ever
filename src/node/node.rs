@@ -15,12 +15,18 @@ use napi::{
 use crate::{
     ChildNode,
     Comment,
+    DeepChildNodesIterator,
     Document,
     DocumentFragment,
     DocumentType,
     Element,
     NodeHandler,
     ParentContext,
+    ParentIterator,
+    SelectorsIterator,
+    ShallowChildNodesIterator,
+    SiblingIterator,
+    SiblingIteratorType,
     Text,
 };
 
@@ -136,12 +142,6 @@ impl Node {
         // remove from old parent
         child_node.remove()?;
 
-        // let node_handler: NodeHandler = child_node.into();
-
-        // if let Some(parent) = node_handler.parent_context.replace(None) {
-        //     parent.get_node()?.remove_node(child_node)?;
-        // }
-
         // TODO: concatenate already existing text node
 
         let node_handler: NodeHandler = self.into();
@@ -216,5 +216,54 @@ impl Node {
             Node::Element(r) => r.name.clone(),
             _ => QualName::new(None, ns!(html), self.get_node_name().into()),
         }
+    }
+
+    pub(crate) fn parent_iterator<T>(&self) -> ParentIterator<T> {
+        let node_handler: NodeHandler = self.into();
+
+        ParentIterator::new(node_handler.parent_context.cloned())
+    }
+
+    pub(crate) fn deep_child_nodes_iter<T>(&self) -> DeepChildNodesIterator<T>
+    where
+        ChildNode: TryInto<T>,
+    {
+        DeepChildNodesIterator::new(self.into())
+    }
+
+    pub(crate) fn shallow_child_nodes_iter<T>(
+        &self
+    ) -> ShallowChildNodesIterator<T>
+    where
+        ChildNode: TryInto<T>,
+    {
+        ShallowChildNodesIterator::new(self.into())
+    }
+
+    fn new_sibling_iterator<T>(
+        &self,
+        sibling_type: SiblingIteratorType,
+    ) -> Result<SiblingIterator<T>> {
+        let node_handler: NodeHandler = self.into();
+
+        SiblingIterator::new(node_handler.parent_context.cloned(), sibling_type)
+    }
+
+    pub(crate) fn previous_iterator<T>(&self) -> Result<SiblingIterator<T>> {
+        self.new_sibling_iterator(SiblingIteratorType::Previous)
+    }
+
+    pub(crate) fn next_iterator<T>(&self) -> Result<SiblingIterator<T>> {
+        self.new_sibling_iterator(SiblingIteratorType::Next)
+    }
+
+    pub(crate) fn selectors_iter(
+        &self,
+        selectors: String,
+    ) -> Result<SelectorsIterator> {
+        Ok(SelectorsIterator::new(
+            crate::Selectors::compile(selectors)?,
+            self.deep_child_nodes_iter(),
+        ))
     }
 }

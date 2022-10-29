@@ -162,8 +162,9 @@ impl Element {
 
     #[napi(getter)]
     pub fn get_text_content(&self) -> Option<String> {
-        let text = self
-            .get_node_handler()
+        let node: Node = self.into();
+
+        let text = node
             .deep_child_nodes_iter::<Reference<Text>>()
             .map(|text| text.data.clone())
             .collect();

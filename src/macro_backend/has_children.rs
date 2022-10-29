@@ -10,15 +10,14 @@ use crate::{
     Element,
     InsertPosition,
     Node,
-    NodeHandler,
     Text,
 };
 
-pub(crate) fn children<T>(node_handler: NodeHandler) -> Vec<T>
+pub(crate) fn children<T>(node: Node) -> Vec<T>
 where
     ChildNode: TryInto<T>,
 {
-    node_handler.shallow_child_nodes_iter().collect()
+    node.shallow_child_nodes_iter().collect()
 }
 
 pub(crate) fn append_child(
@@ -74,62 +73,59 @@ pub(crate) fn remove_child(
 }
 
 pub(crate) fn get_element_by_id(
-    node_handler: NodeHandler,
+    node: Node,
     id: String,
 ) -> Option<Reference<Element>> {
-    node_handler
-        .deep_child_nodes_iter()
+    node.deep_child_nodes_iter()
         .find(|e: &Reference<Element>| e.get_id() == id)
 }
 
 pub(crate) fn get_elements_by_class_name(
-    node_handler: NodeHandler,
+    node: Node,
     class_name: String,
 ) -> Vec<Reference<Element>> {
-    node_handler
-        .deep_child_nodes_iter()
+    node.deep_child_nodes_iter()
         .filter(|e: &Reference<Element>| e.get_class_name() == class_name)
         .collect()
 }
 
 pub(crate) fn get_elements_by_tag_name(
-    node_handler: NodeHandler,
+    node: Node,
     tag_name: String,
 ) -> Vec<Reference<Element>> {
     let tag_name: &str = &tag_name;
 
-    node_handler
-        .deep_child_nodes_iter()
+    node.deep_child_nodes_iter()
         .filter(|e: &Reference<Element>| {
             e.get_tag_name().eq_ignore_ascii_case(tag_name)
         })
         .collect()
 }
 
-pub(crate) fn first_child<T>(node_handler: NodeHandler) -> Option<T>
+pub(crate) fn first_child<T>(node: Node) -> Option<T>
 where
     ChildNode: TryInto<T>,
 {
-    node_handler.shallow_child_nodes_iter().next()
+    node.shallow_child_nodes_iter().next()
 }
 
-pub(crate) fn last_child<T>(node_handler: NodeHandler) -> Option<T>
+pub(crate) fn last_child<T>(node: Node) -> Option<T>
 where
     ChildNode: TryInto<T>,
 {
-    node_handler.shallow_child_nodes_iter().next_back()
+    node.shallow_child_nodes_iter().next_back()
 }
 
 pub(crate) fn query_selector_all(
-    node_handler: NodeHandler,
+    node: Node,
     selectors: String,
 ) -> Result<Vec<Reference<Element>>> {
-    node_handler.selectors_iter(selectors)?.collect()
+    node.selectors_iter(selectors)?.collect()
 }
 
 pub(crate) fn query_selector(
-    node_handler: NodeHandler,
+    node: Node,
     selectors: String,
 ) -> Result<Option<Reference<Element>>> {
-    node_handler.selectors_iter(selectors)?.try_next()
+    node.selectors_iter(selectors)?.try_next()
 }

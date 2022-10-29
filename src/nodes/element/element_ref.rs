@@ -31,6 +31,7 @@ use selectors::{
 use crate::{
     ChildNode,
     Element,
+    Node,
     ParentNode,
 };
 
@@ -74,6 +75,12 @@ impl From<Reference<Element>> for ElementRef {
         ElementRef {
             inner: r,
         }
+    }
+}
+
+impl From<&ElementRef> for Node {
+    fn from(val: &ElementRef) -> Self {
+        val.clone().inner.into()
     }
 }
 
@@ -250,8 +257,9 @@ impl selectors::Element for ElementRef {
     }
 
     fn is_empty(&self) -> bool {
-        self.get_node_handler()
-            .shallow_child_nodes_iter()
+        let node: Node = self.into();
+
+        node.shallow_child_nodes_iter()
             .all(|ref child| match child {
                 ChildNode::Element(ref _element) => false,
                 ChildNode::Text(ref text) => text.data.is_empty(),

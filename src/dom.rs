@@ -82,13 +82,11 @@ impl Html5everDom {
         )
         .one(html);
 
-        let node_handler = dom
-            .document_reference
-            .get_document_element()?
-            .get_node_handler();
+        let document_node: Node =
+            dom.document_reference.get_document_element()?.into();
 
         let tmp: Vec<ChildNode> =
-            node_handler.shallow_child_nodes_iter().collect();
+            document_node.shallow_child_nodes_iter().collect();
 
         for child in tmp {
             node.insert_node(&child.clone(), InsertPosition::Append)?;

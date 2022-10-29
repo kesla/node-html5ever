@@ -34,6 +34,7 @@ use crate::{
     Document,
     DocumentFragment,
     ElementRef,
+    Node,
 };
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
@@ -261,30 +262,26 @@ impl Selectors {
         &self,
         element: &ElementRef,
     ) -> Result<bool> {
+        let node: Node = element.into();
+
         let quirks_mode =
-            element
-                .node_handler
-                .parent_iterator::<Either<
-                    WeakReference<Document,>,
-                    WeakReference<DocumentFragment,>,
-                >>()
-                .try_next()?
-                .map_or(QuirksMode::NoQuirks, |parent| match parent {
-                    Either::A(weak_document,) => {
-                        let document = weak_document
-                            .upgrade(element.env,)
-                            .unwrap()
-                            .unwrap();
-                        document.quirks_mode.into()
-                    },
-                    Either::B(weak_fragment,) => {
-                        let fragment = weak_fragment
-                            .upgrade(element.env,)
-                            .unwrap()
-                            .unwrap();
-                        fragment.quirks_mode.into()
-                    },
-                },);
+            node.parent_iterator::<Either<
+                WeakReference<Document>,
+                WeakReference<DocumentFragment>,
+            >>()
+            .try_next()?
+            .map_or(QuirksMode::NoQuirks, |parent| match parent {
+                Either::A(weak_document) => {
+                    let document =
+                        weak_document.upgrade(element.env).unwrap().unwrap();
+                    document.quirks_mode.into()
+                },
+                Either::B(weak_fragment) => {
+                    let fragment =
+                        weak_fragment.upgrade(element.env).unwrap().unwrap();
+                    fragment.quirks_mode.into()
+                },
+            });
 
         let m = self
             .0
