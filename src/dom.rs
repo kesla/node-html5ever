@@ -22,6 +22,7 @@ use crate::{
     DocumentFragment,
     DocumentType,
     Element,
+    InsertPosition,
     LazyReference,
     Node,
     QuirksMode,
@@ -90,7 +91,7 @@ impl Html5everDom {
             node_handler.shallow_child_nodes_iter().collect();
 
         for child in tmp {
-            node.append_node(&child.clone())?;
+            node.insert_node(&child.clone(), InsertPosition::Append)?;
         }
 
         Ok(())
@@ -205,7 +206,7 @@ impl TreeSink for Html5everDom {
             },
         };
 
-        parent.append_node(&child).unwrap();
+        parent.insert_node(&child, InsertPosition::Append).unwrap();
     }
 
     fn append_based_on_parent_node(

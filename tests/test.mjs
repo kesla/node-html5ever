@@ -775,3 +775,22 @@ test(".style", (t) => {
         t.strictSame(div.getAttribute("style"), null);
     });
 });
+
+test(".insertBefore()", function (t) {
+    let { document } = new Html5EverDom("");
+    let referenceNode = document.body.appendChild(
+        document.createElement("div"),
+    );
+    let newNode = document.body.insertBefore(
+        document.createElement("span"),
+        referenceNode,
+    );
+    t.strictSame(
+        referenceNode.previousSibling,
+        newNode,
+        "referenceNode.previousSibling",
+    );
+    t.strictSame(newNode.nextSibling, referenceNode, "newNode.nextSibling");
+    t.strictSame(document.body.firstChild, newNode);
+    t.strictSame(document.body.lastChild, referenceNode);
+});

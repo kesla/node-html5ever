@@ -137,32 +137,6 @@ impl NodeHandler {
         ))
     }
 
-    pub(crate) fn append_node(
-        &self,
-        child: &ChildNode,
-    ) {
-        self.child_nodes.borrow_mut(|child_nodes| {
-            child_nodes.append_node(child);
-        });
-    }
-
-    pub(crate) fn prepend_node(
-        &self,
-        child: &ChildNode,
-    ) {
-        self.child_nodes.borrow_mut(|child_nodes| {
-            child_nodes.prepend_node(child);
-        });
-    }
-
-    pub(crate) fn remove_node(
-        &self,
-        child: &ChildNode,
-    ) -> Result<()> {
-        self.child_nodes
-            .borrow_mut(|child_nodes| child_nodes.remove_node(child))
-    }
-
     pub(crate) fn child_nodes_len(&self) -> usize {
         self.child_nodes.borrow(|child_nodes| child_nodes.len())
     }

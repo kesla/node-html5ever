@@ -112,9 +112,10 @@ impl Clone for Node {
     }
 }
 
-enum AppendOrPrepend {
-    Append,
+pub enum InsertPosition {
     Prepend,
+    Append,
+    InsertBefore(usize),
 }
 
 impl Node {
@@ -128,26 +129,34 @@ impl Node {
         }
     }
 
-    fn append_or_prepend(
+    pub(crate) fn insert_node(
         &self,
         child_node: &ChildNode,
-        mode: AppendOrPrepend,
+        position: InsertPosition,
     ) -> Result<()> {
         // remove from old parent
         let node_handler: NodeHandler = child_node.into();
 
         if let Some(parent) = node_handler.parent_context.replace(None) {
             let parent_node_handler: NodeHandler = parent.get_node()?.into();
-            parent_node_handler.remove_node(child_node)?;
+
+            parent_node_handler.child_nodes.borrow_mut(|child_nodes| {
+                child_nodes.remove_node(child_node)
+            })?;
         }
 
         // TODO: concatenate already existing text node
 
         let node_handler: NodeHandler = self.into();
-        match mode {
-            AppendOrPrepend::Append => node_handler.append_node(child_node),
-            AppendOrPrepend::Prepend => node_handler.prepend_node(child_node),
-        }
+        node_handler
+            .child_nodes
+            .borrow_mut(|child_nodes| match position {
+                InsertPosition::Prepend => child_nodes.prepend_node(child_node),
+                InsertPosition::Append => child_nodes.append_node(child_node),
+                InsertPosition::InsertBefore(pos) => {
+                    child_nodes.insert_node(child_node, pos)
+                },
+            });
 
         let parent_node: ParentNode = self.into();
 
@@ -159,21 +168,11 @@ impl Node {
         let node_handler = NodeHandler::from(child_node);
         node_handler.parent_context.set(parent_context);
 
+        node_handler
+            .child_nodes
+            .borrow_mut(|child_nodes| child_nodes.sync_parent_context());
+
         Ok(())
-    }
-
-    pub(crate) fn append_node(
-        &self,
-        child_node: &ChildNode,
-    ) -> Result<()> {
-        self.append_or_prepend(child_node, AppendOrPrepend::Append)
-    }
-
-    pub(crate) fn prepend_node(
-        &self,
-        child_node: &ChildNode,
-    ) -> Result<()> {
-        self.append_or_prepend(child_node, AppendOrPrepend::Prepend)
     }
 
     pub(crate) fn remove_node(
@@ -181,7 +180,9 @@ impl Node {
         child_node: &ChildNode,
     ) -> Result<()> {
         let parent_node_handler: NodeHandler = self.into();
-        parent_node_handler.remove_node(child_node)?;
+        parent_node_handler
+            .child_nodes
+            .borrow_mut(|child_nodes| child_nodes.remove_node(child_node))?;
 
         let child_node_handler: NodeHandler = child_node.into();
         child_node_handler.parent_context.set(None);

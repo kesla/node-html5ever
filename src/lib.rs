@@ -30,6 +30,7 @@ pub use iterators::*;
 pub use lazy_reference::LazyReference;
 pub use node::{
     ChildNode,
+    InsertPosition,
     Node,
     ParentNode,
 };

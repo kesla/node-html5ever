@@ -19,7 +19,10 @@ use napi::{
 
 use crate::{
     serialize,
+    ChildNode,
+    InsertPosition,
     LazyReference,
+    Node,
     StyleDeclaration,
     Text,
 };
@@ -200,5 +203,36 @@ impl Element {
     ) {
         self.attributes_wrapper
             .set_attribute(LocalName::from("id"), id.into());
+    }
+
+    #[napi(
+        ts_generic_types = "T extends ChildNode",
+        ts_args_type = "new_node: T, reference_node: ChildNode",
+        ts_return_type = "T"
+    )]
+    pub fn insert_before(
+        &self,
+        new_node: ChildNode,
+        reference_node: ChildNode,
+    ) -> napi::Result<ChildNode> {
+        let position = self
+            .get_node_handler()
+            .child_nodes
+            .borrow(|child_nodes| {
+                child_nodes
+                    .iter()
+                    .position(|child| child == &reference_node)
+            })
+            .ok_or_else(|| {
+                napi::Error::new(
+                    napi::Status::InvalidArg,
+                    "reference node is not a child of this node".to_string(),
+                )
+            })?;
+
+        let node: Node = self.into();
+        node.insert_node(&new_node, InsertPosition::InsertBefore(position))?;
+
+        Ok(new_node)
     }
 }

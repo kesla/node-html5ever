@@ -75,6 +75,14 @@ impl ChildNodeList {
     ) {
         self.0.insert(0, child.to_owned());
     }
+
+    pub(crate) fn insert_node(
+        &mut self,
+        child: &ChildNode,
+        position: usize,
+    ) {
+        self.0.insert(position, child.to_owned());
+    }
 }
 
 impl From<ChildNodeList> for Vec<ChildNode> {

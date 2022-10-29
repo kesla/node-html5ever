@@ -8,6 +8,7 @@ use napi::{
 use crate::{
     ChildNode,
     Element,
+    InsertPosition,
     Node,
     NodeHandler,
     Text,
@@ -24,7 +25,7 @@ pub(crate) fn append_child(
     parent_node: Node,
     child_node: ChildNode,
 ) -> Result<ChildNode> {
-    parent_node.append_node(&child_node)?;
+    parent_node.insert_node(&child_node, InsertPosition::Append)?;
     Ok(child_node)
 }
 
@@ -41,7 +42,7 @@ pub(crate) fn prepend(
         },
     };
 
-    parent_node.prepend_node(&child_node)?;
+    parent_node.insert_node(&child_node, InsertPosition::Prepend)?;
 
     Ok(())
 }
@@ -59,7 +60,7 @@ pub(crate) fn append(
         },
     };
 
-    parent_node.append_node(&child_node)?;
+    parent_node.insert_node(&child_node, InsertPosition::Append)?;
 
     Ok(())
 }
