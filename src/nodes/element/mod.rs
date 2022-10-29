@@ -217,7 +217,7 @@ impl Element {
         reference_node: ChildNode,
     ) -> napi::Result<ChildNode> {
         let position = self
-            .get_node_handler()
+            .get_node_data()
             .child_nodes
             .borrow(|child_nodes| {
                 child_nodes

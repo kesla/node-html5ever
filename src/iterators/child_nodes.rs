@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     ChildNode,
-    NodeHandler,
+    NodeData,
 };
 
 pub struct DeepChildNodesIterator<T> {
@@ -14,8 +14,8 @@ pub struct DeepChildNodesIterator<T> {
 }
 
 impl<T> DeepChildNodesIterator<T> {
-    pub fn new(node_handler: NodeHandler) -> Self {
-        let queue = ShallowChildNodesIterator::<ChildNode>::new(node_handler)
+    pub fn new(node_data: NodeData) -> Self {
+        let queue = ShallowChildNodesIterator::<ChildNode>::new(node_data)
             .rev()
             .collect();
 
@@ -35,9 +35,9 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(node) = self.queue.pop() {
             if let ChildNode::Element(r) = &node {
-                let node_handler = r.get_node_handler();
+                let node_data = r.get_node_data();
                 self.queue.extend(
-                    ShallowChildNodesIterator::<ChildNode>::new(node_handler)
+                    ShallowChildNodesIterator::<ChildNode>::new(node_data)
                         .rev(),
                 );
             }
@@ -56,8 +56,8 @@ pub struct ShallowChildNodesIterator<T> {
 }
 
 impl<T> ShallowChildNodesIterator<T> {
-    pub fn new(node_handler: NodeHandler) -> Self {
-        let queue = node_handler
+    pub fn new(node_data: NodeData) -> Self {
+        let queue = node_data
             .child_nodes
             .borrow(|child_nodes| child_nodes.iter().cloned().collect());
 

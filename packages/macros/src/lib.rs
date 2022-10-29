@@ -275,7 +275,7 @@ pub fn create_node(
       #[napi]
       pub struct #name {
         pub(crate) env: napi::Env,
-        pub(crate) node_handler: crate::NodeHandler,
+        pub(crate) node_data: crate::NodeData,
         pub(crate) cyclic_reference: crate::CyclicReference<Self>,
         pub(crate) id: usize,
 
@@ -299,7 +299,7 @@ pub fn create_node(
               #(#argument_fields)*
               env,
               id: crate::get_id(),
-              node_handler: crate::NodeHandler::new(env),
+              node_data: crate::NodeData::new(env),
               cyclic_reference,
             };
 
@@ -307,8 +307,8 @@ pub fn create_node(
           })
         }
 
-        pub(crate) fn get_node_handler(&self) -> crate::NodeHandler {
-          self.node_handler.clone()
+        pub(crate) fn get_node_data(&self) -> crate::NodeData {
+          self.node_data.clone()
         }
 
         #[napi(getter)]

@@ -28,26 +28,26 @@ mod parent_context;
 use self::child_node_list::ChildNodeList;
 pub use self::parent_context::ParentContext;
 
-pub struct NodeHandlerInner {
+pub struct NodeDataInner {
     pub(crate) env: Env,
     pub(crate) child_nodes: EinarCell<ChildNodeList>,
     pub(crate) parent_context: EinarCell<Option<ParentContext>>,
 }
 
 #[derive(Clone)]
-pub struct NodeHandler(Rc<NodeHandlerInner>);
+pub struct NodeData(Rc<NodeDataInner>);
 
-impl Deref for NodeHandler {
-    type Target = NodeHandlerInner;
+impl Deref for NodeData {
+    type Target = NodeDataInner;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl NodeHandler {
+impl NodeData {
     pub(crate) fn new(env: Env) -> Self {
-        NodeHandler(Rc::new(NodeHandlerInner {
+        NodeData(Rc::new(NodeDataInner {
             env,
             child_nodes: Default::default(),
             parent_context: Default::default(),
@@ -55,7 +55,7 @@ impl NodeHandler {
     }
 }
 
-impl TryFrom<&ParentContext> for NodeHandler {
+impl TryFrom<&ParentContext> for NodeData {
     type Error = Error;
 
     fn try_from(parent_context: &ParentContext) -> Result<Self> {
@@ -64,77 +64,77 @@ impl TryFrom<&ParentContext> for NodeHandler {
                 let document = document
                     .upgrade(parent_context.env)?
                     .expect("Document is gone");
-                Ok(document.get_node_handler())
+                Ok(document.get_node_data())
             },
             ParentNode::DocumentFragment(document_fragment) => {
                 let document_fragment = document_fragment
                     .upgrade(parent_context.env)?
                     .expect("DocumentFragment is gone");
-                Ok(document_fragment.get_node_handler())
+                Ok(document_fragment.get_node_data())
             },
             ParentNode::Element(element) => {
                 let element = element
                     .upgrade(parent_context.env)?
                     .expect("Element is gone");
-                Ok(element.get_node_handler())
+                Ok(element.get_node_data())
             },
         }
     }
 }
 
-impl From<ChildNode> for NodeHandler {
+impl From<ChildNode> for NodeData {
     fn from(e: ChildNode) -> Self {
         match e {
-            ChildNode::Comment(r) => r.get_node_handler(),
-            ChildNode::DocumentType(r) => r.get_node_handler(),
-            ChildNode::Element(r) => r.get_node_handler(),
-            ChildNode::Text(r) => r.get_node_handler(),
+            ChildNode::Comment(r) => r.get_node_data(),
+            ChildNode::DocumentType(r) => r.get_node_data(),
+            ChildNode::Element(r) => r.get_node_data(),
+            ChildNode::Text(r) => r.get_node_data(),
         }
     }
 }
 
-impl From<&ChildNode> for NodeHandler {
+impl From<&ChildNode> for NodeData {
     fn from(e: &ChildNode) -> Self {
         match e {
-            ChildNode::Comment(r) => r.get_node_handler(),
-            ChildNode::DocumentType(r) => r.get_node_handler(),
-            ChildNode::Element(r) => r.get_node_handler(),
-            ChildNode::Text(r) => r.get_node_handler(),
+            ChildNode::Comment(r) => r.get_node_data(),
+            ChildNode::DocumentType(r) => r.get_node_data(),
+            ChildNode::Element(r) => r.get_node_data(),
+            ChildNode::Text(r) => r.get_node_data(),
         }
     }
 }
 
-impl From<Node> for NodeHandler {
+impl From<Node> for NodeData {
     fn from(node: Node) -> Self {
         match node {
-            Node::Comment(r) => r.get_node_handler(),
-            Node::DocumentType(r) => r.get_node_handler(),
-            Node::Document(r) => r.get_node_handler(),
-            Node::DocumentFragment(r) => r.get_node_handler(),
-            Node::Element(r) => r.get_node_handler(),
-            Node::Text(r) => r.get_node_handler(),
+            Node::Comment(r) => r.get_node_data(),
+            Node::DocumentType(r) => r.get_node_data(),
+            Node::Document(r) => r.get_node_data(),
+            Node::DocumentFragment(r) => r.get_node_data(),
+            Node::Element(r) => r.get_node_data(),
+            Node::Text(r) => r.get_node_data(),
         }
     }
 }
 
-impl From<&Node> for NodeHandler {
+impl From<&Node> for NodeData {
     fn from(node: &Node) -> Self {
         match node {
-            Node::Comment(r) => r.get_node_handler(),
-            Node::DocumentType(r) => r.get_node_handler(),
-            Node::Document(r) => r.get_node_handler(),
-            Node::DocumentFragment(r) => r.get_node_handler(),
-            Node::Element(r) => r.get_node_handler(),
-            Node::Text(r) => r.get_node_handler(),
+            Node::Comment(r) => r.get_node_data(),
+            Node::DocumentType(r) => r.get_node_data(),
+            Node::Document(r) => r.get_node_data(),
+            Node::DocumentFragment(r) => r.get_node_data(),
+            Node::Element(r) => r.get_node_data(),
+            Node::Text(r) => r.get_node_data(),
         }
     }
 }
 
 macro_rules! impl_from {
     ($type:ty) => {
-        impl From<&$type> for NodeHandler {
+        impl From<&$type> for NodeData {
             fn from(value: &$type) -> Self {
-                value.get_node_handler()
+                value.get_node_data()
             }
         }
     };

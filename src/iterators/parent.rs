@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use napi::Result;
 
 use crate::{
-    NodeHandler,
+    NodeData,
     ParentContext,
     ParentNode,
 };
@@ -28,12 +28,12 @@ impl<T> ParentIterator<T> {
         };
         let result = Some(Ok(parent_ctx.node.clone()));
 
-        let node_handler: NodeHandler = match parent_ctx.try_into() {
-            Ok(node_handler) => node_handler,
+        let node_data: NodeData = match parent_ctx.try_into() {
+            Ok(node_data) => node_data,
             Err(err) => return Some(Err(err)),
         };
 
-        self.maybe_parent_ctx = node_handler.parent_context.cloned();
+        self.maybe_parent_ctx = node_data.parent_context.cloned();
         result
     }
 }

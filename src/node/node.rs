@@ -20,7 +20,7 @@ use crate::{
     DocumentFragment,
     DocumentType,
     Element,
-    NodeHandler,
+    NodeData,
     ParentContext,
     ParentIterator,
     SelectorsIterator,
@@ -144,8 +144,8 @@ impl Node {
 
         // TODO: concatenate already existing text node
 
-        let node_handler: NodeHandler = self.into();
-        node_handler
+        let node_data: NodeData = self.into();
+        node_data
             .child_nodes
             .borrow_mut(|child_nodes| match position {
                 InsertPosition::Prepend => child_nodes.prepend_node(child_node),
@@ -164,33 +164,33 @@ impl Node {
         &self,
         child_node: &ChildNode,
     ) -> Result<()> {
-        let parent_node_handler: NodeHandler = self.into();
-        parent_node_handler
+        let parent_node_data: NodeData = self.into();
+        parent_node_data
             .child_nodes
             .borrow_mut(|child_nodes| child_nodes.remove_node(child_node))?;
 
         self.sync_parent_context();
 
-        let child_node_handler: NodeHandler = child_node.into();
-        child_node_handler.parent_context.set(None);
+        let child_node_data: NodeData = child_node.into();
+        child_node_data.parent_context.set(None);
 
         Ok(())
     }
 
     fn sync_parent_context(&self) {
-        let parent_node_handler: NodeHandler = self.into();
-        parent_node_handler.child_nodes.borrow(|child_nodes| {
+        let parent_node_data: NodeData = self.into();
+        parent_node_data.child_nodes.borrow(|child_nodes| {
             for index in 0..child_nodes.len() {
-                let node_handler: NodeHandler =
+                let node_data: NodeData =
                     child_nodes.get(index).unwrap().into();
 
-                node_handler.parent_context.borrow_mut(|parent_context| {
+                node_data.parent_context.borrow_mut(|parent_context| {
                     if let Some(mut ctx) = parent_context.as_mut() {
                         ctx.index = index;
                         ctx.node = self.into();
                     } else {
                         *parent_context = Some(ParentContext::new(
-                            node_handler.env,
+                            node_data.env,
                             self.into(),
                             index,
                         ));
@@ -219,9 +219,9 @@ impl Node {
     }
 
     pub(crate) fn parent_iterator<T>(&self) -> ParentIterator<T> {
-        let node_handler: NodeHandler = self.into();
+        let node_data: NodeData = self.into();
 
-        ParentIterator::new(node_handler.parent_context.cloned())
+        ParentIterator::new(node_data.parent_context.cloned())
     }
 
     pub(crate) fn deep_child_nodes_iter<T>(&self) -> DeepChildNodesIterator<T>
@@ -244,9 +244,9 @@ impl Node {
         &self,
         sibling_type: SiblingIteratorType,
     ) -> Result<SiblingIterator<T>> {
-        let node_handler: NodeHandler = self.into();
+        let node_data: NodeData = self.into();
 
-        SiblingIterator::new(node_handler.parent_context.cloned(), sibling_type)
+        SiblingIterator::new(node_data.parent_context.cloned(), sibling_type)
     }
 
     pub(crate) fn previous_iterator<T>(&self) -> Result<SiblingIterator<T>> {
@@ -284,9 +284,9 @@ impl Node {
         &self,
         index: usize,
     ) -> Option<ChildNode> {
-        let node_handler: NodeHandler = self.into();
+        let node_data: NodeData = self.into();
 
-        node_handler
+        node_data
             .child_nodes
             .borrow(|child_nodes| child_nodes.get(index).cloned())
     }

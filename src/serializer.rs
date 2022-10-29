@@ -13,14 +13,14 @@ use crate::{
     Node,
 };
 
-struct SerializableNodeHandler(Node);
+struct SerializableNode(Node);
 
 enum SerializeOp {
     Open(ChildNode),
     Close(QualName),
 }
 
-impl html5ever::serialize::Serialize for SerializableNodeHandler {
+impl html5ever::serialize::Serialize for SerializableNode {
     fn serialize<S>(
         &self,
         serializer: &mut S,
@@ -52,9 +52,9 @@ impl html5ever::serialize::Serialize for SerializableNodeHandler {
                             serializer.write_doctype(&doc_type.name)?
                         },
                         ChildNode::Element(element) => {
-                            let node_handler = element.get_node_handler();
+                            let node_data = element.get_node_data();
 
-                            node_handler
+                            node_data
                                 .child_nodes
                                 .borrow::<_, std::io::Result<()>>(
                                     |child_nodes| {
@@ -99,12 +99,11 @@ pub fn serialize(
     handle: Node,
     traversal_scope: TraversalScope,
 ) -> String {
-    let serializable_node_handler: SerializableNodeHandler =
-        SerializableNodeHandler(handle);
+    let serializable_node_data: SerializableNode = SerializableNode(handle);
     let mut serialized = Vec::new();
     html5ever::serialize::serialize(
         &mut serialized,
-        &serializable_node_handler,
+        &serializable_node_data,
         SerializeOpts {
             traversal_scope,
             ..Default::default()

@@ -25,7 +25,7 @@ use crate::{
     DocumentType,
     Element,
     Node,
-    NodeHandler,
+    NodeData,
     ParentContext,
     Text,
 };
@@ -39,10 +39,10 @@ pub enum ChildNode {
 
 impl ChildNode {
     pub(crate) fn remove(&self) -> Result<()> {
-        let node_handler: NodeHandler = self.into();
+        let node_data: NodeData = self.into();
 
         let parent_ctx: ParentContext =
-            match node_handler.parent_context.replace(None) {
+            match node_data.parent_context.replace(None) {
                 Some(parent) => parent,
                 None => return Ok(()),
             };

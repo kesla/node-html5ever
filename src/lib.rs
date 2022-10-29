@@ -13,7 +13,7 @@ mod iterators;
 mod lazy_reference;
 mod macro_backend;
 mod node;
-mod node_handler;
+mod node_data;
 mod nodes;
 mod quirks_mode;
 mod selectors;
@@ -34,8 +34,8 @@ pub use node::{
     Node,
     ParentNode,
 };
-pub use node_handler::{
-    NodeHandler,
+pub use node_data::{
+    NodeData,
     ParentContext,
 };
 pub use nodes::{
