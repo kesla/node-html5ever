@@ -48,10 +48,7 @@ impl ChildNode {
             };
 
         let parent_node = parent_ctx.get_node()?;
-        let parent_node_handler: NodeHandler = parent_node.into();
-        parent_node_handler
-            .child_nodes
-            .borrow_mut(|child_nodes| child_nodes.remove_node(self))
+        parent_node.remove_node(self)
     }
 }
 

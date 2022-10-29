@@ -8,10 +8,7 @@ use napi::{
     Result,
 };
 
-use crate::{
-    ChildNode,
-    NodeHandler,
-};
+use crate::ChildNode;
 
 #[derive(Default)]
 pub(crate) struct ChildNodeList(Vec<ChildNode>);
@@ -44,22 +41,7 @@ impl ChildNodeList {
 
         self.0.remove(index);
 
-        self.sync_parent_context();
         Ok(())
-    }
-
-    pub(crate) fn sync_parent_context(&mut self) {
-        for index in 0..self.0.len() {
-            let node_handler: NodeHandler = (&self.0[index]).into();
-
-            node_handler.parent_context.borrow_mut(|parent_context| {
-                assert!(parent_context.is_some());
-
-                if let Some(mut ctx) = parent_context.as_mut() {
-                    ctx.index = index;
-                }
-            })
-        }
     }
 
     pub(crate) fn append_node(

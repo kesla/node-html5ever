@@ -21,7 +21,6 @@ use crate::{
     Element,
     NodeHandler,
     ParentContext,
-    ParentNode,
     Text,
 };
 
@@ -135,15 +134,13 @@ impl Node {
         position: InsertPosition,
     ) -> Result<()> {
         // remove from old parent
-        let node_handler: NodeHandler = child_node.into();
+        child_node.remove()?;
 
-        if let Some(parent) = node_handler.parent_context.replace(None) {
-            let parent_node_handler: NodeHandler = parent.get_node()?.into();
+        // let node_handler: NodeHandler = child_node.into();
 
-            parent_node_handler.child_nodes.borrow_mut(|child_nodes| {
-                child_nodes.remove_node(child_node)
-            })?;
-        }
+        // if let Some(parent) = node_handler.parent_context.replace(None) {
+        //     parent.get_node()?.remove_node(child_node)?;
+        // }
 
         // TODO: concatenate already existing text node
 
@@ -158,19 +155,7 @@ impl Node {
                 },
             });
 
-        let parent_node: ParentNode = self.into();
-
-        let parent_context = Some(ParentContext::new(
-            node_handler.env,
-            parent_node,
-            node_handler.child_nodes_len() - 1,
-        ));
-        let node_handler = NodeHandler::from(child_node);
-        node_handler.parent_context.set(parent_context);
-
-        node_handler
-            .child_nodes
-            .borrow_mut(|child_nodes| child_nodes.sync_parent_context());
+        self.sync_parent_context();
 
         Ok(())
     }
@@ -184,10 +169,35 @@ impl Node {
             .child_nodes
             .borrow_mut(|child_nodes| child_nodes.remove_node(child_node))?;
 
+        self.sync_parent_context();
+
         let child_node_handler: NodeHandler = child_node.into();
         child_node_handler.parent_context.set(None);
 
         Ok(())
+    }
+
+    fn sync_parent_context(&self) {
+        let parent_node_handler: NodeHandler = self.into();
+        parent_node_handler.child_nodes.borrow(|child_nodes| {
+            for index in 0..child_nodes.len() {
+                let node_handler: NodeHandler =
+                    child_nodes.get(index).unwrap().into();
+
+                node_handler.parent_context.borrow_mut(|parent_context| {
+                    if let Some(mut ctx) = parent_context.as_mut() {
+                        ctx.index = index;
+                        ctx.node = self.into();
+                    } else {
+                        *parent_context = Some(ParentContext::new(
+                            node_handler.env,
+                            self.into(),
+                            index,
+                        ));
+                    }
+                })
+            }
+        });
     }
 
     pub(crate) fn get_node_name(&self) -> String {
