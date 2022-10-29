@@ -69,7 +69,7 @@ impl Html5everDom {
         Ok(fragment)
     }
 
-    fn parse_and_append(
+    pub(crate) fn parse_and_append(
         env: Env,
         node: Node,
         html: String,

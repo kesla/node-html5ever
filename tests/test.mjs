@@ -124,12 +124,6 @@ test("element", (t) => {
     t.strictSame(html.parentElement, null);
 });
 
-test("comment", (t) => {
-    let dom = new Html5EverDom("<!-- Hello, world -->");
-
-    t.matchSnapshot(dom.serialize(), "Comment dom");
-});
-
 test("createElement + set attributes", (t) => {
     let dom = new Html5EverDom("");
 
@@ -159,6 +153,30 @@ test("createElement + set attributes", (t) => {
     t.strictSame(element.getAttribute("foo"), null);
     t.strictSame(element.getAttribute("hello"), "world");
     t.matchSnapshot(element.outerHTML, "attribute foo removed, hello added");
+});
+
+test("createElement + .innerHTML", (t) => {
+    let dom = new Html5EverDom("");
+    let element = dom.document.createElement("div");
+    t.strictSame(element.innerHTML, "");
+
+    element.innerHTML = "Hello world";
+    t.strictSame(element.innerHTML, "Hello world");
+    t.ok(element.firstChild instanceof Text);
+
+    element.innerHTML = "<div id='foo'></div><div id='bar'></div>";
+    t.strictSame(element.innerHTML, '<div id="foo"></div><div id="bar"></div>');
+    t.strictSame(element.childNodes.length, 2);
+    t.strictSame(element.children.length, 2);
+    t.strictSame(element.children[0].getAttribute("id"), "foo");
+    t.strictSame(element.children[1].getAttribute("id"), "bar");
+    t.strictSame(element.children[0].parentNode, element);
+});
+
+test("comment", (t) => {
+    let dom = new Html5EverDom("<!-- Hello, world -->");
+
+    t.matchSnapshot(dom.serialize(), "Comment dom");
 });
 
 test("Text node", (t) => {

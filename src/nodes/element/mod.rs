@@ -20,6 +20,7 @@ use napi::{
 use crate::{
     serialize,
     ChildNode,
+    Html5everDom,
     InsertPosition,
     LazyReference,
     Node,
@@ -152,13 +153,46 @@ impl Element {
         )
     }
 
+    #[napi(setter, js_name = "innerHTML")]
+    pub fn set_innner_html(
+        &self,
+        html: String,
+    ) -> Result<()> {
+        while let Some(child) = self.get_first_child() {
+            self.remove_child(child)?;
+        }
+
+        Html5everDom::parse_and_append(self.env, self.into(), html)
+    }
+
     #[napi(getter, js_name = "outerHTML")]
-    pub fn gete_outer_html(&self) -> String {
+    pub fn get_outer_html(&self) -> String {
         serialize(
             self.into(),
             html5ever::serialize::TraversalScope::IncludeNode,
         )
     }
+
+    // #[napi(setter, js_name = "outerHTML")]
+    // pub fn set_outer_html(
+    //     &self,
+    //     html: String,
+    // ) -> Result<()> {
+    //     let maybe_parent = self.get_parent_node()?;
+    //     let parent = match maybe_parent {
+    //         Some(parent) => parent,
+    //         None => return Ok(()),
+    //     };
+
+    //     if matches!(parent, crate::ParentNode::Document(_)) {
+    //         return Err(napi::Error::new(
+    //             napi::Status::InvalidArg,
+    //             "Cannot set outerHTML on document".to_string(),
+    //         ));
+    //     }
+
+    //     Ok(())
+    // }
 
     #[napi(getter)]
     pub fn get_text_content(&self) -> Option<String> {

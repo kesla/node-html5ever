@@ -34,7 +34,7 @@
         "node": ">= 10"
     },
     "scripts": {
-        "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header --pipe=\"prettier --write --cache\"",
+        "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header --pipe=\"prettier --write\"",
         "artifacts": "napi artifacts",
         "build": "yarn _build --release && yarn merge-dts",
         "build:debug": "yarn _build && yarn merge-dts",

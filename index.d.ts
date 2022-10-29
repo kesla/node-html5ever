@@ -149,6 +149,7 @@ export class Element {
     get style(): StyleDeclaration;
     get tagName(): string;
     get innerHTML(): string;
+    set innerHTML(html: string);
     get outerHTML(): string;
     get textContent(): string | null;
     get className(): string;
