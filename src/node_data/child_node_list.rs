@@ -1,7 +1,4 @@
-use std::{
-    self,
-    slice::Iter,
-};
+use std::slice::Iter;
 
 use napi::{
     Error,
@@ -55,7 +52,7 @@ impl ChildNodeList {
         &mut self,
         child: &ChildNode,
     ) {
-        self.0.insert(0, child.to_owned());
+        self.insert_node(child, 0);
     }
 
     pub(crate) fn insert_node(
@@ -64,11 +61,5 @@ impl ChildNodeList {
         position: usize,
     ) {
         self.0.insert(position, child.to_owned());
-    }
-}
-
-impl From<ChildNodeList> for Vec<ChildNode> {
-    fn from(child_node_list: ChildNodeList) -> Self {
-        child_node_list.0
     }
 }
