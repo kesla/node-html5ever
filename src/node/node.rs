@@ -186,7 +186,7 @@ impl Node {
 
                 node_data.parent_context.borrow_mut(|parent_context| {
                     if let Some(mut ctx) = parent_context.as_mut() {
-                        ctx.index = index;
+                        ctx.position = index;
                         ctx.node = self.into();
                     } else {
                         *parent_context = Some(ParentContext::new(
@@ -198,6 +198,16 @@ impl Node {
                 })
             }
         });
+    }
+
+    pub(crate) fn get_position(&self) -> Result<usize> {
+        let node_data: NodeData = self.into();
+        node_data
+            .parent_context
+            .borrow(|maybe_ctx| maybe_ctx.as_ref().map(|ctx| ctx.position))
+            .ok_or_else(|| {
+                Error::new(Status::InvalidArg, "Node has no parent".to_string())
+            })
     }
 
     pub(crate) fn get_node_name(&self) -> String {

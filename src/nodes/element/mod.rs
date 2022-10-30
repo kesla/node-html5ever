@@ -19,9 +19,7 @@ use napi::{
 
 use crate::{
     serialize,
-    ChildNode,
     Html5everDom,
-    InsertPosition,
     LazyReference,
     Node,
     StyleDeclaration,
@@ -191,6 +189,17 @@ impl Element {
     //         ));
     //     }
 
+    //     let cloned = self.clone_node(Some(false))?;
+    //     let node: Node = cloned.clone(self.env)?.into();
+
+    //     Html5everDom::parse_and_append(self.env, node, html)?;
+
+    //     cloned.get_child_nodes().into_iter().for_each(|child| {
+    //         parent
+    //             .insert_before(child, Some(self.clone(self.env).unwrap()))
+    //             .unwrap();
+    //     });
+
     //     Ok(())
     // }
 
@@ -238,37 +247,6 @@ impl Element {
     ) {
         self.attributes_wrapper
             .set_attribute(LocalName::from("id"), id.into());
-    }
-
-    #[napi(
-        ts_generic_types = "T extends ChildNode",
-        ts_args_type = "new_node: T, reference_node: ChildNode",
-        ts_return_type = "T"
-    )]
-    pub fn insert_before(
-        &self,
-        new_node: ChildNode,
-        reference_node: ChildNode,
-    ) -> napi::Result<ChildNode> {
-        let position = self
-            .get_node_data()
-            .child_nodes
-            .borrow(|child_nodes| {
-                child_nodes
-                    .iter()
-                    .position(|child| child == &reference_node)
-            })
-            .ok_or_else(|| {
-                napi::Error::new(
-                    napi::Status::InvalidArg,
-                    "reference node is not a child of this node".to_string(),
-                )
-            })?;
-
-        let node: Node = self.into();
-        node.insert_node(&new_node, InsertPosition::InsertBefore(position))?;
-
-        Ok(new_node)
     }
 
     #[napi]

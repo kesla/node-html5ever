@@ -36,6 +36,10 @@ export class Document {
     append(childNodeOrText: ChildNode | string): void;
     prepend(childNodeOrText: ChildNode | string): void;
     appendChild<T extends ChildNode>(child: T): T;
+    insertBefore<T extends ChildNode>(
+        new_node: T,
+        reference_node: ChildNode,
+    ): T;
     removeChild<T extends ChildNode>(child: T): T;
     getElementById(id: string): Element | null;
     getElementsByClassName(className: string): Array<Element>;
@@ -62,6 +66,10 @@ export class DocumentFragment {
     append(childNodeOrText: ChildNode | string): void;
     prepend(childNodeOrText: ChildNode | string): void;
     appendChild<T extends ChildNode>(child: T): T;
+    insertBefore<T extends ChildNode>(
+        new_node: T,
+        reference_node: ChildNode,
+    ): T;
     removeChild<T extends ChildNode>(child: T): T;
     getElementById(id: string): Element | null;
     getElementsByClassName(className: string): Array<Element>;
@@ -124,6 +132,10 @@ export class Element {
     append(childNodeOrText: ChildNode | string): void;
     prepend(childNodeOrText: ChildNode | string): void;
     appendChild<T extends ChildNode>(child: T): T;
+    insertBefore<T extends ChildNode>(
+        new_node: T,
+        reference_node: ChildNode,
+    ): T;
     removeChild<T extends ChildNode>(child: T): T;
     getElementById(id: string): Element | null;
     getElementsByClassName(className: string): Array<Element>;
@@ -150,10 +162,6 @@ export class Element {
     set className(className: string);
     get id(): string;
     set id(id: string);
-    insertBefore<T extends ChildNode>(
-        new_node: T,
-        reference_node: ChildNode,
-    ): T;
     cloneNode(deep?: boolean | undefined | null): Element;
 }
 export class Text {

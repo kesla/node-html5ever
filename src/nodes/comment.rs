@@ -17,10 +17,7 @@ impl Comment {
     }
 
     #[napi]
-    pub fn clone_node(
-        &self,
-        deep: Option<bool>,
-    ) -> Result<Reference<Self>> {
+    pub fn clone_node(&self) -> Result<Reference<Self>> {
         Self::new_reference(self.env, self.data.clone())
     }
 }

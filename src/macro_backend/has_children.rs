@@ -64,6 +64,18 @@ pub(crate) fn append(
     Ok(())
 }
 
+pub(crate) fn insert_before(
+    parent: Node,
+    new_node: ChildNode,
+    reference_node: Node,
+) -> Result<ChildNode> {
+    let position = reference_node.get_position()?;
+
+    parent.insert_node(&new_node, InsertPosition::InsertBefore(position))?;
+
+    Ok(new_node)
+}
+
 pub(crate) fn remove_child(
     parent_node: Node,
     child_node: ChildNode,

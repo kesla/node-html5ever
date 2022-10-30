@@ -25,7 +25,7 @@ impl<T> SiblingIterator<T> {
         sibling_type: SiblingIteratorType,
     ) -> Result<Self> {
         let data = match &maybe_parent_ctx {
-            Some(parent) => Some((parent.get_node()?, parent.index)),
+            Some(parent) => Some((parent.get_node()?, parent.position)),
             None => None,
         };
 

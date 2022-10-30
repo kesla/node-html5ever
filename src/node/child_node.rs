@@ -56,10 +56,10 @@ impl ChildNode {
         deep: Option<bool>,
     ) -> Result<Self> {
         let cloned = match self {
-            ChildNode::Comment(r) => r.clone_node(deep)?.into(),
+            ChildNode::Comment(r) => r.clone_node()?.into(),
             ChildNode::DocumentType(r) => r.clone_node(deep)?.into(),
             ChildNode::Element(r) => r.clone_node(deep)?.into(),
-            ChildNode::Text(r) => r.clone_node(deep)?.into(),
+            ChildNode::Text(r) => r.clone_node()?.into(),
         };
         Ok(cloned)
     }

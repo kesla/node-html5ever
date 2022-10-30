@@ -115,6 +115,23 @@ pub fn create_node(
 
             #[napi(
                 ts_generic_types = "T extends ChildNode",
+                ts_args_type = "new_node: T, reference_node: ChildNode",
+                ts_return_type = "T"
+            )]
+            pub fn insert_before(
+                &self,
+                new_node: crate::ChildNode,
+                reference_node: crate::ChildNode,
+            ) -> napi::Result<crate::ChildNode> {
+                macro_backend::has_children::insert_before(
+                    self.into(),
+                    new_node.into(),
+                    reference_node.into(),
+                )
+            }
+
+            #[napi(
+                ts_generic_types = "T extends ChildNode",
                 ts_args_type = "child: T",
                 ts_return_type = "T"
             )]

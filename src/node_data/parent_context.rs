@@ -11,7 +11,7 @@ use crate::{
 #[derive(Clone)]
 pub struct ParentContext {
     pub(crate) node: ParentNode,
-    pub(crate) index: usize,
+    pub(crate) position: usize,
     pub(crate) env: Env,
 }
 
@@ -19,12 +19,12 @@ impl ParentContext {
     pub(crate) fn new(
         env: Env,
         node: ParentNode,
-        index: usize,
+        position: usize,
     ) -> Self {
         ParentContext {
             env,
             node,
-            index,
+            position,
         }
     }
 
