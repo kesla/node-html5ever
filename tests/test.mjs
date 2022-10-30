@@ -9,7 +9,7 @@ import {
     Comment,
     Text,
     DocumentType,
-} from "../index.js";
+} from "../index.mjs";
 
 /**
  *

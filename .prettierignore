@@ -3,3 +3,5 @@
 target
 npm
 tap-snapshots
+generated.js
+types/generated.d.ts
