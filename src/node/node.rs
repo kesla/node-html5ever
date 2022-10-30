@@ -9,6 +9,8 @@ use napi::{
         Reference,
         Result,
     },
+    Either,
+    Env,
     Status,
 };
 
@@ -329,5 +331,51 @@ impl Node {
         }
 
         Ok(())
+    }
+
+    pub(crate) fn prepend(
+        &self,
+        env: Env,
+        node: Either<ChildNode, String>,
+    ) -> Result<()> {
+        let child_node: ChildNode = match node {
+            Either::A(child_node) => child_node,
+            Either::B(data) => {
+                let text = Text::new_reference(env, data)?;
+                text.into()
+            },
+        };
+
+        self.insert_node(&child_node, &InsertPosition::Prepend)?;
+
+        Ok(())
+    }
+
+    pub(crate) fn append(
+        &self,
+        env: Env,
+        node: Either<ChildNode, String>,
+    ) -> Result<()> {
+        let child_node: ChildNode = match node {
+            Either::A(child_node) => child_node,
+            Either::B(data) => {
+                let text = Text::new_reference(env, data)?;
+                text.into()
+            },
+        };
+
+        self.insert_node(&child_node, &InsertPosition::Append)?;
+
+        Ok(())
+    }
+
+    pub(crate) fn insert_before(
+        &self,
+        new_node: &ChildNode,
+        reference_node: &Node,
+    ) -> Result<()> {
+        let position = reference_node.get_position()?;
+
+        self.insert_node(new_node, &InsertPosition::InsertBefore(position))
     }
 }

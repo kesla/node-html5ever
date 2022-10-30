@@ -63,7 +63,7 @@ pub fn create_node(
         true => quote!(
             #[napi(getter)]
             pub fn get_child_nodes(&self) -> Vec<crate::ChildNode> {
-                macro_backend::has_children::children(self.into())
+                self.as_node().shallow_child_nodes_iter().collect()
             }
 
             #[napi(getter)]
@@ -71,7 +71,7 @@ pub fn create_node(
                 &self
             ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>>
             {
-                macro_backend::has_children::children(self.into())
+                self.as_node().shallow_child_nodes_iter().collect()
             }
 
             #[napi]
@@ -79,11 +79,7 @@ pub fn create_node(
                 &self,
                 child_node_or_text: napi::Either<crate::ChildNode, String>,
             ) -> napi::Result<()> {
-                macro_backend::has_children::append(
-                    self.env,
-                    self.into(),
-                    child_node_or_text.into(),
-                )
+                self.as_node().append(self.env, child_node_or_text)
             }
 
             #[napi]
@@ -91,11 +87,7 @@ pub fn create_node(
                 &self,
                 child_node_or_text: napi::Either<crate::ChildNode, String>,
             ) -> napi::Result<()> {
-                macro_backend::has_children::prepend(
-                    self.env,
-                    self.into(),
-                    child_node_or_text.into(),
-                )
+                self.as_node().prepend(self.env, child_node_or_text)
             }
 
             #[napi(
@@ -107,10 +99,10 @@ pub fn create_node(
                 &self,
                 child: crate::ChildNode,
             ) -> napi::Result<crate::ChildNode> {
-                macro_backend::has_children::append_child(
-                    self.into(),
-                    child.into(),
-                )
+                self.as_node()
+                    .insert_node(&child, &crate::InsertPosition::Append)?;
+
+                Ok(child)
             }
 
             #[napi(
@@ -123,11 +115,10 @@ pub fn create_node(
                 new_node: crate::ChildNode,
                 reference_node: crate::ChildNode,
             ) -> napi::Result<crate::ChildNode> {
-                macro_backend::has_children::insert_before(
-                    self.into(),
-                    new_node.into(),
-                    reference_node.into(),
-                )
+                self.as_node()
+                    .insert_before(&new_node, &reference_node.into())?;
+
+                Ok(new_node)
             }
 
             #[napi(
@@ -139,10 +130,9 @@ pub fn create_node(
                 &self,
                 child: crate::ChildNode,
             ) -> napi::Result<crate::ChildNode> {
-                macro_backend::has_children::remove_child(
-                    self.into(),
-                    child.into(),
-                )
+                self.as_node().remove_node(&child)?;
+
+                Ok(child)
             }
 
             #[napi]
@@ -151,7 +141,11 @@ pub fn create_node(
                 id: String,
             ) -> Option<napi::bindgen_prelude::Reference<crate::Element>>
             {
-                macro_backend::has_children::get_element_by_id(self.into(), id)
+                self.as_node().deep_child_nodes_iter().find(
+                    |e: &napi::bindgen_prelude::Reference<crate::Element>| {
+                        e.get_id() == id
+                    },
+                )
             }
 
             #[napi]
@@ -160,10 +154,16 @@ pub fn create_node(
                 class_name: String,
             ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>>
             {
-                macro_backend::has_children::get_elements_by_class_name(
-                    self.into(),
-                    class_name,
-                )
+                self.as_node()
+                    .deep_child_nodes_iter()
+                    .filter(
+                        |e: &napi::bindgen_prelude::Reference<
+                            crate::Element,
+                        >| {
+                            e.get_class_name() == class_name
+                        },
+                    )
+                    .collect()
             }
 
             #[napi]
@@ -172,10 +172,18 @@ pub fn create_node(
                 qualified_name: String,
             ) -> Vec<napi::bindgen_prelude::Reference<crate::Element>>
             {
-                macro_backend::has_children::get_elements_by_tag_name(
-                    self.into(),
-                    qualified_name,
-                )
+                let tag_name: &str = &qualified_name;
+
+                self.as_node()
+                    .deep_child_nodes_iter()
+                    .filter(
+                        |e: &napi::bindgen_prelude::Reference<
+                            crate::Element,
+                        >| {
+                            e.get_tag_name().eq_ignore_ascii_case(tag_name)
+                        },
+                    )
+                    .collect()
             }
 
             #[napi]
@@ -185,10 +193,7 @@ pub fn create_node(
             ) -> napi::Result<
                 Option<napi::bindgen_prelude::Reference<crate::Element>>,
             > {
-                macro_backend::has_children::query_selector(
-                    self.into(),
-                    selectors,
-                )
+                self.as_node().selectors_iter(selectors)?.try_next()
             }
 
             #[napi]
@@ -198,15 +203,12 @@ pub fn create_node(
             ) -> napi::Result<
                 Vec<napi::bindgen_prelude::Reference<crate::Element>>,
             > {
-                macro_backend::has_children::query_selector_all(
-                    self.into(),
-                    selectors,
-                )
+                self.as_node().selectors_iter(selectors)?.collect()
             }
 
             #[napi(getter)]
             pub fn get_first_child(&self) -> Option<crate::ChildNode> {
-                macro_backend::has_children::first_child(self.into())
+                self.as_node().shallow_child_nodes_iter().next()
             }
 
             #[napi(getter)]
@@ -214,12 +216,12 @@ pub fn create_node(
                 &self
             ) -> Option<napi::bindgen_prelude::Reference<crate::Element>>
             {
-                macro_backend::has_children::first_child(self.into())
+                self.as_node().shallow_child_nodes_iter().next()
             }
 
             #[napi(getter)]
             pub fn get_last_child(&self) -> Option<crate::ChildNode> {
-                macro_backend::has_children::last_child(self.into())
+                self.as_node().shallow_child_nodes_iter().next_back()
             }
 
             #[napi(getter)]
@@ -227,12 +229,12 @@ pub fn create_node(
                 &self
             ) -> Option<napi::bindgen_prelude::Reference<crate::Element>>
             {
-                macro_backend::has_children::last_child(self.into())
+                self.as_node().shallow_child_nodes_iter().next_back()
             }
 
             #[napi]
             pub fn normalize(&self) -> napi::Result<()> {
-                macro_backend::has_children::normalize(self.into())
+                self.as_node().normalize()
             }
         ),
         false => quote!(),
@@ -240,60 +242,67 @@ pub fn create_node(
 
     let is_child_impl = match features.is_child {
         true => quote! {
-          #[napi(getter)]
-          pub fn get_parent_element(&self) ->
-              napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
-            macro_backend::is_child::parent(self.into())
-          }
+            fn as_child_node(&self) -> crate::ChildNode {
+                let child_node: crate::ChildNode = self.into();
+                child_node
+            }
 
-          #[napi(getter)]
-          pub fn get_parent_node(&self) ->
-              napi::Result<Option<crate::ParentNode>> {
-            macro_backend::is_child::parent(self.into())
-          }
+            #[napi(getter)]
+            pub fn get_parent_element(&self) ->
+                napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
+                self.as_node().parent_iterator().try_next()
+            }
 
-          #[napi(getter)]
-          pub fn get_owner_document(
-            &self,
-          ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
-            macro_backend::is_child::parent(self.into())
-          }
+            #[napi(getter)]
+            pub fn get_parent_node(&self) ->
+                napi::Result<Option<crate::ParentNode>> {
+                self.as_node().parent_iterator().try_next()
+            }
 
-          #[napi]
-          pub fn remove(&self) -> napi::Result<()> {
-            macro_backend::is_child::remove(self.into())
-          }
+            #[napi(getter)]
+            pub fn get_owner_document(
+                &self,
+            ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
+                self.as_node().parent_iterator().try_next()
+            }
 
-          #[napi(getter)]
-          pub fn get_previous_sibling(&self) ->
-            napi::Result<Option<crate::ChildNode>> {
-            macro_backend::is_child::previous(self.into())
-          }
+            #[napi]
+            pub fn remove(&self) -> napi::Result<()> {
+                self.as_child_node().remove()
+            }
 
-          #[napi(getter)]
-          pub fn get_previous_element_sibling(&self) ->
-            napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-            macro_backend::is_child::previous(self.into())
-          }
+            #[napi(getter)]
+            pub fn get_previous_sibling(&self) ->
+                napi::Result<Option<crate::ChildNode>> {
 
-          #[napi(getter)]
-          pub fn get_next_sibling(&self) ->
-            napi::Result<Option<crate::ChildNode>> {
-            macro_backend::is_child::next(self.into())
-          }
+                Ok(self.as_node().previous_iterator()?.next())
+            }
 
-          #[napi(getter)]
-          pub fn get_next_element_sibling(&self) ->
-            napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
-            macro_backend::is_child::next(self.into())
-          }
+            #[napi(getter)]
+            pub fn get_previous_element_sibling(&self) ->
+                napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
+
+                Ok(self.as_node().previous_iterator()?.next())
+            }
+
+            #[napi(getter)]
+            pub fn get_next_sibling(&self) ->
+                napi::Result<Option<crate::ChildNode>> {
+
+                Ok(self.as_node().next_iterator()?.next())
+            }
+
+            #[napi(getter)]
+            pub fn get_next_element_sibling(&self) ->
+                napi::Result<Option<napi::bindgen_prelude::Reference<crate::Element>>> {
+
+                Ok(self.as_node().next_iterator()?.next())
+            }
         },
         false => quote! {},
     };
 
     return quote! {
-      use crate::macro_backend;
-
       #[napi]
       pub struct #name {
         pub(crate) env: napi::Env,
@@ -330,14 +339,18 @@ pub fn create_node(
         }
 
         pub(crate) fn get_node_data(&self) -> crate::NodeData {
-          self.node_data.clone()
+            self.node_data.clone()
         }
 
         #[napi(getter)]
         pub fn get_node_name(&self) -> String {
-          crate::macro_backend::all::get_node_name(self.into())
+            self.as_node().get_node_name()
         }
 
+        fn as_node(&self) -> crate::Node {
+            let node: crate::Node = self.into();
+            node
+        }
 
         #is_child_impl
         #has_children_impl

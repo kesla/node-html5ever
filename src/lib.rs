@@ -11,7 +11,6 @@ mod einar_cell;
 mod id;
 mod iterators;
 mod lazy_reference;
-mod macro_backend;
 mod node;
 mod node_data;
 mod nodes;
