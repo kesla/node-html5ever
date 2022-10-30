@@ -19,10 +19,12 @@ use napi::{
 
 use crate::{
     serialize,
+    ChildNode,
     Html5everDom,
     InsertPosition,
     LazyReference,
     Node,
+    ShallowChildNodesIterator,
     StyleDeclaration,
     Text,
 };
@@ -278,5 +280,82 @@ impl Element {
         }
 
         Ok(clone)
+    }
+
+    #[napi]
+    pub fn normalize(&self) -> Result<()> {
+        let node: Node = self.into();
+        let mut iter: ShallowChildNodesIterator<ChildNode> =
+            node.shallow_child_nodes_iter();
+
+        while let Some(ref mut child) = iter.next() {
+            if let ChildNode::Element(element) = child {
+                element.normalize()?;
+                continue;
+            }
+
+            if let ChildNode::Text(ref mut text) = child {
+                if text.data.is_empty() {
+                    text.remove()?;
+                    continue;
+                }
+
+                while let Some(ref next_child) = iter.next() {
+                    if let ChildNode::Text(next_text) = next_child {
+                        text.data.push_str(&next_text.data);
+                        next_text.remove()?;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // let mut child_nodes = self.get_child_nodes();
+        // let mut index = 0;
+        // let len = child_nodes.len();
+
+        // while index < len {
+        //     if let ChildNode::Element(ref element) = child_nodes[index] {
+        //         index += 1;
+        //         element.normalize()?;
+        //     } else if let ChildNode::Text(ref mut text) = child_nodes[index] {
+        //         index += 1;
+        //         if text.data.is_empty() {
+        //             text.remove()?;
+        //             continue;
+        //         }
+
+        //         while index < len {
+        //             if let ChildNode::Text(ref next_text) = child_nodes[index] {
+        //                 index += 1;
+        //                 if next_text.data.is_empty() {
+        //                     next_text.remove()?;
+        //                     continue;
+        //                 }
+
+        //                 text.data.push_str(&next_text.data);
+        //                 next_text.remove()?;
+        //             } else {
+        //                 break;
+        //             }
+        //         }
+        //     } else {
+        //         index += 1;
+        //     }
+        // }
+
+        Ok(())
+
+        // let first_child: Node = match self.get_first_child() {
+        //     Some(first_child) => first_child.into(),
+        //     None => return,
+        // };
+
+        // let node: Node = self.into();
+        // let first_child = match node.get_first_child() {
+        //     Some(first_child) => first_child,
+        //     None => return,
+        // };
     }
 }

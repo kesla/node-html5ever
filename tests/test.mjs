@@ -9,7 +9,7 @@ import {
     Comment,
     Text,
     DocumentType,
-} from "../index.mjs";
+} from "../index.js";
 
 /**
  *
@@ -898,4 +898,40 @@ test(".cloneNode()", function (t) {
         clone.setAttribute("class", "baz");
         tt.equal(div.getAttribute("class"), "bar", "does not copy attributes");
     });
+});
+
+test(".normalize()", (t) => {
+    let { document } = new Html5EverDom("<div><span></span>Hello, </div>");
+    const div = document.body.firstElementChild;
+    const span = div?.firstElementChild;
+    const hello = div?.lastChild;
+    if (!div || !span) {
+        throw new Error("div or span not found");
+    }
+
+    if (!(hello instanceof Text)) {
+        throw new Error("hello is not a Text node");
+    }
+
+    div.prepend("");
+    div.append("World!");
+
+    span.append("beep");
+    span.append("");
+    span.append("-");
+    span.append("");
+    span.append("boop");
+    span.append("");
+
+    div.normalize();
+
+    t.equal(div.childNodes.length, 2, "div has 2 children");
+    t.equal(div.childNodes[0], span, "div.firstChild is span");
+    t.equal(hello, div.childNodes[1]);
+    t.equal(hello.data, "Hello, World!");
+
+    t.equal(span.childNodes.length, 1, "span has 1 child");
+    const text = span.childNodes[0];
+
+    t.equal(text instanceof Text && text.data, "beep-boop");
 });

@@ -172,6 +172,7 @@ export class Element {
     get id(): string;
     set id(id: string);
     cloneNode(deep?: boolean | undefined | null): Element;
+    normalize(): void;
 }
 export class Text {
     data: string;

@@ -1,7 +1,7 @@
 {
     "name": "html5ever",
     "version": "0.0.0",
-    "main": "index.mjs",
+    "main": "index.js",
     "types": "index.d.ts",
     "napi": {
         "name": "html5ever",
@@ -34,7 +34,7 @@
         "node": ">= 10"
     },
     "scripts": {
-        "_build": "mkdir -p generated && napi build --platform --dts=types/generated.d.ts --no-dts-header --js=generated.js",
+        "_build": "mkdir -p generated && napi build --platform --dts=types/generated.d.ts --no-dts-header",
         "artifacts": "napi artifacts",
         "build": "yarn _build --release && yarn merge-dts",
         "build:debug": "yarn _build && yarn merge-dts",

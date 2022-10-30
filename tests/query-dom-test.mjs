@@ -8,7 +8,7 @@ import {
     QuirksMode,
     Element,
     Document,
-} from "../index.mjs";
+} from "../index.js";
 
 /**
  *
