@@ -270,4 +270,29 @@ impl Element {
 
         Ok(new_node)
     }
+
+    #[napi]
+    pub fn clone_node(
+        &self,
+        deep: Option<bool>,
+    ) -> Result<Reference<Element>> {
+        let deep = deep.unwrap_or(false);
+
+        let clone = Self::new_reference(
+            self.env,
+            self.attributes_wrapper.clone(),
+            self.name.clone(),
+            LazyReference::new(self.env),
+            LazyReference::new(self.env),
+        )?;
+
+        if deep {
+            for child in self.get_child_nodes() {
+                let child_clone = child.clone_node(Some(true))?;
+                clone.append_child(child_clone)?;
+            }
+        }
+
+        Ok(clone)
+    }
 }

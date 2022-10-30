@@ -812,3 +812,102 @@ test(".insertBefore()", function (t) {
     t.strictSame(document.body.firstChild, newNode);
     t.strictSame(document.body.lastChild, referenceNode);
 });
+
+test(".cloneNode()", function (t) {
+    const createDiv = () => {
+        let { document } = new Html5EverDom(
+            '<div id="foo"><span></span>Hello, World<!-- beep boop --></div>',
+        );
+        const div = document.getElementById("foo");
+        if (!div) {
+            throw new Error("div not found");
+        }
+        return div;
+    };
+
+    t.test("default", (tt) => {
+        let div = createDiv();
+
+        let clone = div.cloneNode();
+
+        tt.not(clone, div);
+        tt.strictSame(clone.id, "foo");
+        tt.strictSame(clone.childNodes.length, 0, "defaults to shallow clone");
+
+        div.setAttribute("class", "bar");
+        tt.strictSame(
+            clone.getAttribute("class"),
+            null,
+            "does not copy attributes",
+        );
+
+        clone.setAttribute("class", "baz");
+        tt.strictSame(
+            div.getAttribute("class"),
+            "bar",
+            "does not copy attributes",
+        );
+    });
+
+    t.test("shallow", (tt) => {
+        let div = createDiv();
+
+        let clone = div.cloneNode(false);
+
+        tt.not(clone, div);
+        tt.strictSame(clone.id, "foo");
+        tt.strictSame(
+            clone.childNodes.length,
+            0,
+            "shallow clone has no children",
+        );
+
+        div.setAttribute("class", "bar");
+        tt.strictSame(
+            clone.getAttribute("class"),
+            null,
+            "does not copy attributes",
+        );
+
+        clone.setAttribute("class", "baz");
+        tt.strictSame(
+            div.getAttribute("class"),
+            "bar",
+            "does not copy attributes",
+        );
+    });
+
+    t.test("deep", (tt) => {
+        let div = createDiv();
+
+        let clone = div.cloneNode(true);
+
+        tt.not(clone, div);
+        tt.equal(clone.id, "foo");
+        tt.equal(clone.childNodes.length, 3, "deep clone has children");
+
+        tt.equal(clone.outerHTML, div.outerHTML, "deep clone is equal");
+
+        tt.not(
+            clone.childNodes[0],
+            div.childNodes[0],
+            "deep clone has new children",
+        );
+        tt.not(
+            clone.childNodes[1],
+            div.childNodes[1],
+            "deep clone has new children",
+        );
+        tt.not(
+            clone.childNodes[2],
+            div.childNodes[2],
+            "deep clone has new children",
+        );
+
+        div.setAttribute("class", "bar");
+        tt.equal(clone.getAttribute("class"), null, "does not copy attributes");
+
+        clone.setAttribute("class", "baz");
+        tt.equal(div.getAttribute("class"), "bar", "does not copy attributes");
+    });
+});

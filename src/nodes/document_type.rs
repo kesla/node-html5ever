@@ -1,3 +1,8 @@
+use napi::{
+    bindgen_prelude::Reference,
+    Result,
+};
+
 #[create_node(is_child)]
 pub struct DocumentType {
     #[napi(writable = false)]
@@ -15,5 +20,18 @@ impl DocumentType {
     #[napi(getter)]
     pub fn get_text_content(&self) -> Option<String> {
         None
+    }
+
+    #[napi]
+    pub fn clone_node(
+        &self,
+        _deep: Option<bool>,
+    ) -> Result<Reference<Self>> {
+        Self::new_reference(
+            self.env,
+            self.name.clone(),
+            self.public_id.clone(),
+            self.system_id.clone(),
+        )
     }
 }

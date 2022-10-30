@@ -27,6 +27,7 @@ export class Comment {
     get nextSibling(): ChildNode | null;
     get nextElementSibling(): Element | null;
     get textContent(): string | null;
+    cloneNode(deep?: boolean | undefined | null): this;
 }
 export class Document {
     get nodeName(): string;
@@ -87,6 +88,7 @@ export class DocumentType {
     get nextSibling(): ChildNode | null;
     get nextElementSibling(): Element | null;
     get textContent(): string | null;
+    cloneNode(deep?: boolean | undefined | null): this;
 }
 export class Attr {
     get localName(): string;
@@ -152,6 +154,7 @@ export class Element {
         new_node: T,
         reference_node: ChildNode,
     ): T;
+    cloneNode(deep?: boolean | undefined | null): Element;
 }
 export class Text {
     data: string;
@@ -165,6 +168,7 @@ export class Text {
     get nextSibling(): ChildNode | null;
     get nextElementSibling(): Element | null;
     get textContent(): string | null;
+    cloneNode(deep?: boolean | undefined | null): this;
 }
 export class StyleDeclaration {
     get accentColor(): string;

@@ -75,6 +75,7 @@ impl Attr {
     }
 }
 
+#[derive(Clone)]
 pub(crate) struct AttributesWrapper {
     attrs: Vec<Attribute>,
 }

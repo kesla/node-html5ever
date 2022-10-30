@@ -50,6 +50,19 @@ impl ChildNode {
         let parent_node = parent_ctx.get_node()?;
         parent_node.remove_node(self)
     }
+
+    pub(crate) fn clone_node(
+        &self,
+        deep: Option<bool>,
+    ) -> Result<Self> {
+        let cloned = match self {
+            ChildNode::Comment(r) => r.clone_node(deep)?.into(),
+            ChildNode::DocumentType(r) => r.clone_node(deep)?.into(),
+            ChildNode::Element(r) => r.clone_node(deep)?.into(),
+            ChildNode::Text(r) => r.clone_node(deep)?.into(),
+        };
+        Ok(cloned)
+    }
 }
 
 impl PartialEq for ChildNode {
