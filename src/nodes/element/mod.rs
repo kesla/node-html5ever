@@ -198,7 +198,7 @@ impl Element {
         let self_node: Node = self.into();
         let position = InsertPosition::InsertBefore(self_node.get_position()?);
 
-        let mut iter = node.clone().shallow_child_nodes_iter();
+        let mut iter = node.shallow_child_nodes_iter();
 
         while let Some(ref child_node) = iter.next_back() {
             parent.insert_node(child_node, &position)?;

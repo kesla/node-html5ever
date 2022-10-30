@@ -319,7 +319,7 @@ impl Node {
                     continue;
                 }
 
-                while let Some(ref next_child) = iter.next() {
+                for ref next_child in iter.by_ref() {
                     if let ChildNode::Text(next_text) = next_child {
                         text.data.push_str(&next_text.data);
                         next_text.remove()?;

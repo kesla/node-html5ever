@@ -10,6 +10,7 @@ use napi::{
     Property,
     Result,
 };
+
 pub trait WithDataInBrackets
 where
     Self: Sized + 'static,
