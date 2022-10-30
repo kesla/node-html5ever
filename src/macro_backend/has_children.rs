@@ -24,7 +24,7 @@ pub(crate) fn append_child(
     parent_node: Node,
     child_node: ChildNode,
 ) -> Result<ChildNode> {
-    parent_node.insert_node(&child_node, InsertPosition::Append)?;
+    parent_node.insert_node(&child_node, &InsertPosition::Append)?;
     Ok(child_node)
 }
 
@@ -41,7 +41,7 @@ pub(crate) fn prepend(
         },
     };
 
-    parent_node.insert_node(&child_node, InsertPosition::Prepend)?;
+    parent_node.insert_node(&child_node, &InsertPosition::Prepend)?;
 
     Ok(())
 }
@@ -59,7 +59,7 @@ pub(crate) fn append(
         },
     };
 
-    parent_node.insert_node(&child_node, InsertPosition::Append)?;
+    parent_node.insert_node(&child_node, &InsertPosition::Append)?;
 
     Ok(())
 }
@@ -71,7 +71,7 @@ pub(crate) fn insert_before(
 ) -> Result<ChildNode> {
     let position = reference_node.get_position()?;
 
-    parent.insert_node(&new_node, InsertPosition::InsertBefore(position))?;
+    parent.insert_node(&new_node, &InsertPosition::InsertBefore(position))?;
 
     Ok(new_node)
 }

@@ -20,6 +20,7 @@ use napi::{
 use crate::{
     serialize,
     Html5everDom,
+    InsertPosition,
     LazyReference,
     Node,
     StyleDeclaration,
@@ -171,37 +172,42 @@ impl Element {
         )
     }
 
-    // #[napi(setter, js_name = "outerHTML")]
-    // pub fn set_outer_html(
-    //     &self,
-    //     html: String,
-    // ) -> Result<()> {
-    //     let maybe_parent = self.get_parent_node()?;
-    //     let parent = match maybe_parent {
-    //         Some(parent) => parent,
-    //         None => return Ok(()),
-    //     };
+    #[napi(setter, js_name = "outerHTML")]
+    pub fn set_outer_html(
+        &self,
+        html: String,
+    ) -> Result<()> {
+        let maybe_parent = self.get_parent_node()?;
+        let parent = match maybe_parent {
+            Some(parent) => parent.upgrade(self.env)?,
+            None => return Ok(()),
+        };
 
-    //     if matches!(parent, crate::ParentNode::Document(_)) {
-    //         return Err(napi::Error::new(
-    //             napi::Status::InvalidArg,
-    //             "Cannot set outerHTML on document".to_string(),
-    //         ));
-    //     }
+        if matches!(parent, crate::Node::Document(_)) {
+            return Err(napi::Error::new(
+                napi::Status::InvalidArg,
+                "Cannot set outerHTML on document".to_string(),
+            ));
+        }
 
-    //     let cloned = self.clone_node(Some(false))?;
-    //     let node: Node = cloned.clone(self.env)?.into();
+        let cloned = self.clone_node(Some(false))?;
+        let node: Node = cloned.clone(self.env)?.into();
 
-    //     Html5everDom::parse_and_append(self.env, node, html)?;
+        Html5everDom::parse_and_append(self.env, node.clone(), html)?;
 
-    //     cloned.get_child_nodes().into_iter().for_each(|child| {
-    //         parent
-    //             .insert_before(child, Some(self.clone(self.env).unwrap()))
-    //             .unwrap();
-    //     });
+        let self_node: Node = self.into();
+        let position = InsertPosition::InsertBefore(self_node.get_position()?);
 
-    //     Ok(())
-    // }
+        let mut iter = node.clone().shallow_child_nodes_iter();
+
+        while let Some(ref child_node) = iter.next_back() {
+            parent.insert_node(child_node, &position)?;
+        }
+
+        self.remove()?;
+
+        Ok(())
+    }
 
     #[napi(getter)]
     pub fn get_text_content(&self) -> Option<String> {

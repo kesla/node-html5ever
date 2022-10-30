@@ -137,7 +137,7 @@ impl Node {
     pub(crate) fn insert_node(
         &self,
         child_node: &ChildNode,
-        position: InsertPosition,
+        position: &InsertPosition,
     ) -> Result<()> {
         // remove from old parent
         child_node.remove()?;
@@ -150,8 +150,8 @@ impl Node {
             .borrow_mut(|child_nodes| match position {
                 InsertPosition::Prepend => child_nodes.prepend_node(child_node),
                 InsertPosition::Append => child_nodes.append_node(child_node),
-                InsertPosition::InsertBefore(pos) => {
-                    child_nodes.insert_node(child_node, pos)
+                InsertPosition::InsertBefore(position) => {
+                    child_nodes.insert_node(child_node, position.to_owned())
                 },
             });
 

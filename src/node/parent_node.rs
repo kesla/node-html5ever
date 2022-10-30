@@ -12,6 +12,7 @@ use napi::{
         WeakReference,
     },
     Either,
+    Env,
     Status,
 };
 
@@ -157,6 +158,38 @@ impl TryFrom<ParentNode>
                 "Could not convert ParentNode to Document or DocumentFragment"
                     .to_string(),
             )),
+        }
+    }
+}
+
+macro_rules! upgrade_to_node {
+    ($reference:tt, $env:tt) => {
+        match $reference.upgrade($env) {
+            Ok(Some(r)) => Ok(r.into()),
+            Ok(None) => Err(Error::new(
+                Status::InvalidArg,
+                "Could not upgrade Document".to_string(),
+            )),
+            Err(err) => Err(err),
+        }
+    };
+}
+
+impl ParentNode {
+    pub(crate) fn upgrade(
+        &self,
+        env: Env,
+    ) -> Result<Node> {
+        match self {
+            ParentNode::Document(weak_reference) => {
+                upgrade_to_node!(weak_reference, env)
+            },
+            ParentNode::DocumentFragment(weak_reference) => {
+                upgrade_to_node!(weak_reference, env)
+            },
+            ParentNode::Element(weak_reference) => {
+                upgrade_to_node!(weak_reference, env)
+            },
         }
     }
 }

@@ -151,7 +151,7 @@ test("createElement + set attributes", (t) => {
     t.matchSnapshot(element.outerHTML, "attribute foo removed, hello added");
 });
 
-test("createElement + .innerHTML", (t) => {
+test("createElement + .innerHTML setter", (t) => {
     let dom = new Html5EverDom("");
     let element = dom.document.createElement("div");
     t.equal(element.innerHTML, "");
@@ -167,6 +167,26 @@ test("createElement + .innerHTML", (t) => {
     t.equal(element.children[0].getAttribute("id"), "foo");
     t.equal(element.children[1].getAttribute("id"), "bar");
     t.equal(element.children[0].parentNode, element);
+});
+
+test(".outerHTML setter", (t) => {
+    let dom = new Html5EverDom(
+        '<div id="wrapper">BEFORE<div id="foo"></div>AFTER</div>',
+    );
+    const wrapper = dom.document.getElementById("wrapper");
+    const element = wrapper?.getElementById("foo");
+    if (element == null || wrapper == null) {
+        throw new Error("element is null");
+    }
+
+    t.equal(element.outerHTML, '<div id="foo"></div>');
+
+    element.outerHTML = "<span id='bar'></span><!-- comment -->Hello, world!";
+
+    t.equal(
+        wrapper.innerHTML,
+        'BEFORE<span id="bar"></span><!-- comment -->Hello, world!AFTER',
+    );
 });
 
 test("comment", (t) => {

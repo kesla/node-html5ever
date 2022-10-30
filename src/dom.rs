@@ -89,7 +89,7 @@ impl Html5everDom {
             document_node.shallow_child_nodes_iter().collect();
 
         for child in tmp {
-            node.insert_node(&child.clone(), InsertPosition::Append)?;
+            node.insert_node(&child.clone(), &InsertPosition::Append)?;
         }
 
         Ok(())
@@ -204,7 +204,7 @@ impl TreeSink for Html5everDom {
             },
         };
 
-        parent.insert_node(&child, InsertPosition::Append).unwrap();
+        parent.insert_node(&child, &InsertPosition::Append).unwrap();
     }
 
     fn append_based_on_parent_node(
