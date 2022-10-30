@@ -4,6 +4,7 @@ use std::{
 };
 
 use napi::{
+    bindgen_prelude::Reference,
     Env,
     Error,
     Result,
@@ -64,77 +65,77 @@ impl TryFrom<&ParentContext> for NodeData {
                 let document = document
                     .upgrade(parent_context.env)?
                     .expect("Document is gone");
-                Ok(document.get_node_data())
+                Ok(document.into())
             },
             ParentNode::DocumentFragment(document_fragment) => {
                 let document_fragment = document_fragment
                     .upgrade(parent_context.env)?
                     .expect("DocumentFragment is gone");
-                Ok(document_fragment.get_node_data())
+                Ok(document_fragment.into())
             },
             ParentNode::Element(element) => {
                 let element = element
                     .upgrade(parent_context.env)?
                     .expect("Element is gone");
-                Ok(element.get_node_data())
+                Ok(element.into())
             },
         }
     }
 }
 
 impl From<ChildNode> for NodeData {
-    fn from(e: ChildNode) -> Self {
-        match e {
-            ChildNode::Comment(r) => r.get_node_data(),
-            ChildNode::DocumentType(r) => r.get_node_data(),
-            ChildNode::Element(r) => r.get_node_data(),
-            ChildNode::Text(r) => r.get_node_data(),
-        }
+    fn from(node: ChildNode) -> Self {
+        From::from(&node)
     }
 }
 
 impl From<&ChildNode> for NodeData {
-    fn from(e: &ChildNode) -> Self {
-        match e {
-            ChildNode::Comment(r) => r.get_node_data(),
-            ChildNode::DocumentType(r) => r.get_node_data(),
-            ChildNode::Element(r) => r.get_node_data(),
-            ChildNode::Text(r) => r.get_node_data(),
+    fn from(node: &ChildNode) -> Self {
+        match node {
+            ChildNode::Comment(r) => From::from(r),
+            ChildNode::DocumentType(r) => From::from(r),
+            ChildNode::Element(r) => From::from(r),
+            ChildNode::Text(r) => From::from(r),
         }
     }
 }
 
 impl From<Node> for NodeData {
     fn from(node: Node) -> Self {
-        match node {
-            Node::Comment(r) => r.get_node_data(),
-            Node::DocumentType(r) => r.get_node_data(),
-            Node::Document(r) => r.get_node_data(),
-            Node::DocumentFragment(r) => r.get_node_data(),
-            Node::Element(r) => r.get_node_data(),
-            Node::Text(r) => r.get_node_data(),
-        }
+        From::from(&node)
     }
 }
 
 impl From<&Node> for NodeData {
     fn from(node: &Node) -> Self {
         match node {
-            Node::Comment(r) => r.get_node_data(),
-            Node::DocumentType(r) => r.get_node_data(),
-            Node::Document(r) => r.get_node_data(),
-            Node::DocumentFragment(r) => r.get_node_data(),
-            Node::Element(r) => r.get_node_data(),
-            Node::Text(r) => r.get_node_data(),
+            Node::Comment(r) => From::from(r),
+            Node::DocumentType(r) => From::from(r),
+            Node::Document(r) => From::from(r),
+            Node::DocumentFragment(r) => From::from(r),
+            Node::Element(r) => From::from(r),
+            Node::Text(r) => From::from(r),
         }
     }
 }
 
 macro_rules! impl_from {
     ($type:ty) => {
+        impl From<Reference<$type>> for NodeData {
+            fn from(r: Reference<$type>) -> Self {
+                From::from(&r)
+            }
+        }
+
+        impl From<&Reference<$type>> for NodeData {
+            fn from(r: &Reference<$type>) -> Self {
+                From::from(r.deref())
+            }
+        }
+
         impl From<&$type> for NodeData {
             fn from(value: &$type) -> Self {
-                value.get_node_data()
+                value.node_data.clone()
             }
         }
     };

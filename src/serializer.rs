@@ -52,7 +52,7 @@ impl html5ever::serialize::Serialize for SerializableNode {
                             serializer.write_doctype(&doc_type.name)?
                         },
                         ChildNode::Element(element) => {
-                            let node_data = element.get_node_data();
+                            let node_data = &element.node_data;
 
                             node_data
                                 .child_nodes

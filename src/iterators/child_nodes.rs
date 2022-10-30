@@ -14,7 +14,7 @@ pub struct DeepChildNodesIterator<T> {
 }
 
 impl<T> DeepChildNodesIterator<T> {
-    pub fn new(node_data: NodeData) -> Self {
+    pub fn new(node_data: &NodeData) -> Self {
         let queue = ShallowChildNodesIterator::<ChildNode>::new(node_data)
             .rev()
             .collect();
@@ -35,7 +35,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(node) = self.queue.pop() {
             if let ChildNode::Element(r) = &node {
-                let node_data = r.get_node_data();
+                let node_data = &r.node_data;
                 self.queue.extend(
                     ShallowChildNodesIterator::<ChildNode>::new(node_data)
                         .rev(),
@@ -56,7 +56,7 @@ pub struct ShallowChildNodesIterator<T> {
 }
 
 impl<T> ShallowChildNodesIterator<T> {
-    pub fn new(node_data: NodeData) -> Self {
+    pub fn new(node_data: &NodeData) -> Self {
         let queue = node_data
             .child_nodes
             .borrow(|child_nodes| child_nodes.iter().cloned().collect());

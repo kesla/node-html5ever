@@ -338,10 +338,6 @@ pub fn create_node(
                 })
             }
 
-            pub(crate) fn get_node_data(&self) -> crate::NodeData {
-                self.node_data.clone()
-            }
-
             #[napi(getter)]
             pub fn get_node_name(&self) -> String {
                 self.as_node().get_node_name()

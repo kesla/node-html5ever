@@ -240,7 +240,7 @@ impl Node {
     where
         ChildNode: TryInto<T>,
     {
-        DeepChildNodesIterator::new(self.into())
+        DeepChildNodesIterator::new(&self.into())
     }
 
     pub(crate) fn shallow_child_nodes_iter<T>(
@@ -249,7 +249,7 @@ impl Node {
     where
         ChildNode: TryInto<T>,
     {
-        ShallowChildNodesIterator::new(self.into())
+        ShallowChildNodesIterator::new(&self.into())
     }
 
     fn new_sibling_iterator<T>(
