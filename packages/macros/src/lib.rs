@@ -229,6 +229,11 @@ pub fn create_node(
             {
                 macro_backend::has_children::last_child(self.into())
             }
+
+            #[napi]
+            pub fn normalize(&self) -> napi::Result<()> {
+                macro_backend::has_children::normalize(self.into())
+            }
         ),
         false => quote!(),
     };

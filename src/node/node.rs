@@ -300,4 +300,34 @@ impl Node {
             .child_nodes
             .borrow(|child_nodes| child_nodes.get(index).cloned())
     }
+
+    pub(crate) fn normalize(&self) -> Result<()> {
+        let mut iter: ShallowChildNodesIterator<ChildNode> =
+            self.shallow_child_nodes_iter();
+
+        while let Some(ref mut child) = iter.next() {
+            if let ChildNode::Element(element) = child {
+                element.normalize()?;
+                continue;
+            }
+
+            if let ChildNode::Text(ref mut text) = child {
+                if text.data.is_empty() {
+                    text.remove()?;
+                    continue;
+                }
+
+                while let Some(ref next_child) = iter.next() {
+                    if let ChildNode::Text(next_text) = next_child {
+                        text.data.push_str(&next_text.data);
+                        next_text.remove()?;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
 }

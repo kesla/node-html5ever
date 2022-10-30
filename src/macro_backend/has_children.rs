@@ -141,3 +141,7 @@ pub(crate) fn query_selector(
 ) -> Result<Option<Reference<Element>>> {
     node.selectors_iter(selectors)?.try_next()
 }
+
+pub(crate) fn normalize(node: Node) -> Result<()> {
+    node.normalize()
+}

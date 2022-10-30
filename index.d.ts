@@ -58,6 +58,7 @@ export class Document {
     get firstElementChild(): Element | null;
     get lastChild(): ChildNode | null;
     get lastElementChild(): Element | null;
+    normalize(): void;
     get docType(): DocumentType | null;
     get documentElement(): Element;
     get head(): Element;
@@ -88,6 +89,7 @@ export class DocumentFragment {
     get firstElementChild(): Element | null;
     get lastChild(): ChildNode | null;
     get lastElementChild(): Element | null;
+    normalize(): void;
     get textContent(): string | null;
 }
 export class DocumentType {
@@ -154,6 +156,7 @@ export class Element {
     get firstElementChild(): Element | null;
     get lastChild(): ChildNode | null;
     get lastElementChild(): Element | null;
+    normalize(): void;
     get attributes(): Array<Attr>;
     getAttribute(name: string): string | null;
     removeAttribute(name: string): void;
@@ -172,7 +175,6 @@ export class Element {
     get id(): string;
     set id(id: string);
     cloneNode(deep?: boolean | undefined | null): Element;
-    normalize(): void;
 }
 export class Text {
     data: string;
