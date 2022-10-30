@@ -8,7 +8,7 @@ export class Html5EverDom {
   errors: Array<string>
   constructor(html: string)
   static createDocumentFragment(html: string, maybeQuirksMode?: QuirksMode | undefined | null): DocumentFragment
-  get document(): Document
+  get window(): Window
   get quirksMode(): QuirksMode
   serialize(): string
 }
@@ -169,6 +169,9 @@ export class Text {
   get nextElementSibling(): Element | null
   get textContent(): string | null
   cloneNode(): this
+}
+export class Window {
+  get document(): Document
 }
 export class StyleDeclaration {
   get accentColor(): string

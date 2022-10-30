@@ -31,43 +31,49 @@ test("parse works", (t) => {
     t.ok(dom);
     t.matchSnapshot(dom, "dom");
     t.matchSnapshot(dom.serialize(), ".serialize()");
-    t.matchSnapshot(dom.document, ".document");
-    t.equal(dom.document.nodeName, "#document");
+    t.matchSnapshot(dom.window.document, ".document");
+    t.equal(dom.window.document.nodeName, "#document");
     t.equal(dom.quirksMode, QuirksMode.Quirks, "Correct quirks mode");
-    t.equal(dom.document.docType, null, ".document.docType is not set");
+    t.equal(dom.window.document.docType, null, ".document.docType is not set");
 
-    t.equal(dom.document instanceof Document, true, ".document is a Document");
+    t.equal(
+        dom.window.document instanceof Document,
+        true,
+        ".document is a Document",
+    );
 });
 
 test("doc type / Quirks mode", (t) => {
     let dom = new Html5EverDom("<!DOCTYPE html><html></html>");
     t.ok(dom);
     t.equal(dom.quirksMode, QuirksMode.NoQuirks, "Correct quircks mode");
-    t.ok(dom.document.docType, ".document.docType is truthy");
-    t.equal(dom.document.docType?.name, "html");
-    t.equal(dom.document.docType?.publicId, "");
-    t.equal(dom.document.docType?.systemId, "");
+    t.ok(dom.window.document.docType, ".document.docType is truthy");
+    t.equal(dom.window.document.docType?.name, "html");
+    t.equal(dom.window.document.docType?.publicId, "");
+    t.equal(dom.window.document.docType?.systemId, "");
     t.matchSnapshot(dom.serialize(), ".serialize()");
 
     let dom2 = new Html5EverDom(`
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   `);
-    t.ok(dom2.document.docType, ".document.docType is truthy");
-    t.equal(dom2.document.docType?.name, "html");
+    t.ok(dom2.window.document.docType, ".document.docType is truthy");
+    t.equal(dom2.window.document.docType?.name, "html");
     t.equal(
-        dom2.document.docType?.publicId,
+        dom2.window.document.docType?.publicId,
         "-//W3C//DTD HTML 4.01 Transitional//EN",
     );
     t.equal(
-        dom2.document.docType?.systemId,
+        dom2.window.document.docType?.systemId,
         "http://www.w3.org/TR/html4/loose.dtd",
     );
 });
 
 test(".document is initiated once", (t) => {
     let dom = new Html5EverDom("");
-    let document1 = dom.document;
-    let document2 = dom.document;
+    let document = dom.window.document;
+
+    let document1 = dom.window.document;
+    let document2 = dom.window.document;
     t.equal(document1, document2);
 });
 
@@ -78,7 +84,7 @@ test("element", (t) => {
       <body class="foo"><div>Body content</div></body>
     </html>`,
     );
-    let document = dom.document;
+    let document = dom.window.document;
 
     let { documentElement: html, head, body } = document;
     let { documentElement: html2, head: head2, body: body2 } = document;
@@ -122,8 +128,9 @@ test("element", (t) => {
 
 test("createElement + set attributes", (t) => {
     let dom = new Html5EverDom("");
+    let document = dom.window.document;
 
-    let element = dom.document.createElement("div");
+    let element = dom.window.document.createElement("div");
 
     t.matchSnapshot(element.outerHTML, "empty div");
     t.equal(element.parentElement, null);
@@ -153,7 +160,9 @@ test("createElement + set attributes", (t) => {
 
 test("createElement + .innerHTML setter", (t) => {
     let dom = new Html5EverDom("");
-    let element = dom.document.createElement("div");
+    let document = dom.window.document;
+
+    let element = dom.window.document.createElement("div");
     t.equal(element.innerHTML, "");
 
     element.innerHTML = "Hello world";
@@ -173,7 +182,7 @@ test(".outerHTML setter", (t) => {
     let dom = new Html5EverDom(
         '<div id="wrapper">BEFORE<div id="foo"></div>AFTER</div>',
     );
-    const wrapper = dom.document.getElementById("wrapper");
+    const wrapper = dom.window.document.getElementById("wrapper");
     const element = wrapper?.getElementById("foo");
     if (element == null || wrapper == null) {
         throw new Error("element is null");
@@ -197,22 +206,25 @@ test("comment", (t) => {
 
 test("Text node", (t) => {
     let dom = new Html5EverDom("");
-    let text = dom.document.createTextNode("Hello, world");
+    let document = dom.window.document;
+
+    let text = dom.window.document.createTextNode("Hello, world");
     t.equal(text.parentElement, null);
     t.equal(text.parentNode, null);
     t.equal(text.ownerDocument, null);
 
-    let text2 = dom.document.body.appendChild(text);
+    let text2 = dom.window.document.body.appendChild(text);
     t.equal(text2, text, "text2 is text");
 
     t.matchSnapshot(dom.serialize(), "Text node in body");
-    t.equal(text.parentElement, dom.document.body);
-    t.equal(text.parentNode, dom.document.body);
-    t.equal(text.ownerDocument, dom.document);
+    t.equal(text.parentElement, dom.window.document.body);
+    t.equal(text.parentNode, dom.window.document.body);
+    t.equal(text.ownerDocument, dom.window.document);
 });
 
 test("basic appendChild & remove", (t) => {
-    let { document } = new Html5EverDom("");
+    let dom = new Html5EverDom("");
+    let document = dom.window.document;
 
     let body = document.body;
     let child = document.createElement("div");
@@ -237,7 +249,8 @@ test("basic appendChild & remove", (t) => {
 });
 
 test("basic appendChild & removeChild", (t) => {
-    let { document } = new Html5EverDom("");
+    let dom = new Html5EverDom("");
+    let document = dom.window.document;
 
     let body = document.body;
     let child = document.createElement("div");
@@ -263,13 +276,14 @@ test("basic appendChild & removeChild", (t) => {
 });
 
 test("appendChild() remove element from previous parent", (t) => {
-    let { document } = new Html5EverDom(`
+    let dom = new Html5EverDom(`
     <div id="parent1">
       <div id="child1"></div>
       <div id="child2"></div>
     </div>
     <div id="parent2"></div>
   `);
+    let { document } = dom.window;
     let parent1 = document.getElementById("parent1");
     let parent2 = document.getElementById("parent2");
     let child1 = document.getElementById("child1");
@@ -303,7 +317,9 @@ test("appendChild() remove element from previous parent", (t) => {
 });
 
 test(".append works w both strings and elements", (t) => {
-    let { document } = new Html5EverDom("");
+    let dom = new Html5EverDom("");
+    let document = dom.window.document;
+
     let body = document.body;
     body.append("hello" /*, "world" */);
     t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
@@ -315,7 +331,9 @@ test(".append works w both strings and elements", (t) => {
 });
 
 test(".prepend works w both strings and elements", (t) => {
-    let { document } = new Html5EverDom("");
+    let dom = new Html5EverDom("");
+    let document = dom.window.document;
+
     let body = document.body;
     body.prepend("hello" /*, "world" */);
     t.ok(body.firstChild instanceof Text, "body.firstChild is a Text node");
@@ -327,7 +345,8 @@ test(".prepend works w both strings and elements", (t) => {
 });
 
 test("Element.id & Element.className", (t) => {
-    let { document } = new Html5EverDom("");
+    let dom = new Html5EverDom("");
+    let document = dom.window.document;
 
     let div = document.createElement("div");
     t.equal(div.id, "");
@@ -343,12 +362,13 @@ test("Element.id & Element.className", (t) => {
 });
 
 test("Element.getElementById + Element.getElementsByClassName", (t) => {
-    let { document } = new Html5EverDom(`
+    let dom = new Html5EverDom(`
     <div id="foo">
       <div id="bar" class="baz">First</div>
     </div>
     <div class="baz">Second</div>
   `);
+    let { document } = dom.window;
 
     let div = document.getElementById("foo");
     t.equal(div?.id, "foo");
@@ -365,11 +385,12 @@ test("Element.getElementById + Element.getElementsByClassName", (t) => {
 });
 
 test("previousSibling & nextSibling", (t) => {
-    let { document } = new Html5EverDom(
+    let dom = new Html5EverDom(
         `
     <div id="foo"></div><div id="bar"></div>
     `.trim(),
     );
+    let { document } = dom.window;
 
     let foo = document.getElementById("foo");
     let bar = document.getElementById("bar");
@@ -395,7 +416,9 @@ test("Instance of", (t) => {
     t.ok(fragment.childNodes[1] instanceof Element);
     t.ok(fragment.childNodes[2] instanceof Comment);
 
-    let { document } = new Html5EverDom("<!DOCTYPE html>");
+    let dom = new Html5EverDom("<!DOCTYPE html>");
+    let document = dom.window.document;
+
     t.ok(document instanceof Document);
     t.ok(document.body instanceof Element);
     t.ok(document.head instanceof Element);
@@ -404,11 +427,12 @@ test("Instance of", (t) => {
 });
 
 test(".firstChild & .lastChild", (t) => {
-    let { document } = new Html5EverDom(
+    let dom = new Html5EverDom(
         `<div id="foo"></div>
     <div id="bar">First text<div id="hello"></div><div id="world"></div>End text</div>
     `.trim(),
     );
+    let { document } = dom.window;
 
     let foo = document.getElementById("foo");
     let bar = document.getElementById("bar");
@@ -425,9 +449,8 @@ test(".firstChild & .lastChild", (t) => {
 });
 
 test(".removeChild errors if the node is not a child", (t) => {
-    let { document } = new Html5EverDom(
-        `<div id="foo"></div><div id="bar"></div>`,
-    );
+    let dom = new Html5EverDom(`<div id="foo"></div><div id="bar"></div>`);
+    let { document } = dom.window;
 
     const foo = document.getElementById("foo");
     const bar = document.getElementById("bar");
@@ -442,12 +465,13 @@ test(".removeChild errors if the node is not a child", (t) => {
 });
 
 test("basic querySelectorAll", (t) => {
-    let { document } = new Html5EverDom(`
+    let dom = new Html5EverDom(`
     <div id="foo">
       <div id="bar" class="baz">First</div>
     </div>
     <div class="baz">Second</div>
   `);
+    let { document } = dom.window;
 
     let div = document.querySelectorAll("div");
     t.equal(div.length, 3);
@@ -458,11 +482,11 @@ test("basic querySelectorAll", (t) => {
 
 test("ClassList", (t) => {
     function createDiv() {
-        let { document } = new Html5EverDom(`
+        let dom = new Html5EverDom(`
     <div id="foo" class="bar baz"></div>
     `);
 
-        const div = document.getElementById("foo");
+        const div = dom.window.document.getElementById("foo");
 
         if (!div) {
             throw new Error("missing element");
@@ -668,11 +692,11 @@ test("ClassList", (t) => {
 
 test(".style", (t) => {
     function createDiv() {
-        let { document } = new Html5EverDom(`
+        let dom = new Html5EverDom(`
     <div id="foo" style="font-size: 14px; -webkit-text-stroke-width: 12px"></div>
     `);
 
-        const div = document.getElementById("foo");
+        const div = dom.window.document.getElementById("foo");
 
         if (!div) {
             throw new Error("missing element");
@@ -803,7 +827,9 @@ test(".style", (t) => {
 });
 
 test(".insertBefore()", function (t) {
-    let { document } = new Html5EverDom("");
+    let dom = new Html5EverDom("");
+    let document = dom.window.document;
+
     let referenceNode = document.body.appendChild(
         document.createElement("div"),
     );
@@ -823,10 +849,10 @@ test(".insertBefore()", function (t) {
 
 test(".cloneNode()", function (t) {
     const createDiv = () => {
-        let { document } = new Html5EverDom(
+        let dom = new Html5EverDom(
             '<div id="foo"><span></span>Hello, World<!-- beep boop --></div>',
         );
-        const div = document.getElementById("foo");
+        const div = dom.window.document.getElementById("foo");
         if (!div) {
             throw new Error("div not found");
         }
@@ -901,7 +927,9 @@ test(".cloneNode()", function (t) {
 });
 
 test(".normalize() element", (t) => {
-    let { document } = new Html5EverDom("<div><span></span>Hello, </div>");
+    let dom = new Html5EverDom("<div><span></span>Hello, </div>");
+    let { document } = dom.window;
+
     const div = document.body.firstElementChild;
     const span = div?.firstElementChild;
     const hello = div?.lastChild;
@@ -937,7 +965,9 @@ test(".normalize() element", (t) => {
 });
 
 test(".normalize() document", (t) => {
-    let { document } = new Html5EverDom("<div><span></span>Hello, </div>");
+    let dom = new Html5EverDom("<div><span></span>Hello, </div>");
+    let { document } = dom.window;
+
     const div = document.body.firstElementChild;
     const span = div?.firstElementChild;
     const hello = div?.lastChild;

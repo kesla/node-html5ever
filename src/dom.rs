@@ -27,11 +27,13 @@ use crate::{
     Node,
     QuirksMode,
     Text,
+    Window,
 };
 
 #[napi]
 pub struct Html5everDom {
     document_reference: Reference<Document>,
+    window_reference: Reference<Window>,
 
     #[napi(writable = false)]
     pub errors: Vec<String>,
@@ -98,7 +100,11 @@ impl Html5everDom {
     fn create_sink(env: Env) -> Result<Html5everDom> {
         let document_reference =
             Document::new_reference(env, QuirksMode::NoQuirks)?;
+        let window_reference =
+            Window::new_reference(env, document_reference.clone(env)?)?;
+
         let sink = Html5everDom {
+            window_reference,
             document_reference,
             errors: vec![],
             env,
@@ -108,8 +114,8 @@ impl Html5everDom {
     }
 
     #[napi(getter)]
-    pub fn document(&mut self) -> Result<Reference<Document>> {
-        self.document_reference.clone(self.env)
+    pub fn get_window(&mut self) -> Result<Reference<Window>> {
+        self.window_reference.clone(self.env)
     }
 
     #[napi(getter)]

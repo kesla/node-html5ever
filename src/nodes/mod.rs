@@ -4,6 +4,7 @@ mod document_fragment;
 mod document_type;
 mod element;
 mod text;
+mod window;
 
 pub use comment::Comment;
 pub use document::Document;
@@ -14,3 +15,4 @@ pub use element::{
     ElementRef,
 };
 pub use text::Text;
+pub use window::Window;

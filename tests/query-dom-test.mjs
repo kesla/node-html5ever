@@ -38,7 +38,7 @@ function parseFragment(input) {
  * @returns {Document}
  */
 function parse(input) {
-    return new Html5EverDom(input).document;
+    return new Html5EverDom(input).window.document;
 }
 
 test("tagNames & nodeNames are upper case", (t) => {

@@ -45,6 +45,7 @@ pub use nodes::{
     Element,
     ElementRef,
     Text,
+    Window,
 };
 pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;

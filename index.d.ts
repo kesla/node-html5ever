@@ -19,7 +19,7 @@ export class Html5EverDom {
         html: string,
         maybeQuirksMode?: QuirksMode | undefined | null,
     ): DocumentFragment;
-    get document(): Document;
+    get window(): Window;
     get quirksMode(): QuirksMode;
     serialize(): string;
 }
@@ -189,6 +189,9 @@ export class Text {
     get nextElementSibling(): Element | null;
     get textContent(): string | null;
     cloneNode(): this;
+}
+export class Window {
+    get document(): Document;
 }
 export class StyleDeclaration {
     get accentColor(): string;
