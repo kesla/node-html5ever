@@ -303,58 +303,58 @@ pub fn create_node(
     };
 
     return quote! {
-      #[napi]
-      pub struct #name {
-        pub(crate) env: napi::Env,
-        pub(crate) node_data: crate::NodeData,
-        pub(crate) cyclic_reference: crate::CyclicReference<Self>,
-        pub(crate) id: usize,
+        #[napi]
+        pub struct #name {
+            pub(crate) env: napi::Env,
+            pub(crate) node_data: crate::NodeData,
+            pub(crate) cyclic_reference: crate::CyclicReference<Self>,
+            pub(crate) id: usize,
 
-        #(#fields)*
-      }
-
-      impl std::fmt::Debug for #name {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-          write!(f, "#name {{ id: {} }}", self.id)
-        }
-      }
-
-      #[napi]
-      #[automatically_derived]
-      impl #name {
-        pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) ->
-            napi::Result<napi::bindgen_prelude::Reference<Self>> {
-
-          crate::CyclicReference::<Self>::new_cyclic(env, |cyclic_reference| {
-            let inner = Self {
-              #(#argument_fields)*
-              env,
-              id: crate::get_id(),
-              node_data: crate::NodeData::new(env),
-              cyclic_reference,
-            };
-
-            Self::into_reference(inner, env)
-          })
+            #(#fields)*
         }
 
-        pub(crate) fn get_node_data(&self) -> crate::NodeData {
-            self.node_data.clone()
+        impl std::fmt::Debug for #name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "#name {{ id: {} }}", self.id)
+            }
         }
 
-        #[napi(getter)]
-        pub fn get_node_name(&self) -> String {
-            self.as_node().get_node_name()
-        }
+        #[napi]
+        #[automatically_derived]
+        impl #name {
+            pub(crate) fn new_reference(env: napi::Env, #(#arguments)*) ->
+                napi::Result<napi::bindgen_prelude::Reference<Self>> {
 
-        fn as_node(&self) -> crate::Node {
-            let node: crate::Node = self.into();
-            node
-        }
+                crate::CyclicReference::<Self>::new_cyclic(env, |cyclic_reference| {
+                    let inner = Self {
+                        #(#argument_fields)*
+                        env,
+                        id: crate::get_id(),
+                        node_data: crate::NodeData::new(env),
+                        cyclic_reference,
+                    };
 
-        #is_child_impl
-        #has_children_impl
-      }
+                    Self::into_reference(inner, env)
+                })
+            }
+
+            pub(crate) fn get_node_data(&self) -> crate::NodeData {
+                self.node_data.clone()
+            }
+
+            #[napi(getter)]
+            pub fn get_node_name(&self) -> String {
+                self.as_node().get_node_name()
+            }
+
+            fn as_node(&self) -> crate::Node {
+                let node: crate::Node = self.into();
+                node
+            }
+
+            #is_child_impl
+            #has_children_impl
+        }
     }
     .into();
 }
