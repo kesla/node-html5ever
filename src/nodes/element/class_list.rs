@@ -1,3 +1,5 @@
+use indexmap::IndexSet;
+use itertools::join;
 use napi::{
     bindgen_prelude::{
         Reference,
@@ -16,7 +18,7 @@ use crate::{
 
 #[napi]
 pub struct ClassList {
-    list: Vec<String>,
+    data: IndexSet<String>,
     owner: WeakReference<Element>,
     env: Env,
     cyclic_reference: CyclicReference<Self>,
@@ -28,7 +30,7 @@ impl WithDataInBrackets for ClassList {
         &self,
         index: usize,
     ) -> Option<String> {
-        self.list.get(index).cloned()
+        self.data.get_index(index).cloned()
     }
 
     #[inline]
@@ -54,7 +56,7 @@ impl ClassList {
                 Self {
                     owner,
                     env,
-                    list: initial_value
+                    data: initial_value
                         .map(|s| as_list(&s))
                         .unwrap_or_default(),
                     cyclic_reference,
@@ -86,7 +88,7 @@ impl ClassList {
     }
 
     pub(crate) fn clear(&mut self) -> Result<()> {
-        self.list.clear();
+        self.data.clear();
         self.set_properties()
     }
 
@@ -103,16 +105,26 @@ impl ClassList {
     #[napi]
     pub fn add(
         &mut self,
-        token: String,
+        token1: Option<String>,
+        token2: Option<String>,
+        token3: Option<String>,
+        token4: Option<String>,
+        token5: Option<String>,
     ) -> Result<()> {
-        validate_token(&token)?;
+        let tokens = vec![token1, token2, token3, token4, token5]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
 
-        if !self.list.contains(&token) {
-            self.list.push(token);
-            self.sync(&self.get_value())
-        } else {
-            Ok(())
+        if tokens.is_empty() {
+            return Ok(());
         }
+
+        for token in tokens {
+            self.data.insert(token);
+        }
+
+        self.sync(&self.get_value())
     }
 
     #[napi]
@@ -122,12 +134,13 @@ impl ClassList {
     ) -> Result<()> {
         validate_token(&token)?;
 
-        if self.list.contains(&token) {
-            self.list.retain(|t| t != &token);
-            self.sync(&self.get_value())
-        } else {
-            Ok(())
+        let contained = self.data.shift_remove(&token);
+
+        if contained {
+            self.sync(&self.get_value())?;
         }
+
+        Ok(())
     }
 
     #[napi]
@@ -136,12 +149,12 @@ impl ClassList {
         token: String,
     ) -> Result<bool> {
         validate_token(&token)?;
-        let contains = self.list.contains(&token);
+        let contains = self.data.contains(&token);
 
         if contains {
-            self.list.retain(|t| t != &token);
+            self.data.shift_remove(&token);
         } else {
-            self.list.push(token);
+            self.data.insert(token);
         }
 
         self.sync(&self.get_value())?;
@@ -153,17 +166,17 @@ impl ClassList {
         &self,
         token: String,
     ) -> bool {
-        self.list.contains(&token)
+        self.data.contains(&token)
     }
 
     #[napi(getter)]
     pub fn get_length(&self) -> u32 {
-        self.list.len().try_into().unwrap()
+        self.data.len().try_into().unwrap()
     }
 
     #[napi(getter)]
     pub fn get_value(&self) -> String {
-        self.list.join(" ")
+        join(self.data.iter(), " ")
     }
 
     #[napi(setter)]
@@ -175,12 +188,12 @@ impl ClassList {
             return Ok(());
         }
 
-        self.list = as_list(&value);
+        self.data = as_list(&value);
         self.sync(&value)
     }
 }
 
-fn as_list(value: &str) -> Vec<String> {
+fn as_list(value: &str) -> IndexSet<String> {
     value
         .split_whitespace()
         .filter_map(|token| (!token.is_empty()).then(|| token.to_string()))
