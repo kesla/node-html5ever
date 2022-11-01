@@ -56,9 +56,7 @@ impl ClassList {
                 Self {
                     owner,
                     env,
-                    data: initial_value
-                        .map(|s| as_list(&s))
-                        .unwrap_or_default(),
+                    data: initial_value.map(|s| as_set(&s)).unwrap_or_default(),
                     cyclic_reference,
                 },
                 env,
@@ -92,6 +90,10 @@ impl ClassList {
         self.set_properties()
     }
 
+    fn as_string(&self) -> String {
+        join(self.data.iter(), " ")
+    }
+
     #[napi]
     pub fn item(
         &self,
@@ -121,44 +123,54 @@ impl ClassList {
         }
 
         for token in tokens {
+            validate_token(&token)?;
             self.data.insert(token);
         }
 
-        self.sync(&self.get_value())
+        self.sync(&self.as_string())
     }
 
     #[napi]
     pub fn remove(
         &mut self,
-        token: String,
+        token1: Option<String>,
+        token2: Option<String>,
+        token3: Option<String>,
+        token4: Option<String>,
+        token5: Option<String>,
     ) -> Result<()> {
-        validate_token(&token)?;
+        let tokens = vec![token1, token2, token3, token4, token5]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
 
-        let contained = self.data.shift_remove(&token);
-
-        if contained {
-            self.sync(&self.get_value())?;
+        if tokens.is_empty() {
+            return Ok(());
         }
 
-        Ok(())
+        for token in tokens {
+            validate_token(&token)?;
+            self.data.shift_remove(&token);
+        }
+
+        self.sync(&self.as_string())
     }
 
     #[napi]
     pub fn toggle(
         &mut self,
         token: String,
+        force: Option<bool>,
     ) -> Result<bool> {
-        validate_token(&token)?;
-        let contains = self.data.contains(&token);
+        let add = force.unwrap_or_else(|| !self.data.contains(&token));
 
-        if contains {
-            self.data.shift_remove(&token);
+        if add {
+            self.add(Some(token), None, None, None, None)?;
         } else {
-            self.data.insert(token);
+            self.remove(Some(token), None, None, None, None)?;
         }
 
-        self.sync(&self.get_value())?;
-        Ok(!contains)
+        Ok(add)
     }
 
     #[napi]
@@ -175,8 +187,16 @@ impl ClassList {
     }
 
     #[napi(getter)]
-    pub fn get_value(&self) -> String {
-        join(self.data.iter(), " ")
+    pub fn get_value(&self) -> Result<String> {
+        self.owner.upgrade(self.env)?.map_or_else(
+            || Err(Error::from_reason("Element not found")),
+            |owner| Ok(owner.get_attribute("class".into()).unwrap_or_default()),
+        )
+    }
+
+    #[napi]
+    pub fn to_string(&self) -> Result<String> {
+        self.get_value()
     }
 
     #[napi(setter)]
@@ -184,16 +204,16 @@ impl ClassList {
         &mut self,
         value: String,
     ) -> Result<()> {
-        if self.get_value() == value {
+        if self.get_value()? == value {
             return Ok(());
         }
 
-        self.data = as_list(&value);
+        self.data = as_set(&value);
         self.sync(&value)
     }
 }
 
-fn as_list(value: &str) -> IndexSet<String> {
+fn as_set(value: &str) -> IndexSet<String> {
     value
         .split_whitespace()
         .filter_map(|token| (!token.is_empty()).then(|| token.to_string()))

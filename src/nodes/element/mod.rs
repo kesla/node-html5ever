@@ -233,9 +233,8 @@ impl Element {
     pub fn set_class_name(
         &mut self,
         class_name: String,
-    ) {
-        self.attributes_wrapper
-            .set_attribute(LocalName::from("class"), class_name.into());
+    ) -> Result<()> {
+        self.set_attribute("class".to_string(), class_name)
     }
 
     #[napi(getter)]
@@ -250,9 +249,8 @@ impl Element {
     pub fn set_id(
         &mut self,
         id: String,
-    ) {
-        self.attributes_wrapper
-            .set_attribute(LocalName::from("id"), id.into());
+    ) -> Result<()> {
+        self.set_attribute("id".to_string(), id)
     }
 
     #[napi]

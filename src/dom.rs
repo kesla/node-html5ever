@@ -46,8 +46,9 @@ impl Html5everDom {
     #[napi(constructor)]
     pub fn new(
         env: Env,
-        html: String,
+        html: Option<String>,
     ) -> Result<Html5everDom> {
+        let html: String = html.unwrap_or_default();
         let dom: Html5everDom =
             parse_document(Self::create_sink(env)?, ParseOpts::default())
                 .one(html);

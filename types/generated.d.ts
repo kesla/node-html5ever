@@ -6,7 +6,7 @@ export const enum QuirksMode {
 export type Html5everDom = Html5EverDom
 export class Html5EverDom {
   errors: Array<string>
-  constructor(html: string)
+  constructor(html?: string | undefined | null)
   static createDocumentFragment(html: string, maybeQuirksMode?: QuirksMode | undefined | null): DocumentFragment
   get window(): Window
   get quirksMode(): QuirksMode
@@ -102,12 +102,13 @@ export class Attr {
 }
 export class ClassList {
   item(index: number): string | null
-  add(token: string): void
-  remove(token: string): void
-  toggle(token: string): boolean
+  add(token1?: string | undefined | null, token2?: string | undefined | null, token3?: string | undefined | null, token4?: string | undefined | null, token5?: string | undefined | null): void
+  remove(token1?: string | undefined | null, token2?: string | undefined | null, token3?: string | undefined | null, token4?: string | undefined | null, token5?: string | undefined | null): void
+  toggle(token: string, force?: boolean | undefined | null): boolean
   contains(token: string): boolean
   get length(): number
   get value(): string
+  toString(): string
   set value(value: string)
 }
 export class Element {
