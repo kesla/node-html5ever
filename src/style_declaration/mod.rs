@@ -1,5 +1,10 @@
+mod case;
 mod properties;
 
+use case::{
+    to_camel,
+    to_kebab,
+};
 use napi::{
     bindgen_prelude::{
         Reference,
@@ -11,8 +16,6 @@ use napi::{
 };
 
 use crate::{
-    to_css_camel_case,
-    to_css_kebab_case,
     CyclicReference,
     Element,
     WithDataInBrackets,
@@ -20,7 +23,7 @@ use crate::{
 
 #[derive(Debug)]
 struct Data {
-    property: String,
+    property_as_camel: String,
     value: String,
     important: bool,
 }
@@ -39,7 +42,9 @@ impl WithDataInBrackets for StyleDeclaration {
         &self,
         index: usize,
     ) -> Option<String> {
-        self.list.get(index).map(|d| to_css_kebab_case(&d.property))
+        self.list
+            .get(index)
+            .map(|d| to_kebab(&d.property_as_camel).unwrap())
     }
 
     #[inline]
@@ -103,18 +108,22 @@ impl StyleDeclaration {
         &mut self,
         property: &String,
     ) -> Option<&mut Data> {
-        let property = to_css_camel_case(property);
-
-        self.list.iter_mut().find(|data| data.property == property)
+        to_camel(property).and_then(|property_as_camel| {
+            self.list
+                .iter_mut()
+                .find(|d| d.property_as_camel == property_as_camel)
+        })
     }
 
     fn get_data(
         &self,
         property: &String,
     ) -> Option<&Data> {
-        let property = to_css_camel_case(property);
-
-        self.list.iter().find(|data| data.property == property)
+        to_camel(property).and_then(|property_as_camel| {
+            self.list
+                .iter()
+                .find(|d| d.property_as_camel == property_as_camel)
+        })
     }
 
     #[napi]
@@ -148,9 +157,15 @@ impl StyleDeclaration {
         &mut self,
         property: String,
     ) -> Result<String> {
-        let camel = to_css_camel_case(property);
+        let property_as_camel = match to_camel(&property) {
+            Some(camel) => camel,
+            None => return Ok(String::from("")),
+        };
 
-        let pos = self.list.iter().position(|data| data.property == camel);
+        let pos = self
+            .list
+            .iter()
+            .position(|data| data.property_as_camel == property_as_camel);
 
         if let Some(pos) = pos {
             let result = self.list.remove(pos).value;
@@ -177,8 +192,13 @@ impl StyleDeclaration {
                 data.important = important;
             },
             None => {
+                let property_as_camel = match to_camel(&property) {
+                    Some(camel) => camel,
+                    None => return Ok(()),
+                };
+
                 self.list.push(Data {
-                    property: to_css_camel_case(property),
+                    property_as_camel,
                     value,
                     important,
                 });
@@ -193,7 +213,7 @@ impl StyleDeclaration {
         self.list
             .iter()
             .map(|data| {
-                let property = to_css_kebab_case(&data.property);
+                let property = to_kebab(&data.property_as_camel).unwrap();
 
                 if data.important {
                     format!("{}: {} !important;", property, data.value)
@@ -247,15 +267,14 @@ fn string_to_data(css_text: String) -> Vec<Data> {
     css_text
         .split(';')
         .filter_map(|item| {
-            let (property, mut value) = {
+            let (property_as_camel, mut value) = {
                 let mut parts = item.split(':');
 
-                let (property, value): (String, String) =
+                let (property, value): (&str, String) =
                     match (parts.next(), parts.next(), parts.next()) {
-                        (Some(property), Some(value), None) => (
-                            to_css_camel_case(property.trim()),
-                            value.trim().to_string(),
-                        ),
+                        (Some(property), Some(value), None) => {
+                            (property.trim(), value.trim().to_string())
+                        },
                         _ => return None,
                     };
 
@@ -263,7 +282,12 @@ fn string_to_data(css_text: String) -> Vec<Data> {
                     return None;
                 }
 
-                (property, value)
+                let property_as_camel = match to_camel(&property) {
+                    Some(camel) => camel,
+                    None => return None,
+                };
+
+                (property_as_camel, value)
             };
 
             let important = value.ends_with("!important");
@@ -273,7 +297,7 @@ fn string_to_data(css_text: String) -> Vec<Data> {
             }
 
             let data = Data {
-                property,
+                property_as_camel,
                 value,
                 important,
             };

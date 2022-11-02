@@ -744,7 +744,7 @@ test(".style", (t) => {
 
     t.test("weird input", (t) => {
         const div = createDiv();
-        div.style.cssText = "font:; : red";
+        div.style.cssText = "font:; : red; not-a-property: 1";
 
         t.equal(div.style.length, 0, "length");
         t.equal(div.style.item(0), null);
