@@ -1,4 +1,4 @@
 image:
   file: .gitpod.Dockerfile
 tasks:
-- command: '  - init: yarn install && yarn build:debug'
+  - init: yarn install && yarn build:debug
