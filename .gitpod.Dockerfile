@@ -1,6 +1,6 @@
 FROM gitpod/workspace-full
 
-RUN rustup install nightly && rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu`
+RUN rustup install nightly && rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu
 
 USER gitpod
 
