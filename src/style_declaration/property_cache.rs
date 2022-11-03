@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
 use crate::to_css_kebab_case;
 
 lazy_static! {
-    static ref CAMEL_TO_KEBAB: HashMap<String, String> = vec![
+    static ref CAMEL_PROPERTIES: Vec<String> = vec![
         "accentColor",
         "alignContent",
         "alignItems",
@@ -460,45 +458,36 @@ lazy_static! {
         "zIndex"
     ]
     .into_iter()
-    .map(|camel| { (camel.to_string(), to_css_kebab_case(camel)) })
+    .map(|s| s.to_string())
     .collect();
-    static ref KEBAB_TO_CAMEL: HashMap<String, String> = CAMEL_TO_KEBAB
+    static ref KEBAB_PROPERTIES: Vec<String> = CAMEL_PROPERTIES
         .iter()
-        .map(|(camel, kebab)| (kebab.clone(), camel.clone()))
+        .map(|camel| to_css_kebab_case(&camel))
         .collect();
 }
 
-pub fn to_camel(kebab_or_camel: &str) -> Option<String> {
-    KEBAB_TO_CAMEL.get(kebab_or_camel).cloned().or_else(|| {
-        CAMEL_TO_KEBAB
-            .contains_key(kebab_or_camel)
-            .then(|| kebab_or_camel.to_string())
-    })
+pub fn get_index(camel_or_kebab: &str) -> Option<usize> {
+    match camel_or_kebab.find('-') {
+        Some(_) => KEBAB_PROPERTIES
+            .iter()
+            .position(|kebab| kebab == camel_or_kebab),
+
+        None => CAMEL_PROPERTIES
+            .iter()
+            .position(|camel| camel == camel_or_kebab),
+    }
 }
 
-pub fn to_kebab(kebab_or_camel: &str) -> Option<String> {
-    CAMEL_TO_KEBAB.get(kebab_or_camel).cloned().or_else(|| {
-        KEBAB_TO_CAMEL
-            .contains_key(kebab_or_camel)
-            .then(|| kebab_or_camel.to_string())
-    })
+pub fn get_kebab(index: usize) -> String {
+    KEBAB_PROPERTIES.get(index).map(|s| s.to_owned()).unwrap()
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    #[test]
-    fn test_to_camel() {
-        assert_eq!(
-            to_camel("background-color"),
-            Some("backgroundColor".to_string())
-        );
-        assert_eq!(
-            to_camel("backgroundColor"),
-            Some("backgroundColor".to_string())
-        );
-        assert_eq!(to_camel("not-a-css-property"), None);
+    fn to_kebab(camel_or_kebab: &str) -> Option<String> {
+        get_index(camel_or_kebab).map(get_kebab)
     }
 
     #[test]

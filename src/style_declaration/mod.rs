@@ -1,10 +1,6 @@
-mod case;
 mod properties;
+mod property_cache;
 
-use case::{
-    to_camel,
-    to_kebab,
-};
 use napi::{
     bindgen_prelude::{
         Reference,
@@ -13,6 +9,10 @@ use napi::{
     Env,
     Error,
     Result,
+};
+use property_cache::{
+    get_index,
+    get_kebab,
 };
 
 use crate::{
@@ -23,9 +23,16 @@ use crate::{
 
 #[derive(Debug)]
 struct Data {
-    property_as_camel: String,
+    property_index: usize,
     value: String,
     important: bool,
+}
+
+impl Data {
+    #[inline]
+    fn get_kebab_property(&self) -> String {
+        get_kebab(self.property_index)
+    }
 }
 
 #[napi]
@@ -42,9 +49,7 @@ impl WithDataInBrackets for StyleDeclaration {
         &self,
         index: usize,
     ) -> Option<String> {
-        self.list
-            .get(index)
-            .map(|d| to_kebab(&d.property_as_camel).unwrap())
+        self.list.get(index).map(|data| data.get_kebab_property())
     }
 
     #[inline]
@@ -108,10 +113,10 @@ impl StyleDeclaration {
         &mut self,
         property: &String,
     ) -> Option<&mut Data> {
-        to_camel(property).and_then(|property_as_camel| {
+        get_index(property).and_then(|property_index| {
             self.list
                 .iter_mut()
-                .find(|d| d.property_as_camel == property_as_camel)
+                .find(|data| data.property_index == property_index)
         })
     }
 
@@ -119,10 +124,10 @@ impl StyleDeclaration {
         &self,
         property: &String,
     ) -> Option<&Data> {
-        to_camel(property).and_then(|property_as_camel| {
+        get_index(property).and_then(|property_index| {
             self.list
                 .iter()
-                .find(|d| d.property_as_camel == property_as_camel)
+                .find(|data| data.property_index == property_index)
         })
     }
 
@@ -157,15 +162,15 @@ impl StyleDeclaration {
         &mut self,
         property: String,
     ) -> Result<String> {
-        let property_as_camel = match to_camel(&property) {
-            Some(camel) => camel,
+        let property_index = match get_index(&property) {
+            Some(index) => index,
             None => return Ok(String::from("")),
         };
 
         let pos = self
             .list
             .iter()
-            .position(|data| data.property_as_camel == property_as_camel);
+            .position(|data| data.property_index == property_index);
 
         if let Some(pos) = pos {
             let result = self.list.remove(pos).value;
@@ -192,13 +197,13 @@ impl StyleDeclaration {
                 data.important = important;
             },
             None => {
-                let property_as_camel = match to_camel(&property) {
-                    Some(camel) => camel,
+                let property_index = match get_index(&property) {
+                    Some(index) => index,
                     None => return Ok(()),
                 };
 
                 self.list.push(Data {
-                    property_as_camel,
+                    property_index,
                     value,
                     important,
                 });
@@ -213,7 +218,7 @@ impl StyleDeclaration {
         self.list
             .iter()
             .map(|data| {
-                let property = to_kebab(&data.property_as_camel).unwrap();
+                let property = get_kebab(data.property_index);
 
                 if data.important {
                     format!("{}: {} !important;", property, data.value)
@@ -267,7 +272,7 @@ fn string_to_data(css_text: String) -> Vec<Data> {
     css_text
         .split(';')
         .filter_map(|item| {
-            let (property_as_camel, mut value) = {
+            let (property_index, mut value) = {
                 let mut parts = item.split(':');
 
                 let (property, value): (&str, String) =
@@ -282,12 +287,12 @@ fn string_to_data(css_text: String) -> Vec<Data> {
                     return None;
                 }
 
-                let property_as_camel = match to_camel(&property) {
-                    Some(camel) => camel,
+                let property_index = match get_index(&property) {
+                    Some(index) => index,
                     None => return None,
                 };
 
-                (property_as_camel, value)
+                (property_index, value)
             };
 
             let important = value.ends_with("!important");
@@ -297,7 +302,7 @@ fn string_to_data(css_text: String) -> Vec<Data> {
             }
 
             let data = Data {
-                property_as_camel,
+                property_index,
                 value,
                 important,
             };
