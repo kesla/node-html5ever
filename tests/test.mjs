@@ -1116,3 +1116,53 @@ test("insertAdjacentText", (t) => {
         );
     });
 });
+
+test("insertAdjacentHTML", (t) => {
+    const createData = () => {
+        let dom = new Html5EverDom('<div id="foo">Hello, World</div>');
+        const { document } = dom.window;
+        const div = dom.window.document.getElementById("foo");
+        if (!div || !document) {
+            throw new Error("element not found");
+        }
+        return { div, document };
+    };
+
+    t.test("beforebegin", (tt) => {
+        let { div, document } = createData();
+
+        div.insertAdjacentHTML("beforebegin", "<span></span>TEXT");
+
+        tt.equal(
+            document.body.innerHTML,
+            '<span></span>TEXT<div id="foo">Hello, World</div>',
+        );
+    });
+
+    t.test("afterbegin", (tt) => {
+        let { div } = createData();
+
+        div.insertAdjacentHTML("afterbegin", "<span></span>TEXT");
+
+        tt.equal(div.innerHTML, "<span></span>TEXTHello, World");
+    });
+
+    t.test("beforeend", (tt) => {
+        let { div } = createData();
+
+        div.insertAdjacentHTML("beforeend", "<span></span>TEXT");
+
+        tt.equal(div.innerHTML, "Hello, World<span></span>TEXT");
+    });
+
+    t.test("afterend", (tt) => {
+        let { div, document } = createData();
+
+        div.insertAdjacentHTML("afterend", "<span></span>TEXT");
+
+        tt.equal(
+            document.body.innerHTML,
+            '<div id="foo">Hello, World</div><span></span>TEXT',
+        );
+    });
+});

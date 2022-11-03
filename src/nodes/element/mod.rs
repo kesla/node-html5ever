@@ -198,9 +198,7 @@ impl Element {
         let self_node: Node = self.into();
         let position = InsertPosition::Position(self_node.get_position()?);
 
-        let mut iter = node.shallow_child_nodes_iter();
-
-        while let Some(child_node) = iter.next_back() {
+        for child_node in node.shallow_child_nodes_iter().rev() {
             parent.insert_node(self.env, child_node, &position)?;
         }
 
@@ -293,25 +291,23 @@ impl Element {
         element.cyclic_reference.get()
     }
 
-    // #[napi]
-    // pub fn insert_adjecent_html(
-    //     &self,
-    //     position: InsertPosition,
-    //     html: String,
-    // ) -> Result<()> {
-    //     let node: Node = self.into();
+    #[napi(js_name = "insertAdjacentHTML")]
+    pub fn insert_adjecent_html(
+        &self,
+        position: InsertPosition,
+        html: String,
+    ) -> Result<()> {
+        let node: Node = self.into();
 
-    //     let fragment = Document::create_document_fragment(self.env)?;
-    //     Html5everDom::parse_and_append(self.env, fragment.clone(), html)?;
+        let fragment =
+            Html5everDom::create_document_fragment(self.env, html, None)?;
 
-    //     let mut iter = fragment.shallow_child_nodes_iter();
+        let child_nodes = fragment.get_child_nodes();
 
-    //     while let Some(ref child_node) = iter.next_back() {
-    //         node.insert_node(self.env, child_node, &position.into())?;
-    //     }
+        node.insert_nodes(self.env, child_nodes, &position)?;
 
-    //     Ok(())
-    // }
+        Ok(())
+    }
 
     #[napi]
     pub fn insert_adjacent_text(

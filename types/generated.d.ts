@@ -157,6 +157,7 @@ export class Element {
   set id(id: string)
   cloneNode(deep?: boolean | undefined | null): Element
   insertAdjacentElement(position: InsertPosition, element: Element): Element
+  insertAdjacentHTML(position: InsertPosition, html: string): void
   insertAdjacentText(position: InsertPosition, text: string): void
 }
 export class Text {
