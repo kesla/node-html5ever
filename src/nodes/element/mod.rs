@@ -200,7 +200,7 @@ impl Element {
 
         let mut iter = node.shallow_child_nodes_iter();
 
-        while let Some(ref child_node) = iter.next_back() {
+        while let Some(child_node) = iter.next_back() {
             parent.insert_node(self.env, child_node, &position)?;
         }
 
@@ -286,7 +286,7 @@ impl Element {
     ) -> Result<Reference<Element>> {
         self.as_node().insert_node(
             self.env,
-            &element.into(),
+            element.into(),
             &position.into(),
         )?;
 
@@ -322,7 +322,7 @@ impl Element {
         let node: Node = self.into();
 
         let text_node = Text::new_reference(self.env, text)?;
-        node.insert_node(self.env, &text_node.into(), &position.into())?;
+        node.insert_node(self.env, text_node.into(), &position.into())?;
 
         Ok(())
     }

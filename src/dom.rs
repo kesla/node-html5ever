@@ -91,9 +91,7 @@ impl Html5everDom {
         let tmp: Vec<ChildNode> =
             document_node.shallow_child_nodes_iter().collect();
 
-        for child in tmp {
-            node.insert_node(env, &child.clone(), &InsertPosition::Append)?;
-        }
+        node.insert_nodes(env, tmp, &InsertPosition::Append)?;
 
         Ok(())
     }
@@ -212,7 +210,7 @@ impl TreeSink for Html5everDom {
         };
 
         parent
-            .insert_node(self.env, &child, &InsertPosition::Append)
+            .insert_node(self.env, child, &InsertPosition::Append)
             .unwrap();
     }
 

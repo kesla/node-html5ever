@@ -43,23 +43,23 @@ impl ChildNodeList {
 
     pub(crate) fn append_node(
         &mut self,
-        child: &ChildNode,
+        child: ChildNode,
     ) {
         self.0.push(child.to_owned());
     }
 
     pub(crate) fn prepend_node(
         &mut self,
-        child: &ChildNode,
+        child: ChildNode,
     ) {
         self.insert_node(child, 0);
     }
 
     pub(crate) fn insert_node(
         &mut self,
-        child: &ChildNode,
+        child: ChildNode,
         position: usize,
     ) {
-        self.0.insert(position, child.to_owned());
+        self.0.insert(position, child);
     }
 }

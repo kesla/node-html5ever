@@ -158,16 +158,22 @@ impl Node {
         }
     }
 
-    pub(crate) fn insert_node(
+    pub(crate) fn insert_nodes(
         &self,
         env: Env,
-        child_node: &ChildNode,
+        nodes: Vec<ChildNode>,
         position: &InsertPosition,
     ) -> Result<()> {
-        // remove from old parent
-        child_node.remove()?;
-
-        // TODO: concatenate already existing text node
+        if matches!(
+            position,
+            InsertPosition::Prepend
+                | InsertPosition::Append
+                | InsertPosition::Position(_)
+        ) {
+            for child_node in &nodes {
+                child_node.remove()?;
+            }
+        }
 
         match position {
             InsertPosition::Before => {
@@ -175,41 +181,58 @@ impl Node {
                 let maybe_parent_node = self.parent_as_node(env)?;
 
                 if let Some(parent_node) = maybe_parent_node {
-                    parent_node.insert_node(
+                    parent_node.insert_nodes(
                         env,
-                        child_node,
+                        nodes,
                         &InsertPosition::Position(parent_position),
                     )?;
                 }
+                return Ok(());
             },
             InsertPosition::Prepend => self.with_child_nodes(|child_nodes| {
-                child_nodes.prepend_node(child_node)
+                for child_node in nodes.into_iter().rev() {
+                    child_nodes.prepend_node(child_node);
+                }
             }),
             InsertPosition::Append => self.with_child_nodes(|child_nodes| {
-                child_nodes.append_node(child_node)
+                for child_node in nodes {
+                    child_nodes.append_node(child_node);
+                }
             }),
             InsertPosition::After => {
                 let parent_position = self.get_position()? + 1;
                 let maybe_parent_node = self.parent_as_node(env)?;
 
                 if let Some(parent_node) = maybe_parent_node {
-                    parent_node.insert_node(
+                    parent_node.insert_nodes(
                         env,
-                        child_node,
+                        nodes,
                         &InsertPosition::Position(parent_position),
                     )?;
                 }
+                return Ok(());
             },
             InsertPosition::Position(position) => {
                 self.with_child_nodes(|child_nodes| {
-                    child_nodes.insert_node(child_node, *position)
+                    for child_node in nodes.into_iter().rev() {
+                        child_nodes.insert_node(child_node, *position);
+                    }
                 })
             },
-        };
+        }
 
         self.sync_parent_context();
 
         Ok(())
+    }
+
+    pub(crate) fn insert_node(
+        &self,
+        env: Env,
+        child_node: ChildNode,
+        position: &InsertPosition,
+    ) -> Result<()> {
+        self.insert_nodes(env, vec![child_node], position)
     }
 
     pub(crate) fn remove_node(
@@ -396,7 +419,7 @@ impl Node {
             },
         };
 
-        self.insert_node(env, &child_node, &InsertPosition::Prepend)?;
+        self.insert_node(env, child_node, &InsertPosition::Prepend)?;
 
         Ok(())
     }
@@ -414,7 +437,7 @@ impl Node {
             },
         };
 
-        self.insert_node(env, &child_node, &InsertPosition::Append)?;
+        self.insert_node(env, child_node, &InsertPosition::Append)?;
 
         Ok(())
     }
@@ -422,7 +445,7 @@ impl Node {
     pub(crate) fn insert_before(
         &self,
         env: Env,
-        new_node: &ChildNode,
+        new_node: ChildNode,
         reference_node: &Node,
     ) -> Result<()> {
         let position = reference_node.get_position()?;
