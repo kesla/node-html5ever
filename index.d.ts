@@ -6,6 +6,11 @@ export type ClassList = import("./types/generated").ClassList & {
 export type StyleDeclaration = import("./types/generated").StyleDeclaration & {
     [index: string]: string;
 };
+export type InsertPosition =
+    | "beforebegin"
+    | "afterbegin"
+    | "beforeend"
+    | "afterend";
 export const enum QuirksMode {
     Quirks = 0,
     LimitedQuirks = 1,
@@ -188,6 +193,8 @@ export class Element {
     get id(): string;
     set id(id: string);
     cloneNode(deep?: boolean | undefined | null): Element;
+    insertAdjacentElement(position: InsertPosition, element: Element): Element;
+    insertAdjacentText(position: InsertPosition, text: string): void;
 }
 export class Text {
     data: string;

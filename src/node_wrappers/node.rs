@@ -16,22 +16,24 @@ use napi::{
 
 use crate::{
     ChildNode,
+    ChildNodeList,
     Comment,
     DeepChildNodesIterator,
     Document,
     DocumentFragment,
     DocumentType,
     Element,
+    InsertPosition,
     NodeData,
     ParentContext,
     ParentIterator,
+    ParentNode,
     SelectorsIterator,
     ShallowChildNodesIterator,
     SiblingIterator,
     SiblingIteratorType,
     Text,
 };
-
 pub enum Node {
     Comment(Reference<Comment>),
     DocumentType(Reference<DocumentType>),
@@ -119,12 +121,6 @@ impl Clone for Node {
     }
 }
 
-pub enum InsertPosition {
-    Prepend,
-    Append,
-    InsertBefore(usize),
-}
-
 impl Node {
     pub(crate) fn as_element(&self) -> Result<&Reference<Element>> {
         match &self {
@@ -136,8 +132,35 @@ impl Node {
         }
     }
 
+    fn with_child_nodes<F>(
+        &self,
+        f: F,
+    ) -> ()
+    where
+        F: FnOnce(&mut ChildNodeList) -> (),
+    {
+        let node_data: NodeData = self.into();
+        node_data.child_nodes.borrow_mut(f);
+    }
+
+    fn parent_as_node(
+        &self,
+        env: Env,
+    ) -> Result<Option<Node>> {
+        let maybe_parent: Option<ParentNode> =
+            self.parent_iterator().try_next()?;
+
+        if let Some(parent) = maybe_parent {
+            let parent = parent.upgrade(env)?;
+            Ok(Some(parent))
+        } else {
+            Ok(None)
+        }
+    }
+
     pub(crate) fn insert_node(
         &self,
+        env: Env,
         child_node: &ChildNode,
         position: &InsertPosition,
     ) -> Result<()> {
@@ -146,16 +169,43 @@ impl Node {
 
         // TODO: concatenate already existing text node
 
-        let node_data: NodeData = self.into();
-        node_data
-            .child_nodes
-            .borrow_mut(|child_nodes| match position {
-                InsertPosition::Prepend => child_nodes.prepend_node(child_node),
-                InsertPosition::Append => child_nodes.append_node(child_node),
-                InsertPosition::InsertBefore(position) => {
-                    child_nodes.insert_node(child_node, position.to_owned())
-                },
-            });
+        match position {
+            InsertPosition::Before => {
+                let parent_position = self.get_position()?;
+                let maybe_parent_node = self.parent_as_node(env)?;
+
+                if let Some(parent_node) = maybe_parent_node {
+                    parent_node.insert_node(
+                        env,
+                        child_node,
+                        &InsertPosition::Position(parent_position),
+                    )?;
+                }
+            },
+            InsertPosition::Prepend => self.with_child_nodes(|child_nodes| {
+                child_nodes.prepend_node(child_node)
+            }),
+            InsertPosition::Append => self.with_child_nodes(|child_nodes| {
+                child_nodes.append_node(child_node)
+            }),
+            InsertPosition::After => {
+                let parent_position = self.get_position()? + 1;
+                let maybe_parent_node = self.parent_as_node(env)?;
+
+                if let Some(parent_node) = maybe_parent_node {
+                    parent_node.insert_node(
+                        env,
+                        child_node,
+                        &InsertPosition::Position(parent_position),
+                    )?;
+                }
+            },
+            InsertPosition::Position(position) => {
+                self.with_child_nodes(|child_nodes| {
+                    child_nodes.insert_node(child_node, *position)
+                })
+            },
+        };
 
         self.sync_parent_context();
 
@@ -346,7 +396,7 @@ impl Node {
             },
         };
 
-        self.insert_node(&child_node, &InsertPosition::Prepend)?;
+        self.insert_node(env, &child_node, &InsertPosition::Prepend)?;
 
         Ok(())
     }
@@ -364,18 +414,19 @@ impl Node {
             },
         };
 
-        self.insert_node(&child_node, &InsertPosition::Append)?;
+        self.insert_node(env, &child_node, &InsertPosition::Append)?;
 
         Ok(())
     }
 
     pub(crate) fn insert_before(
         &self,
+        env: Env,
         new_node: &ChildNode,
         reference_node: &Node,
     ) -> Result<()> {
         let position = reference_node.get_position()?;
 
-        self.insert_node(new_node, &InsertPosition::InsertBefore(position))
+        self.insert_node(env, new_node, &InsertPosition::Position(position))
     }
 }

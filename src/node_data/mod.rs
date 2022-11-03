@@ -26,8 +26,8 @@ use crate::{
 mod child_node_list;
 mod parent_context;
 
-use self::child_node_list::ChildNodeList;
-pub use self::parent_context::ParentContext;
+pub use child_node_list::ChildNodeList;
+pub use parent_context::ParentContext;
 
 pub struct NodeDataInner {
     pub(crate) env: Env,

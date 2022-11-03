@@ -1001,3 +1001,118 @@ test(".normalize() document", (t) => {
 
     t.equal(text instanceof Text && text.data, "beep-boop");
 });
+
+test("insertAdjacentElement()", (t) => {
+    const createData = () => {
+        let dom = new Html5EverDom('<div id="foo">Hello, World</div>');
+        const { document } = dom.window;
+        const div = dom.window.document.getElementById("foo");
+        if (!div || !document) {
+            throw new Error("element not found");
+        }
+        return { div, document };
+    };
+
+    t.test("beforebegin", (tt) => {
+        let { div, document } = createData();
+        div.insertAdjacentElement(
+            "beforebegin",
+            document.createElement("span"),
+        );
+
+        tt.equal(div.previousSibling?.nodeName, "SPAN");
+        tt.equal(document.body.childNodes.length, 2);
+        tt.equal(
+            document.body.innerHTML,
+            '<span></span><div id="foo">Hello, World</div>',
+        );
+    });
+
+    t.test("afterbegin", (tt) => {
+        let { div, document } = createData();
+        div.insertAdjacentElement("afterbegin", document.createElement("span"));
+
+        tt.equal(div.childNodes.length, 2);
+        tt.equal(div.firstChild?.nodeName, "SPAN");
+        tt.equal(div.innerHTML, "<span></span>Hello, World");
+    });
+
+    t.test("beforeend", (tt) => {
+        let { div, document } = createData();
+        div.insertAdjacentElement("beforeend", document.createElement("span"));
+
+        tt.equal(div.childNodes.length, 2);
+        tt.equal(div.lastChild?.nodeName, "SPAN");
+        tt.equal(div.innerHTML, "Hello, World<span></span>");
+    });
+
+    t.test("afterend", (tt) => {
+        let { div, document } = createData();
+        div.insertAdjacentElement("afterend", document.createElement("span"));
+
+        tt.equal(div.nextSibling?.nodeName, "SPAN");
+        tt.equal(document.body.childNodes.length, 2);
+        tt.equal(
+            document.body.innerHTML,
+            '<div id="foo">Hello, World</div><span></span>',
+        );
+    });
+});
+
+test("insertAdjacentText", (t) => {
+    const createData = () => {
+        let dom = new Html5EverDom('<div id="foo">Hello, World</div>');
+        const { document } = dom.window;
+        const div = dom.window.document.getElementById("foo");
+        if (!div || !document) {
+            throw new Error("element not found");
+        }
+        return { div, document };
+    };
+
+    t.test("beforebegin", (tt) => {
+        let { div, document } = createData();
+
+        div.insertAdjacentText("beforebegin", "foo");
+
+        tt.equal(div.previousSibling?.nodeName, "#text");
+        tt.equal(document.body.childNodes.length, 2);
+        tt.equal(
+            document.body.innerHTML,
+            'foo<div id="foo">Hello, World</div>',
+        );
+    });
+
+    t.test("afterbegin", (tt) => {
+        let { div, document } = createData();
+
+        div.insertAdjacentText("afterbegin", "foo");
+
+        tt.equal(div.childNodes.length, 2);
+        tt.equal(div.firstChild?.nodeName, "#text");
+        tt.equal(div.innerHTML, "fooHello, World");
+    });
+
+    t.test("beforeend", (tt) => {
+        let { div, document } = createData();
+
+        div.insertAdjacentText("beforeend", "foo");
+
+        tt.equal(div.childNodes.length, 2);
+        tt.equal(div.lastChild?.nodeName, "#text");
+        tt.equal(div.innerHTML, "Hello, Worldfoo");
+    });
+
+    t.test("afterend", (tt) => {
+        let { div, document } = createData();
+
+        div.insertAdjacentText("afterend", "foo");
+
+        tt.equal(div.nextSibling?.nodeName, "#text");
+        tt.equal(document.body.childNodes.length, 2);
+        tt.equal(
+            document.body.innerHTML,
+            '<div id="foo">Hello, World</div>foo',
+        );
+    });
+});

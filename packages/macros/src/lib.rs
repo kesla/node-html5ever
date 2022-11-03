@@ -99,8 +99,11 @@ pub fn create_node(
                 &self,
                 child: crate::ChildNode,
             ) -> napi::Result<crate::ChildNode> {
-                self.as_node()
-                    .insert_node(&child, &crate::InsertPosition::Append)?;
+                self.as_node().insert_node(
+                    self.env,
+                    &child,
+                    &crate::InsertPosition::Append,
+                )?;
 
                 Ok(child)
             }
@@ -115,8 +118,11 @@ pub fn create_node(
                 new_node: crate::ChildNode,
                 reference_node: crate::ChildNode,
             ) -> napi::Result<crate::ChildNode> {
-                self.as_node()
-                    .insert_before(&new_node, &reference_node.into())?;
+                self.as_node().insert_before(
+                    self.env,
+                    &new_node,
+                    &reference_node.into(),
+                )?;
 
                 Ok(new_node)
             }

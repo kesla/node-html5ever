@@ -8,7 +8,7 @@ use napi::{
 use crate::ChildNode;
 
 #[derive(Default)]
-pub(crate) struct ChildNodeList(Vec<ChildNode>);
+pub struct ChildNodeList(Vec<ChildNode>);
 
 impl ChildNodeList {
     pub(crate) fn get(

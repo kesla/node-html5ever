@@ -6,3 +6,8 @@ export type ClassList = import("./types/generated").ClassList & {
 export type StyleDeclaration = import("./types/generated").StyleDeclaration & {
     [index: string]: string;
 };
+export type InsertPosition =
+    | "beforebegin"
+    | "afterbegin"
+    | "beforeend"
+    | "afterend";

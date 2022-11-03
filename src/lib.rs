@@ -12,6 +12,7 @@ mod cyclic_reference;
 mod dom;
 mod einar_cell;
 mod id;
+mod insert_position;
 mod iterators;
 mod lazy_reference;
 mod node_data;
@@ -28,15 +29,16 @@ pub use cyclic_reference::CyclicReference;
 pub use dom::Html5everDom;
 pub use einar_cell::EinarCell;
 pub use id::get_id;
+pub use insert_position::InsertPosition;
 pub use iterators::*;
 pub use lazy_reference::LazyReference;
 pub use node_data::{
+    ChildNodeList,
     NodeData,
     ParentContext,
 };
 pub use node_wrappers::{
     ChildNode,
-    InsertPosition,
     Node,
     ParentNode,
 };

@@ -196,12 +196,12 @@ impl Element {
         Html5everDom::parse_and_append(self.env, node.clone(), html)?;
 
         let self_node: Node = self.into();
-        let position = InsertPosition::InsertBefore(self_node.get_position()?);
+        let position = InsertPosition::Position(self_node.get_position()?);
 
         let mut iter = node.shallow_child_nodes_iter();
 
         while let Some(ref child_node) = iter.next_back() {
-            parent.insert_node(child_node, &position)?;
+            parent.insert_node(self.env, child_node, &position)?;
         }
 
         self.remove()?;
@@ -276,5 +276,54 @@ impl Element {
         }
 
         Ok(clone)
+    }
+
+    #[napi]
+    pub fn insert_adjacent_element(
+        &self,
+        position: InsertPosition,
+        element: &Element,
+    ) -> Result<Reference<Element>> {
+        self.as_node().insert_node(
+            self.env,
+            &element.into(),
+            &position.into(),
+        )?;
+
+        element.cyclic_reference.get()
+    }
+
+    // #[napi]
+    // pub fn insert_adjecent_html(
+    //     &self,
+    //     position: InsertPosition,
+    //     html: String,
+    // ) -> Result<()> {
+    //     let node: Node = self.into();
+
+    //     let fragment = Document::create_document_fragment(self.env)?;
+    //     Html5everDom::parse_and_append(self.env, fragment.clone(), html)?;
+
+    //     let mut iter = fragment.shallow_child_nodes_iter();
+
+    //     while let Some(ref child_node) = iter.next_back() {
+    //         node.insert_node(self.env, child_node, &position.into())?;
+    //     }
+
+    //     Ok(())
+    // }
+
+    #[napi]
+    pub fn insert_adjacent_text(
+        &self,
+        position: InsertPosition,
+        text: String,
+    ) -> Result<()> {
+        let node: Node = self.into();
+
+        let text_node = Text::new_reference(self.env, text)?;
+        node.insert_node(self.env, &text_node.into(), &position.into())?;
+
+        Ok(())
     }
 }
