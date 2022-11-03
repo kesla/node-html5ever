@@ -1,8 +1,10 @@
 FROM gitpod/workspace-full
 
-RUN rustup install nightly && rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu
-
 USER gitpod
+
+RUN rustup install nightly && \
+    rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu &&\
+    cargo install cargo-expand
 
 # Install custom tools, runtime, etc. using apt-get
 # For example, the command below would install "bastet" - a command line tetris clone:
