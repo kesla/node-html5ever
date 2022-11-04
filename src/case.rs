@@ -1,60 +1,24 @@
-pub fn to_css_camel_case<T: AsRef<str>>(input: T) -> String {
-    let s = input.as_ref();
-    let mut result = String::with_capacity(s.len());
-    let mut iter = s.chars();
+use regex::Regex;
 
-    if s.starts_with("-webkit") {
-        result.push_str("webkit");
-        iter.nth(6);
-    }
+lazy_static! {
+    static ref CAMEL: Regex = Regex::new(r"(^webkit)?([A-Z])").unwrap();
+}
 
-    while let Some(char) = iter.next() {
-        if char == '-' {
-            if let Some(next) = iter.next() {
-                result.push(next.to_ascii_uppercase());
-            }
-        } else {
-            result.push(char);
-        }
-    }
-
-    result
+fn replacer(cap: &regex::Captures) -> String {
+    format!(
+        "{}-{}",
+        cap.get(1).is_some().then(|| "-webkit").unwrap_or_default(),
+        cap.get(2).unwrap().as_str().to_lowercase()
+    )
 }
 
 pub fn to_css_kebab_case<T: AsRef<str>>(input: T) -> String {
-    let s = input.as_ref();
-    let mut result = String::with_capacity(s.len() + 5);
-    let mut iter = s.chars();
-
-    if s.starts_with("webkit") {
-        result.push_str("-webkit");
-        iter.nth(5);
-    }
-
-    for char in iter {
-        if char.is_ascii_uppercase() {
-            result.push('-');
-            result.push(char.to_ascii_lowercase());
-        } else {
-            result.push(char);
-        }
-    }
-
-    result
+    CAMEL.replace_all(input.as_ref(), replacer).to_string()
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn test_to_css_camel_case() {
-        assert_eq!(to_css_camel_case("foo"), "foo");
-        assert_eq!(to_css_camel_case("foo-bar"), "fooBar");
-        assert_eq!(to_css_camel_case("foo-bar-baz"), "fooBarBaz");
-        assert_eq!(to_css_camel_case("foo-bar-baz-qux"), "fooBarBazQux");
-        assert_eq!(to_css_camel_case("-webkit-foo-bar"), "webkitFooBar");
-    }
 
     #[test]
     fn test_to_kebab_case() {
