@@ -153,7 +153,7 @@ impl Element {
     }
 
     #[napi(setter, js_name = "innerHTML")]
-    pub fn set_innner_html(
+    pub fn set_inner_html(
         &self,
         html: String,
     ) -> Result<()> {
