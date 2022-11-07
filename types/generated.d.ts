@@ -25,14 +25,14 @@ export class Comment {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
-  get CDATA_SECTION_NODE(): number
-  get DOCUMENT_TYPE_NODE(): number
-  get PROCESSING_INSTRUCTION_NODE(): number
-  get COMMENT_NODE(): number
-  get ELEMENT_NODE(): number
-  get DOCUMENT_NODE(): number
   get ATTRIBUTE_NODE(): number
+  get CDATA_SECTION_NODE(): number
+  get COMMENT_NODE(): number
   get DOCUMENT_FRAGMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get ELEMENT_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
   get TEXT_NODE(): number
   get textContent(): string | null
   cloneNode(): this
@@ -58,14 +58,14 @@ export class Document {
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   normalize(): void
-  get CDATA_SECTION_NODE(): number
-  get DOCUMENT_TYPE_NODE(): number
-  get PROCESSING_INSTRUCTION_NODE(): number
-  get COMMENT_NODE(): number
-  get ELEMENT_NODE(): number
-  get DOCUMENT_NODE(): number
   get ATTRIBUTE_NODE(): number
+  get CDATA_SECTION_NODE(): number
+  get COMMENT_NODE(): number
   get DOCUMENT_FRAGMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get ELEMENT_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
   get TEXT_NODE(): number
   get docType(): DocumentType | null
   get documentElement(): Element
@@ -97,14 +97,14 @@ export class DocumentFragment {
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   normalize(): void
-  get CDATA_SECTION_NODE(): number
-  get DOCUMENT_TYPE_NODE(): number
-  get PROCESSING_INSTRUCTION_NODE(): number
-  get COMMENT_NODE(): number
-  get ELEMENT_NODE(): number
-  get DOCUMENT_NODE(): number
   get ATTRIBUTE_NODE(): number
+  get CDATA_SECTION_NODE(): number
+  get COMMENT_NODE(): number
   get DOCUMENT_FRAGMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get ELEMENT_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
   get TEXT_NODE(): number
   get textContent(): string | null
 }
@@ -123,14 +123,14 @@ export class DocumentType {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
-  get CDATA_SECTION_NODE(): number
-  get DOCUMENT_TYPE_NODE(): number
-  get PROCESSING_INSTRUCTION_NODE(): number
-  get COMMENT_NODE(): number
-  get ELEMENT_NODE(): number
-  get DOCUMENT_NODE(): number
   get ATTRIBUTE_NODE(): number
+  get CDATA_SECTION_NODE(): number
+  get COMMENT_NODE(): number
   get DOCUMENT_FRAGMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get ELEMENT_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
   get TEXT_NODE(): number
   get textContent(): string | null
   cloneNode(deep?: boolean | undefined | null): this
@@ -184,14 +184,14 @@ export class Element {
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   normalize(): void
-  get CDATA_SECTION_NODE(): number
-  get DOCUMENT_TYPE_NODE(): number
-  get PROCESSING_INSTRUCTION_NODE(): number
-  get COMMENT_NODE(): number
-  get ELEMENT_NODE(): number
-  get DOCUMENT_NODE(): number
   get ATTRIBUTE_NODE(): number
+  get CDATA_SECTION_NODE(): number
+  get COMMENT_NODE(): number
   get DOCUMENT_FRAGMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get ELEMENT_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
   get TEXT_NODE(): number
   get attributes(): Array<Attr>
   getAttribute(name: string): string | null
@@ -228,14 +228,14 @@ export class Text {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
-  get CDATA_SECTION_NODE(): number
-  get DOCUMENT_TYPE_NODE(): number
-  get PROCESSING_INSTRUCTION_NODE(): number
-  get COMMENT_NODE(): number
-  get ELEMENT_NODE(): number
-  get DOCUMENT_NODE(): number
   get ATTRIBUTE_NODE(): number
+  get CDATA_SECTION_NODE(): number
+  get COMMENT_NODE(): number
   get DOCUMENT_FRAGMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get ELEMENT_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
   get TEXT_NODE(): number
   get textContent(): string | null
   cloneNode(): this

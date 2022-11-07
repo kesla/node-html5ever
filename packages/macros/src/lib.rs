@@ -62,19 +62,23 @@ pub fn create_node(
 
     let name = &ast.ident;
 
-    let node_types: Vec<_> = NODE_TYPE_MAP
-        .iter()
-        .map(|(k, v)| {
-            let k = Ident::new(k, Span::call_site());
+    let node_types: Vec<_> = {
+        let mut list = NODE_TYPE_MAP.iter().collect::<Vec<_>>();
+        list.sort_by(|a, b| a.0.cmp(b.0));
+        list
+    }
+    .into_iter()
+    .map(|(k, v)| {
+        let k = Ident::new(k, Span::call_site());
 
-            quote! {
-                #[napi(getter, js_name = #k)]
-                pub fn #k(&self) -> u32 {
-                    #v
-                }
+        quote! {
+            #[napi(getter, js_name = #k)]
+            pub fn #k(&self) -> u32 {
+                #v
             }
-        })
-        .collect();
+        }
+    })
+    .collect();
 
     let has_children_impl = match features.has_children {
         true => quote!(
