@@ -15,6 +15,8 @@ export class Html5EverDom {
 export class Comment {
   data: string
   get nodeName(): string
+  get nodeType(): number
+  get nodeValue(): string | null
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
   get ownerDocument(): Document | null
@@ -23,11 +25,22 @@ export class Comment {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
+  get CDATA_SECTION_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
+  get COMMENT_NODE(): number
+  get ELEMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get ATTRIBUTE_NODE(): number
+  get DOCUMENT_FRAGMENT_NODE(): number
+  get TEXT_NODE(): number
   get textContent(): string | null
   cloneNode(): this
 }
 export class Document {
   get nodeName(): string
+  get nodeType(): number
+  get nodeValue(): string | null
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
   append(childNodeOrText: ChildNode | string): void
@@ -45,6 +58,15 @@ export class Document {
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   normalize(): void
+  get CDATA_SECTION_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
+  get COMMENT_NODE(): number
+  get ELEMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get ATTRIBUTE_NODE(): number
+  get DOCUMENT_FRAGMENT_NODE(): number
+  get TEXT_NODE(): number
   get docType(): DocumentType | null
   get documentElement(): Element
   get head(): Element
@@ -56,6 +78,8 @@ export class Document {
 }
 export class DocumentFragment {
   get nodeName(): string
+  get nodeType(): number
+  get nodeValue(): string | null
   get childNodes(): Array<ChildNode>
   get children(): Array<Element>
   append(childNodeOrText: ChildNode | string): void
@@ -73,6 +97,15 @@ export class DocumentFragment {
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   normalize(): void
+  get CDATA_SECTION_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
+  get COMMENT_NODE(): number
+  get ELEMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get ATTRIBUTE_NODE(): number
+  get DOCUMENT_FRAGMENT_NODE(): number
+  get TEXT_NODE(): number
   get textContent(): string | null
 }
 export class DocumentType {
@@ -80,6 +113,8 @@ export class DocumentType {
   publicId: string
   systemId: string
   get nodeName(): string
+  get nodeType(): number
+  get nodeValue(): string | null
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
   get ownerDocument(): Document | null
@@ -88,6 +123,15 @@ export class DocumentType {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
+  get CDATA_SECTION_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
+  get COMMENT_NODE(): number
+  get ELEMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get ATTRIBUTE_NODE(): number
+  get DOCUMENT_FRAGMENT_NODE(): number
+  get TEXT_NODE(): number
   get textContent(): string | null
   cloneNode(deep?: boolean | undefined | null): this
 }
@@ -113,6 +157,8 @@ export class ClassList {
 }
 export class Element {
   get nodeName(): string
+  get nodeType(): number
+  get nodeValue(): string | null
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
   get ownerDocument(): Document | null
@@ -138,6 +184,15 @@ export class Element {
   get lastChild(): ChildNode | null
   get lastElementChild(): Element | null
   normalize(): void
+  get CDATA_SECTION_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
+  get COMMENT_NODE(): number
+  get ELEMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get ATTRIBUTE_NODE(): number
+  get DOCUMENT_FRAGMENT_NODE(): number
+  get TEXT_NODE(): number
   get attributes(): Array<Attr>
   getAttribute(name: string): string | null
   removeAttribute(name: string): void
@@ -163,6 +218,8 @@ export class Element {
 export class Text {
   data: string
   get nodeName(): string
+  get nodeType(): number
+  get nodeValue(): string | null
   get parentElement(): Element | null
   get parentNode(): ParentNode | null
   get ownerDocument(): Document | null
@@ -171,6 +228,15 @@ export class Text {
   get previousElementSibling(): Element | null
   get nextSibling(): ChildNode | null
   get nextElementSibling(): Element | null
+  get CDATA_SECTION_NODE(): number
+  get DOCUMENT_TYPE_NODE(): number
+  get PROCESSING_INSTRUCTION_NODE(): number
+  get COMMENT_NODE(): number
+  get ELEMENT_NODE(): number
+  get DOCUMENT_NODE(): number
+  get ATTRIBUTE_NODE(): number
+  get DOCUMENT_FRAGMENT_NODE(): number
+  get TEXT_NODE(): number
   get textContent(): string | null
   cloneNode(): this
 }

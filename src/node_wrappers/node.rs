@@ -13,6 +13,7 @@ use napi::{
     Env,
     Status,
 };
+use shared::node_type::NodeTypeEnum;
 
 use crate::{
     ChildNode,
@@ -293,6 +294,25 @@ impl Node {
             Node::DocumentFragment(_) => "#document-fragment".to_string(),
             Node::Element(r) => r.name.local.to_string().to_uppercase(),
             Node::Text(_) => "#text".to_string(),
+        }
+    }
+
+    pub(crate) fn get_node_type(&self) -> u32 {
+        match self {
+            Node::Comment(_) => NodeTypeEnum::Comment as u32,
+            Node::DocumentType(_) => NodeTypeEnum::DocumentType as u32,
+            Node::Document(_) => NodeTypeEnum::Document as u32,
+            Node::DocumentFragment(_) => NodeTypeEnum::DocumentFragment as u32,
+            Node::Element(_) => NodeTypeEnum::Element as u32,
+            Node::Text(_) => NodeTypeEnum::Text as u32,
+        }
+    }
+
+    pub(crate) fn get_node_value(&self) -> Option<String> {
+        match self {
+            Node::Comment(r) => Some(r.data.clone()),
+            Node::Text(r) => Some(r.data.clone()),
+            _ => None,
         }
     }
 

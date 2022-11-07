@@ -23,6 +23,7 @@ html5ever = "0.26.0"
 selectors = "0.23.0"
 # use cssparser that selectrs use
 cssparser = "0.28.0"
+shared = { path = "./packages/shared" }
 
 [build-dependencies]
 napi-build = "2.0.1"

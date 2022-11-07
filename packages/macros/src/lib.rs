@@ -1,11 +1,14 @@
 use itertools::multiunzip;
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use quote::quote;
+use shared::node_type::NODE_TYPE_MAP;
 use syn::{
     self,
     parse::Parser,
     parse_macro_input,
     DeriveInput,
+    Ident,
 };
 
 #[derive(Default)]
@@ -58,6 +61,20 @@ pub fn create_node(
         }));
 
     let name = &ast.ident;
+
+    let node_types: Vec<_> = NODE_TYPE_MAP
+        .iter()
+        .map(|(k, v)| {
+            let k = Ident::new(k, Span::call_site());
+
+            quote! {
+                #[napi(getter, js_name = #k)]
+                pub fn #k(&self) -> u32 {
+                    #v
+                }
+            }
+        })
+        .collect();
 
     let has_children_impl = match features.has_children {
         true => quote!(
@@ -349,6 +366,16 @@ pub fn create_node(
                 self.as_node().get_node_name()
             }
 
+            #[napi(getter)]
+            pub fn get_node_type(&self) -> u32 {
+                self.as_node().get_node_type()
+            }
+
+            #[napi(getter)]
+            pub fn get_node_value(&self) -> Option<String> {
+                self.as_node().get_node_value()
+            }
+
             fn as_node(&self) -> crate::Node {
                 let node: crate::Node = self.into();
                 node
@@ -356,6 +383,8 @@ pub fn create_node(
 
             #is_child_impl
             #has_children_impl
+
+            #(#node_types)*
         }
     }
     .into();
