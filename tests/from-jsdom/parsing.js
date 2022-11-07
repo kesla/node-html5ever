@@ -145,11 +145,13 @@ describe("jsdom/parsing", () => {
 
         assert.equal(els.length, 1);
         assert.equal(els[0].attributes.length, 2);
+        console.log(els[0].attributes.map((a) => a.prefix));
+
         assert.equal(els[0].attributes[1].prefix, "prefix");
         assert.equal(els[0].getAttribute("prefix:hasOwnProperty"), "value");
         assert.equal(
             els[0].outerHTML,
-            `<element xmlns:prefix="https://example.com/" prefix:hasOwnProperty="value"/>`,
+            `<element xmlns:prefix="https://example.com/" prefix:hasownproperty="value"></element>`,
         );
     });
 

@@ -53,7 +53,7 @@ impl Element {
         name: String,
     ) -> Option<String> {
         self.attributes_wrapper
-            .get_attribute(LocalName::from(name))
+            .get_attribute(LocalName::from(name.to_lowercase()))
             .map(|attribute| attribute.value.to_string())
     }
 

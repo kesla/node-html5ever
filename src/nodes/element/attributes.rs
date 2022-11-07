@@ -28,6 +28,20 @@ pub struct Attr {
 
 #[napi]
 impl Attr {
+    fn get_prefix_and_name(&self) -> (Option<String>, String) {
+        let as_string: &str = &self.attribute.name.local;
+
+        let mut split = as_string.split(':');
+
+        match (split.next(), split.next()) {
+            (Some(prefix), Some(name)) => {
+                (Some(prefix.to_string()), name.to_string())
+            },
+            (Some(name), _) => (None, name.to_string()),
+            _ => panic!("Invalid attribute name"),
+        }
+    }
+
     #[napi(getter)]
     pub fn get_local_name(&self) -> String {
         self.attribute.name.local.to_string()
@@ -35,7 +49,7 @@ impl Attr {
 
     #[napi(getter)]
     pub fn get_name(&self) -> String {
-        self.attribute.name.local.to_string()
+        self.get_prefix_and_name().1
     }
 
     #[napi(getter)]
@@ -62,11 +76,7 @@ impl Attr {
 
     #[napi(getter)]
     pub fn get_prefix(&self) -> Option<String> {
-        self.attribute
-            .name
-            .prefix
-            .as_ref()
-            .map(|prefix| prefix.to_string())
+        self.get_prefix_and_name().0
     }
 
     #[napi(getter)]

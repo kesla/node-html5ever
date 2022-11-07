@@ -254,7 +254,7 @@ impl TreeSink for Html5everDom {
         x: &Self::Handle,
         y: &Self::Handle,
     ) -> bool {
-        todo!()
+        x == y
     }
 
     fn set_quirks_mode(
