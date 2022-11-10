@@ -19,6 +19,7 @@ use napi::{
 
 use crate::{
     serialize,
+    ChildNode,
     DocumentFragment,
     Html5everDom,
     InsertPosition,
@@ -41,6 +42,16 @@ pub struct Element {
 
 #[napi]
 impl Element {
+    pub(crate) fn get_all_child_nodes(&self) -> Vec<ChildNode> {
+        if let Some(template) = self.template_contents.as_ref() {
+            let mut child_nodes = template.get_child_nodes();
+            child_nodes.extend(self.get_child_nodes());
+            child_nodes
+        } else {
+            self.get_child_nodes()
+        }
+    }
+
     #[napi(getter)]
     pub fn get_attributes(
         &self,
@@ -213,12 +224,27 @@ impl Element {
 
     #[napi(getter)]
     pub fn get_text_content(&self) -> Option<String> {
-        let node: Node = self.into();
-
-        let text = node
-            .deep_child_nodes_iter::<Reference<Text>>()
-            .map(|text| text.data.clone())
+        let text = self
+            .get_all_child_nodes()
+            .into_iter()
+            .filter_map(|child| {
+                if let ChildNode::Text(text) = child {
+                    text.get_text_content()
+                } else if let ChildNode::Element(element) = child {
+                    element.get_text_content()
+                } else {
+                    None
+                }
+            })
             .collect();
+
+        // let node: Node = self.into();
+
+        // let text = node
+
+        //     .deep_child_nodes_iter::<Reference<Text>>()
+        //     .map(|text| text.data.clone())
+        //     .collect();
 
         Some(text)
     }

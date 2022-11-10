@@ -29,15 +29,24 @@ impl html5ever::serialize::Serialize for SerializableNode {
     where
         S: html5ever::serialize::Serializer,
     {
-        let mut ops = VecDeque::new();
-        match traversal_scope {
+        let mut ops: VecDeque<SerializeOp> = match traversal_scope {
             html5ever::serialize::TraversalScope::IncludeNode => {
-                ops.push_back(SerializeOp::Open((&self.0).into()))
+                VecDeque::from([SerializeOp::Open((&self.0).into())])
             },
             html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-                ops.extend(
-                    self.0.shallow_child_nodes_iter().map(SerializeOp::Open),
-                );
+                if let Node::Element(element) = &self.0 {
+                    element
+                        .get_all_child_nodes()
+                        .iter()
+                        .cloned()
+                        .map(SerializeOp::Open)
+                        .collect()
+                } else {
+                    self.0
+                        .shallow_child_nodes_iter()
+                        .map(SerializeOp::Open)
+                        .collect()
+                }
             },
         };
 
@@ -52,35 +61,28 @@ impl html5ever::serialize::Serialize for SerializableNode {
                             serializer.write_doctype(&doc_type.name)?
                         },
                         ChildNode::Element(element) => {
-                            let node_data = &element.node_data;
+                            serializer.start_elem(
+                                // TODO: Is this actually copying the data? Need to figure that out
+                                element.name.clone(),
+                                element
+                                    .attributes_wrapper
+                                    .iter()
+                                    .map(|at| (&at.name, &at.value[..])),
+                            )?;
 
-                            node_data
-                                .child_nodes
-                                .borrow::<_, std::io::Result<()>>(
-                                    |child_nodes| {
-                                        serializer.start_elem(
-                                            // TODO: Is this actually copying the data? Need to figure that out
-                                            element.name.clone(),
-                                            element
-                                                .attributes_wrapper
-                                                .iter()
-                                                .map(|at| {
-                                                    (&at.name, &at.value[..])
-                                                }),
-                                        )?;
-                                        ops.reserve(1 + child_nodes.len());
-                                        ops.push_front(SerializeOp::Close(
-                                            element.name.clone(),
-                                        ));
+                            ops.push_front(SerializeOp::Close(
+                                element.name.clone(),
+                            ));
 
-                                        for child in child_nodes.iter().rev() {
-                                            ops.push_front(SerializeOp::Open(
-                                                child.clone(),
-                                            ));
-                                        }
-                                        Ok(())
-                                    },
-                                )?;
+                            element
+                                .get_all_child_nodes()
+                                .into_iter()
+                                .rev()
+                                .for_each(|child_node| {
+                                    ops.push_front(SerializeOp::Open(
+                                        child_node,
+                                    ))
+                                });
                         },
                         ChildNode::Text(text) => {
                             serializer.write_text(&text.data)?

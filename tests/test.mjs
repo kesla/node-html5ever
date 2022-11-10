@@ -1181,3 +1181,26 @@ test("whitespace in <html> tag", (t) => {
     t.equal(document.documentElement.childNodes[1].nodeName, "#text");
     t.equal(document.documentElement.childNodes[2].nodeName, "BODY");
 });
+
+test("<template> tag + serialize (in different ways)", (t) => {
+    let dom = new Html5EverDom('<template id="foo"><div>bar</div></template>');
+    let { document } = dom.window;
+
+    t.equal(document.getElementById("foo")?.innerHTML, "<div>bar</div>");
+    t.equal(
+        document.getElementById("foo")?.outerHTML,
+        '<template id="foo"><div>bar</div></template>',
+    );
+    t.equal(document.getElementById("foo")?.textContent, "bar");
+    t.equal(
+        dom.serialize(),
+        '<html><head><template id="foo"><div>bar</div></template></head><body></body></html>',
+    );
+});
+
+test(".textContent", (t) => {
+    let dom = new Html5EverDom('<div id="foo"><span>bar</span> baz</div>');
+    let { document } = dom.window;
+
+    t.equal(document.getElementById("foo")?.textContent, "bar baz");
+});
