@@ -5,7 +5,7 @@ const { assert } = require("chai");
 const { describe, specify } = require("tap").mocha;
 
 const { Html5EverDom } = require("../..");
-// const { readTestFixture } = require("./util.js");
+const { readTestFixture } = require("./util.js");
 
 // These tests are mostly random regression tests, not systematic parsing tests. They are compiled from the bug tracker.
 describe("jsdom/parsing", () => {
@@ -145,7 +145,6 @@ describe("jsdom/parsing", () => {
 
         assert.equal(els.length, 1);
         assert.equal(els[0].attributes.length, 2);
-        console.log(els[0].attributes.map((a) => a.prefix));
 
         assert.equal(els[0].attributes[1].prefix, "prefix");
         assert.equal(els[0].getAttribute("prefix:hasOwnProperty"), "value");
@@ -279,7 +278,7 @@ describe("jsdom/parsing", () => {
         const { document } = new Html5EverDom("<!DOCTYPE html>\n<html></html>")
             .window;
 
-        assert.strictEqual(document.firstChild.nodeName, "html");
+        assert.strictEqual(document.firstChild?.nodeName, "html");
     });
 
     specify("pre tag with < and > characters (GH-755)", () => {
@@ -301,19 +300,19 @@ describe("jsdom/parsing", () => {
         const { document } = new Html5EverDom("<a href='http://foo'></a>")
             .window;
 
-        assert.strictEqual(document.querySelector("[href]").tagName, "A");
+        assert.strictEqual(document.querySelector("[href]")?.tagName, "A");
     });
 
     specify("real-world page with < inside a text node (GH-800)", () => {
-        return readTestFixture("to-port-to-wpts/files/steam.html").then(
-            (content) => {
-                const doc = new Html5EverDom(content).window.document;
-                assert.notEqual(
-                    doc.querySelector(".badge_card_set_text"),
-                    null,
-                );
-            },
-        );
+        return readTestFixture("files/steam.html").then((content) => {
+            const doc = new Html5EverDom(content).window.document;
+
+            // console.log(doc.)
+
+            console.log(doc.body.innerHTML);
+
+            assert.notEqual(doc.querySelector(".badge_card_set_text"), null);
+        });
     });
 
     specify("void tags with innerHTML (GH-863)", () => {
@@ -321,7 +320,7 @@ describe("jsdom/parsing", () => {
         document.body.innerHTML = '<p>hello <img src="test"> world</p>';
 
         assert.strictEqual(
-            document.body.firstChild.childNodes.length,
+            document.body.firstElementChild?.childNodes.length,
             3,
             "paragraph should contain 3 children",
         );
