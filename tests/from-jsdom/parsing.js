@@ -352,10 +352,10 @@ describe("jsdom/parsing", () => {
             '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">',
         ).window;
 
-        assert.strictEqual(document.doctype.name, "html");
-        assert.strictEqual(document.doctype.systemId, "");
+        assert.strictEqual(document.doctype?.name, "html");
+        assert.strictEqual(document.doctype?.systemId, "");
         assert.strictEqual(
-            document.doctype.publicId,
+            document.doctype?.publicId,
             "-//W3C//DTD HTML 4.01 Transitional//EN",
         );
     });
@@ -363,9 +363,9 @@ describe("jsdom/parsing", () => {
     specify("completely empty <!DOCTYPE> (GH-1204)", () => {
         const { document } = new Html5EverDom("<!DOCTYPE>").window;
 
-        assert.strictEqual(document.doctype.name, "");
-        assert.strictEqual(document.doctype.systemId, "");
-        assert.strictEqual(document.doctype.publicId, "");
+        assert.strictEqual(document.doctype?.name, "");
+        assert.strictEqual(document.doctype?.systemId, "");
+        assert.strictEqual(document.doctype?.publicId, "");
     });
 
     specify("incomplete SVG doctype (GH-259)", () => {
@@ -373,9 +373,9 @@ describe("jsdom/parsing", () => {
             `<!DOCTYPE svg>\n<svg version="1.1"></svg>`,
         ).window;
 
-        assert.strictEqual(document.doctype.name, "svg");
-        assert.strictEqual(document.doctype.systemId, "");
-        assert.strictEqual(document.doctype.publicId, "");
+        assert.strictEqual(document.doctype?.name, "svg");
+        assert.strictEqual(document.doctype?.systemId, "");
+        assert.strictEqual(document.doctype?.publicId, "");
     });
 
     specify("extra HTML after </html> (GH-319)", () => {
@@ -386,7 +386,7 @@ describe("jsdom/parsing", () => {
 
         assert.strictEqual(document.body.childNodes.length, 2);
         assert.strictEqual(
-            document.querySelector("div").parentNode,
+            document.querySelector("div")?.parentNode,
             document.body,
         );
     });
@@ -397,10 +397,11 @@ describe("jsdom/parsing", () => {
         const html = `<html><head>${script}</head><body><p>hello world!</p></body></html>`;
         const { document } = new Html5EverDom(html).window;
 
-        document.write(html);
-        document.close();
+        // TODO: Idk if this is needed
+        // document.write(html);
+        // document.close();
 
-        assert.strictEqual(document.head.childNodes[0].innerHTML, content);
+        assert.strictEqual(document.head.children[0].innerHTML, content);
     });
 
     specify("xmlns doesn't cause empty prefix", () => {
