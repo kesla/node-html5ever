@@ -148,7 +148,9 @@ impl Element {
     pub fn get_inner_html(&self) -> String {
         serialize(
             self.into(),
-            html5ever::serialize::TraversalScope::ChildrenOnly(None),
+            html5ever::serialize::TraversalScope::ChildrenOnly(Some(
+                self.name.clone(),
+            )),
         )
     }
 
