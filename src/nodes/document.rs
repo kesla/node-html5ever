@@ -49,30 +49,32 @@ impl Document {
         }
     }
 
-    #[napi(getter)]
-    pub fn get_head(&mut self) -> Result<Reference<Element>> {
+    fn get_head_or_body(
+        &self,
+        index: usize,
+        label: &str,
+    ) -> Result<Reference<Element>> {
         let document_element = self.get_document_element()?;
-        let node: Node = document_element.into();
-
-        match node.try_get_child_node(0) {
-            Ok(Some(e)) => Ok(e),
-            _ => Err(Error::from_reason(
-                "Document has no head Element (<head>)".to_string(),
-            )),
-        }
+        let children = document_element.get_children();
+        children
+            .get(index)
+            .ok_or_else(|| {
+                Error::from_reason(format!(
+                    "Document has no {} Element (<{})",
+                    label, label
+                ))
+            })
+            .and_then(|r| r.clone(self.env))
     }
 
     #[napi(getter)]
-    pub fn get_body(&mut self) -> Result<Reference<Element>> {
-        let document_element = self.get_document_element()?;
-        let node: Node = document_element.into();
+    pub fn get_head(&self) -> Result<Reference<Element>> {
+        self.get_head_or_body(0, "head")
+    }
 
-        match node.try_get_child_node(1) {
-            Ok(Some(e)) => Ok(e),
-            _ => Err(Error::from_reason(
-                "Document has no body Element (<body>)".to_string(),
-            )),
-        }
+    #[napi(getter)]
+    pub fn get_body(&self) -> Result<Reference<Element>> {
+        self.get_head_or_body(1, "body")
     }
 
     #[napi(getter)]

@@ -1166,3 +1166,18 @@ test("insertAdjacentHTML", (t) => {
         );
     });
 });
+
+test("whitespace in <html> tag", (t) => {
+    let { document } = new Html5EverDom(
+        "  <html> <head></head>  <body></body>  </html>  ",
+    ).window;
+
+    t.doesNotThrow(() => {
+        document.head;
+        document.body;
+    });
+    t.equal(document.documentElement.childNodes.length, 3);
+    t.equal(document.documentElement.childNodes[0].nodeName, "HEAD");
+    t.equal(document.documentElement.childNodes[1].nodeName, "#text");
+    t.equal(document.documentElement.childNodes[2].nodeName, "BODY");
+});
