@@ -166,7 +166,7 @@ impl TreeSink for Html5everDom {
         name: html5ever::QualName,
         attrs: Vec<html5ever::Attribute>,
         // TODO: set flags
-        _flags: html5ever::tree_builder::ElementFlags,
+        flags: html5ever::tree_builder::ElementFlags,
     ) -> Self::Handle {
         let r = Element::new_reference(
             self.env,
@@ -174,6 +174,13 @@ impl TreeSink for Html5everDom {
             name,
             LazyReference::new(self.env),
             LazyReference::new(self.env),
+            flags.template.then(|| {
+                DocumentFragment::new_reference(
+                    self.env,
+                    self.document_reference.quirks_mode,
+                )
+                .unwrap()
+            }),
         )
         .unwrap();
         r.into()
@@ -246,7 +253,15 @@ impl TreeSink for Html5everDom {
         &mut self,
         target: &Self::Handle,
     ) -> Self::Handle {
-        todo!()
+        let template = target.as_element().unwrap();
+
+        template
+            .template_contents
+            .as_ref()
+            .unwrap()
+            .clone(self.env)
+            .unwrap()
+            .into()
     }
 
     fn same_node(

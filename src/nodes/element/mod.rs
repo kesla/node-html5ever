@@ -19,6 +19,7 @@ use napi::{
 
 use crate::{
     serialize,
+    DocumentFragment,
     Html5everDom,
     InsertPosition,
     LazyReference,
@@ -35,6 +36,7 @@ pub struct Element {
 
     pub(crate) lazy_class_list: LazyReference<ClassList>,
     pub(crate) lazy_style: LazyReference<StyleDeclaration>,
+    pub(crate) template_contents: Option<Reference<DocumentFragment>>,
 }
 
 #[napi]
@@ -266,6 +268,7 @@ impl Element {
             self.name.clone(),
             LazyReference::new(self.env),
             LazyReference::new(self.env),
+            None, // TODO should this be cloned?
         )?;
 
         if deep {

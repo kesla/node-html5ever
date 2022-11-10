@@ -88,9 +88,13 @@ impl Document {
         Element::new_reference(
             self.env,
             vec![].into(),
-            QualName::new(None, ns!(html), name.into()),
+            QualName::new(None, ns!(html), name.clone().into()),
             LazyReference::new(self.env),
             LazyReference::new(self.env),
+            (name.to_lowercase() == *"template").then(|| {
+                DocumentFragment::new_reference(self.env, self.quirks_mode)
+                    .unwrap()
+            }),
         )
     }
 
