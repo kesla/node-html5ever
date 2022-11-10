@@ -67,7 +67,7 @@ export class Document {
   get ELEMENT_NODE(): number
   get PROCESSING_INSTRUCTION_NODE(): number
   get TEXT_NODE(): number
-  get docType(): DocumentType | null
+  get doctype(): DocumentType | null
   get documentElement(): Element
   get head(): Element
   get body(): Element

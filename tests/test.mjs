@@ -34,7 +34,7 @@ test("parse works", (t) => {
     t.matchSnapshot(dom.window.document, ".document");
     t.equal(dom.window.document.nodeName, "#document");
     t.equal(dom.quirksMode, QuirksMode.Quirks, "Correct quirks mode");
-    t.equal(dom.window.document.docType, null, ".document.docType is not set");
+    t.equal(dom.window.document.doctype, null, ".document.doctype is not set");
 
     t.equal(
         dom.window.document instanceof Document,
@@ -47,23 +47,23 @@ test("doc type / Quirks mode", (t) => {
     let dom = new Html5EverDom("<!DOCTYPE html><html></html>");
     t.ok(dom);
     t.equal(dom.quirksMode, QuirksMode.NoQuirks, "Correct quircks mode");
-    t.ok(dom.window.document.docType, ".document.docType is truthy");
-    t.equal(dom.window.document.docType?.name, "html");
-    t.equal(dom.window.document.docType?.publicId, "");
-    t.equal(dom.window.document.docType?.systemId, "");
+    t.ok(dom.window.document.doctype, ".document.doctype is truthy");
+    t.equal(dom.window.document.doctype?.name, "html");
+    t.equal(dom.window.document.doctype?.publicId, "");
+    t.equal(dom.window.document.doctype?.systemId, "");
     t.matchSnapshot(dom.serialize(), ".serialize()");
 
     let dom2 = new Html5EverDom(`
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   `);
-    t.ok(dom2.window.document.docType, ".document.docType is truthy");
-    t.equal(dom2.window.document.docType?.name, "html");
+    t.ok(dom2.window.document.doctype, ".document.doctype is truthy");
+    t.equal(dom2.window.document.doctype?.name, "html");
     t.equal(
-        dom2.window.document.docType?.publicId,
+        dom2.window.document.doctype?.publicId,
         "-//W3C//DTD HTML 4.01 Transitional//EN",
     );
     t.equal(
-        dom2.window.document.docType?.systemId,
+        dom2.window.document.doctype?.systemId,
         "http://www.w3.org/TR/html4/loose.dtd",
     );
 });
@@ -423,7 +423,7 @@ test("Instance of", (t) => {
     t.ok(document.body instanceof Element);
     t.ok(document.head instanceof Element);
     t.ok(document.documentElement instanceof Element);
-    t.ok(document.docType instanceof DocumentType);
+    t.ok(document.doctype instanceof DocumentType);
 });
 
 test(".firstChild & .lastChild", (t) => {

@@ -28,7 +28,7 @@ pub struct Document {
 #[napi]
 impl Document {
     #[napi(getter)]
-    pub fn get_doc_type(&self) -> Option<Reference<DocumentType>> {
+    pub fn get_doctype(&self) -> Option<Reference<DocumentType>> {
         let node: Node = self.into();
 
         node.try_get_child_node(0).ok().flatten()
