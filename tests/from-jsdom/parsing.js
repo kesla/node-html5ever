@@ -307,10 +307,6 @@ describe("jsdom/parsing", () => {
         return readTestFixture("files/steam.html").then((content) => {
             const doc = new Html5EverDom(content).window.document;
 
-            // console.log(doc.)
-
-            console.log(doc.body.innerHTML);
-
             assert.notEqual(doc.querySelector(".badge_card_set_text"), null);
         });
     });
