@@ -1,5 +1,6 @@
 use html5ever::{
-    Namespace,
+    namespace_url,
+    ns,
     QualName,
 };
 use napi::{
@@ -87,7 +88,7 @@ impl Document {
         Element::new_reference(
             self.env,
             vec![].into(),
-            QualName::new(None, Namespace::from("html"), name.into()),
+            QualName::new(None, ns!(html), name.into()),
             LazyReference::new(self.env),
             LazyReference::new(self.env),
         )
