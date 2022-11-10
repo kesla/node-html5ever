@@ -289,7 +289,7 @@ impl Node {
     pub(crate) fn get_node_name(&self) -> String {
         match self {
             Node::Comment(_) => "#comment".to_string(),
-            Node::DocumentType(_) => "#docType".to_string(),
+            Node::DocumentType(_) => "html".to_string(),
             Node::Document(_) => "#document".to_string(),
             Node::DocumentFragment(_) => "#document-fragment".to_string(),
             Node::Element(r) => r.name.local.to_string().to_uppercase(),
