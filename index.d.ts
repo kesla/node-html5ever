@@ -93,7 +93,7 @@ export class Document {
     get textContent(): string | null;
     createElement(name: string): Element;
     createTextNode(data: string): Text;
-    createDocumentFragment(html: string): DocumentFragment;
+    createDocumentFragment(html?: string | undefined | null): DocumentFragment;
 }
 export class DocumentFragment {
     get nodeName(): string;
@@ -251,6 +251,7 @@ export class Element {
     insertAdjacentElement(position: InsertPosition, element: Element): Element;
     insertAdjacentHTML(position: InsertPosition, html: string): void;
     insertAdjacentText(position: InsertPosition, text: string): void;
+    matches(selectors: string): boolean;
 }
 export class Text {
     data: string;
