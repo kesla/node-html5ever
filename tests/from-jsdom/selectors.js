@@ -44,6 +44,7 @@ describe("jsdom/selectors", () => {
         const div = document.body.children[0];
 
         const element = document.querySelector("#main p");
+        assert(element);
         assert.strictEqual(element.matches("#main p"), true, "p and first-p");
         assert.strictEqual(
             element.matches("#asdf"),
@@ -52,6 +53,7 @@ describe("jsdom/selectors", () => {
         );
 
         const element2 = div.querySelector("p");
+        assert(element2);
         assert.strictEqual(element2.matches("p"), true, "p and first-p");
         assert.strictEqual(
             element2.matches("#asdf"),
@@ -60,6 +62,7 @@ describe("jsdom/selectors", () => {
         );
 
         const element3 = document.querySelector("#main p:not(.foo)");
+        assert(element3);
         assert.strictEqual(
             element3.matches("#main p:not(.foo)"),
             true,
@@ -176,6 +179,7 @@ describe("jsdom/selectors", () => {
         );
 
         const nextChildDiv = document.getElementById("next-child");
+        assert(nextChildDiv);
         const elements6 = nextChildDiv.querySelectorAll("p");
         assert.equal(elements6.length, 1, "p under div#next-child");
         assert.equal(
@@ -191,7 +195,9 @@ describe("jsdom/selectors", () => {
             `<div id="next"><div id="next-child"><p>Baz</p></div></div></body></html>`;
         const { document } = new Html5EverDom(html).window;
         const fragment = document.createDocumentFragment();
+        // @ts-ignore
         fragment.appendChild(document.body.firstChild);
+        // @ts-ignore
         fragment.appendChild(document.body.firstChild);
 
         assert.strictEqual(
@@ -200,7 +206,8 @@ describe("jsdom/selectors", () => {
             "The body should now be empty",
         );
 
-        const div = fragment.firstChild;
+        const div = fragment.firstElementChild;
+        assert(div);
 
         const elements = fragment.querySelectorAll("#main p");
         assert.equal(elements.length, 2, "two results");
