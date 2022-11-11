@@ -187,7 +187,12 @@ pub fn create_node(
                         |e: &napi::bindgen_prelude::Reference<
                             crate::Element,
                         >| {
-                            e.get_class_name() == class_name
+                            match e.get_attribute("class".to_string()) {
+                                Some(class) => class,
+                                None => return false,
+                            }
+                            .split_ascii_whitespace()
+                            .any(|c| c == class_name)
                         },
                     )
                     .collect()
