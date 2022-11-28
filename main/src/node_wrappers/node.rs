@@ -136,9 +136,8 @@ impl Node {
     fn with_child_nodes<F>(
         &self,
         f: F,
-    ) -> ()
-    where
-        F: FnOnce(&mut ChildNodeList) -> (),
+    ) where
+        F: FnOnce(&mut ChildNodeList),
     {
         let node_data: NodeData = self.into();
         node_data.child_nodes.borrow_mut(f);

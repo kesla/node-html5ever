@@ -111,7 +111,7 @@ impl StyleDeclaration {
 
     fn get_data_mut(
         &mut self,
-        property: &String,
+        property: &str,
     ) -> Option<&mut Data> {
         get_index(property).and_then(|property_index| {
             self.list
@@ -122,7 +122,7 @@ impl StyleDeclaration {
 
     fn get_data(
         &self,
-        property: &String,
+        property: &str,
     ) -> Option<&Data> {
         get_index(property).and_then(|property_index| {
             self.list
@@ -287,7 +287,7 @@ fn string_to_data(css_text: String) -> Vec<Data> {
                     return None;
                 }
 
-                let property_index = match get_index(&property) {
+                let property_index = match get_index(property) {
                     Some(index) => index,
                     None => return None,
                 };

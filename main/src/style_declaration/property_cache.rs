@@ -460,10 +460,8 @@ lazy_static! {
     .into_iter()
     .map(|s| s.to_string())
     .collect();
-    static ref KEBAB_PROPERTIES: Vec<String> = CAMEL_PROPERTIES
-        .iter()
-        .map(|camel| to_css_kebab_case(&camel))
-        .collect();
+    static ref KEBAB_PROPERTIES: Vec<String> =
+        CAMEL_PROPERTIES.iter().map(to_css_kebab_case).collect();
 }
 
 pub fn get_index(camel_or_kebab: &str) -> Option<usize> {

@@ -5,3 +5,4 @@ npm
 tap-snapshots
 index.js
 types/generated.d.ts
+tests/**/*.html

@@ -45,7 +45,7 @@ impl ChildNodeList {
         &mut self,
         child: ChildNode,
     ) {
-        self.0.push(child.to_owned());
+        self.0.push(child);
     }
 
     pub(crate) fn prepend_node(

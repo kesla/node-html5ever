@@ -1,10 +1,10 @@
 pub fn to_css_kebab_case<T: AsRef<str>>(input: T) -> String {
     let input = input.as_ref();
 
-    let result_length =
-        input.chars().fold(0, |acc, c| {
-            acc + c.is_uppercase().then(|| 1).unwrap_or(0) + 1
-        }) + input.starts_with("webkit").then(|| 1).unwrap_or_default();
+    let result_length = input
+        .chars()
+        .fold(0, |acc, c| acc + usize::from(c.is_uppercase()) + 1)
+        + input.starts_with("webkit").then_some(1).unwrap_or_default();
 
     let mut result = String::with_capacity(result_length);
 

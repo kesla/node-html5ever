@@ -313,11 +313,8 @@ impl Element {
         position: InsertPosition,
         element: &Element,
     ) -> Result<Reference<Element>> {
-        self.as_node().insert_node(
-            self.env,
-            element.into(),
-            &position.into(),
-        )?;
+        self.as_node()
+            .insert_node(self.env, element.into(), &position)?;
 
         element.cyclic_reference.get()
     }
@@ -349,7 +346,7 @@ impl Element {
         let node: Node = self.into();
 
         let text_node = Text::new_reference(self.env, text)?;
-        node.insert_node(self.env, text_node.into(), &position.into())?;
+        node.insert_node(self.env, text_node.into(), &position)?;
 
         Ok(())
     }

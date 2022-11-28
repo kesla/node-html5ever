@@ -36,7 +36,7 @@ pub fn create_node(
     }
   }
 
-    let ast: DeriveInput = parse_macro_input!(input as DeriveInput).into();
+    let ast: DeriveInput = parse_macro_input!(input as DeriveInput);
 
     let named_fields = &match ast.data {
         syn::Data::Struct(syn::DataStruct {
@@ -334,7 +334,7 @@ pub fn create_node(
         false => quote! {},
     };
 
-    return quote! {
+    quote! {
         #[napi]
         pub struct #name {
             pub(crate) env: napi::Env,
@@ -396,5 +396,5 @@ pub fn create_node(
             #(#node_types)*
         }
     }
-    .into();
+    .into()
 }

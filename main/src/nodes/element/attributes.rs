@@ -164,6 +164,6 @@ impl AttributesWrapper {
     }
 
     pub(crate) fn iter(&self) -> std::slice::Iter<Attribute> {
-        (&self.attrs).iter()
+        self.attrs.iter()
     }
 }
