@@ -1,19 +1,27 @@
-use regex::Regex;
-
-lazy_static! {
-    static ref CAMEL: Regex = Regex::new(r"(^webkit)?([A-Z])").unwrap();
-}
-
-fn replacer(cap: &regex::Captures) -> String {
-    format!(
-        "{}-{}",
-        cap.get(1).is_some().then(|| "-webkit").unwrap_or_default(),
-        cap.get(2).unwrap().as_str().to_lowercase()
-    )
-}
-
 pub fn to_css_kebab_case<T: AsRef<str>>(input: T) -> String {
-    CAMEL.replace_all(input.as_ref(), replacer).to_string()
+    let input = input.as_ref();
+
+    let result_length =
+        input.chars().fold(0, |acc, c| {
+            acc + c.is_uppercase().then(|| 1).unwrap_or(0) + 1
+        }) + input.starts_with("webkit").then(|| 1).unwrap_or_default();
+
+    let mut result = String::with_capacity(result_length);
+
+    if input.starts_with("webkit") {
+        result.push('-');
+    }
+
+    for c in input.chars() {
+        if c.is_uppercase() {
+            result.push('-');
+            result.push(c.to_ascii_lowercase());
+        } else {
+            result.push(c);
+        }
+    }
+
+    result
 }
 
 #[cfg(test)]

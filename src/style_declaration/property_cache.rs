@@ -467,12 +467,12 @@ lazy_static! {
 }
 
 pub fn get_index(camel_or_kebab: &str) -> Option<usize> {
-    match camel_or_kebab.find('-') {
-        Some(_) => KEBAB_PROPERTIES
+    match camel_or_kebab.find('-').is_some() {
+        true => KEBAB_PROPERTIES
             .iter()
             .position(|kebab| kebab == camel_or_kebab),
 
-        None => CAMEL_PROPERTIES
+        false => CAMEL_PROPERTIES
             .iter()
             .position(|camel| camel == camel_or_kebab),
     }
