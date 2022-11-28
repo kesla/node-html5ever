@@ -353,4 +353,14 @@ impl Element {
 
         Ok(())
     }
+
+    #[napi]
+    pub fn matches(
+        &self,
+        selectors: String,
+    ) -> Result<bool> {
+        let selectors = crate::Selectors::compile(selectors)?;
+        let element_ref: ElementRef = self.cyclic_reference.get()?.into();
+        selectors.matches(&element_ref)
+    }
 }

@@ -111,11 +111,11 @@ impl Document {
     #[napi]
     pub fn create_document_fragment(
         &self,
-        html: String,
+        html: Option<String>,
     ) -> Result<Reference<DocumentFragment>> {
         Html5everDom::create_document_fragment(
             self.env,
-            html,
+            html.unwrap_or_default(),
             Some(self.quirks_mode),
         )
     }

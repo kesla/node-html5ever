@@ -52,6 +52,7 @@
     },
     "packageManager": "yarn@3.2.3",
     "tap": {
-        "coverage": false
+        "coverage": false,
+        "test-ignore": "util.js"
     }
 }
