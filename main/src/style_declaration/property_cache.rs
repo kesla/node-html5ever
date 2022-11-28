@@ -1,4 +1,4 @@
-use crate::to_css_kebab_case;
+use css_case::to_css_kebab_case;
 
 lazy_static! {
     static ref CAMEL_PROPERTIES: Vec<String> = vec![

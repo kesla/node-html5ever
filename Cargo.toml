@@ -1,6 +1,6 @@
 [workspace]
 
-members = ["crates/macros", "crates/shared", "main"]
+members = ["crates/css-case", "crates/macros", "crates/shared", "main"]
 
 [profile.release]
 lto = true
