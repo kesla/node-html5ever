@@ -4,7 +4,10 @@ use html5ever::{
     QualName,
 };
 use napi::{
-    bindgen_prelude::Reference,
+    bindgen_prelude::{
+        Reference,
+        WeakReference,
+    },
     Error,
     Result,
 };
@@ -18,11 +21,13 @@ use crate::{
     Node,
     QuirksMode,
     Text,
+    Window,
 };
 
 #[create_node(has_children)]
 pub struct Document {
     pub(crate) quirks_mode: QuirksMode,
+    pub(crate) window: Option<WeakReference<Window>>,
 }
 
 #[napi]
@@ -47,6 +52,11 @@ impl Document {
                 "Document has no document Element (<html>)".to_string(),
             ))
         }
+    }
+
+    #[napi(getter)]
+    pub fn get_default_view(&self) -> Option<WeakReference<Window>> {
+        self.window.clone()
     }
 
     fn get_head_or_body(

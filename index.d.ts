@@ -88,6 +88,7 @@ export class Document {
     get TEXT_NODE(): number;
     get doctype(): DocumentType | null;
     get documentElement(): Element;
+    get defaultView(): Window | null;
     get head(): Element;
     get body(): Element;
     get textContent(): string | null;

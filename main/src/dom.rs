@@ -98,9 +98,12 @@ impl Html5everDom {
 
     fn create_sink(env: Env) -> Result<Html5everDom> {
         let document_reference =
-            Document::new_reference(env, QuirksMode::NoQuirks)?;
+            Document::new_reference(env, QuirksMode::NoQuirks, None)?;
         let window_reference =
             Window::new_reference(env, document_reference.clone(env)?)?;
+
+        document_reference.clone(env)?.window =
+            Some(window_reference.clone(env)?.downgrade());
 
         let sink = Html5everDom {
             window_reference,

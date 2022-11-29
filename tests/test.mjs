@@ -1204,3 +1204,10 @@ test(".textContent", (t) => {
 
     t.equal(document.getElementById("foo")?.textContent, "bar baz");
 });
+
+test(".defaultView in Document", (t) => {
+    let dom = new Html5EverDom("<html></html>");
+    let { document } = dom.window;
+
+    t.equal(document.defaultView, dom.window);
+});
