@@ -13,14 +13,12 @@ use crate::{
     Node,
 };
 
-struct SerializableNode(Node);
-
 enum SerializeOp {
     Open(ChildNode),
     Close(QualName),
 }
 
-impl html5ever::serialize::Serialize for SerializableNode {
+impl html5ever::serialize::Serialize for Node {
     fn serialize<S>(
         &self,
         serializer: &mut S,
@@ -31,10 +29,10 @@ impl html5ever::serialize::Serialize for SerializableNode {
     {
         let mut ops: VecDeque<SerializeOp> = match traversal_scope {
             html5ever::serialize::TraversalScope::IncludeNode => {
-                VecDeque::from([SerializeOp::Open((&self.0).into())])
+                VecDeque::from([SerializeOp::Open((self).into())])
             },
             html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
-                if let Node::Element(element) = &self.0 {
+                if let Node::Element(element) = &self {
                     element
                         .get_all_child_nodes()
                         .iter()
@@ -42,8 +40,7 @@ impl html5ever::serialize::Serialize for SerializableNode {
                         .map(SerializeOp::Open)
                         .collect()
                 } else {
-                    self.0
-                        .shallow_child_nodes_iter()
+                    self.shallow_child_nodes_iter()
                         .map(SerializeOp::Open)
                         .collect()
                 }
@@ -98,14 +95,13 @@ impl html5ever::serialize::Serialize for SerializableNode {
 }
 
 pub fn serialize(
-    handle: Node,
+    node: Node,
     traversal_scope: TraversalScope,
 ) -> String {
-    let serializable_node_data: SerializableNode = SerializableNode(handle);
     let mut serialized = Vec::new();
     html5ever::serialize::serialize(
         &mut serialized,
-        &serializable_node_data,
+        &node,
         SerializeOpts {
             traversal_scope,
             ..Default::default()
