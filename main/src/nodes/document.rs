@@ -4,10 +4,7 @@ use html5ever::{
     QualName,
 };
 use napi::{
-    bindgen_prelude::{
-        Reference,
-        WeakReference,
-    },
+    bindgen_prelude::Reference,
     Error,
     Result,
 };
@@ -21,6 +18,7 @@ use crate::{
     Node,
     QuirksMode,
     Text,
+    WeakReference,
     Window,
 };
 

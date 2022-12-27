@@ -11,7 +11,6 @@ use cssparser::{
     ToCss,
 };
 use napi::{
-    bindgen_prelude::WeakReference,
     Either,
     Result,
 };
@@ -35,6 +34,7 @@ use crate::{
     DocumentFragment,
     ElementRef,
     Node,
+    WeakReference,
 };
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
@@ -272,13 +272,11 @@ impl Selectors {
             .try_next()?
             .map_or(QuirksMode::NoQuirks, |parent| match parent {
                 Either::A(weak_document) => {
-                    let document =
-                        weak_document.upgrade(element.env).unwrap().unwrap();
+                    let document = weak_document.upgrade(element.env).unwrap();
                     document.quirks_mode.into()
                 },
                 Either::B(weak_fragment) => {
-                    let fragment =
-                        weak_fragment.upgrade(element.env).unwrap().unwrap();
+                    let fragment = weak_fragment.upgrade(element.env).unwrap();
                     fragment.quirks_mode.into()
                 },
             });

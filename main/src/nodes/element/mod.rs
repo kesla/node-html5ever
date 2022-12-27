@@ -137,7 +137,7 @@ impl Element {
     ) -> Result<Reference<ClassList>> {
         let initial_value = self.get_attribute("class".to_string());
         self.lazy_class_list.get_or_init(|| {
-            ClassList::new(element.downgrade(), self.env, initial_value)
+            ClassList::new(element.downgrade().into(), self.env, initial_value)
         })
     }
 
@@ -148,7 +148,11 @@ impl Element {
     ) -> Result<Reference<StyleDeclaration>> {
         let initial_value = self.get_attribute("style".to_string());
         self.lazy_style.get_or_init(|| {
-            StyleDeclaration::new(element.downgrade(), self.env, initial_value)
+            StyleDeclaration::new(
+                element.downgrade().into(),
+                self.env,
+                initial_value,
+            )
         })
     }
 
