@@ -18,11 +18,11 @@ mod node_data;
 mod node_wrappers;
 mod nodes;
 mod quirks_mode;
-mod references;
 mod selectors;
 mod serializer;
 mod style_declaration;
 mod traits;
+mod weak_reference;
 
 pub use cyclic_reference::CyclicReference;
 pub use dom::Html5everDom;
@@ -52,9 +52,9 @@ pub use nodes::{
     Window,
 };
 pub use quirks_mode::QuirksMode;
-pub use references::*;
 pub use serializer::serialize;
 pub use style_declaration::StyleDeclaration;
 pub use traits::*;
+pub use weak_reference::WeakReference;
 
 pub use crate::selectors::Selectors;
