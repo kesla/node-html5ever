@@ -125,27 +125,6 @@ macro_rules! impl_from {
                 }
             }
         }
-
-        impl TryFrom<ParentNode>
-            for napi::bindgen_prelude::WeakReference<$type>
-        {
-            type Error = Error;
-
-            fn try_from(
-                value: ParentNode
-            ) -> Result<napi::bindgen_prelude::WeakReference<$type>> {
-                match value {
-                    ParentNode::$variant(r) => Ok(r.into()),
-                    _ => Err(Error::new(
-                        Status::InvalidArg,
-                        format!(
-                            "Could not convert ParentNode to {}",
-                            stringify!($type)
-                        ),
-                    )),
-                }
-            }
-        }
     };
 }
 
@@ -171,24 +150,17 @@ impl From<&Node> for ParentNode {
 }
 
 impl TryFrom<ParentNode>
-    for Either<
-        napi::bindgen_prelude::WeakReference<Document>,
-        napi::bindgen_prelude::WeakReference<DocumentFragment>,
-    >
+    for Either<WeakReference<Document>, WeakReference<DocumentFragment>>
 {
     type Error = Error;
 
     fn try_from(
         value: ParentNode
-    ) -> Result<
-        Either<
-            napi::bindgen_prelude::WeakReference<Document>,
-            napi::bindgen_prelude::WeakReference<DocumentFragment>,
-        >,
-    > {
+    ) -> Result<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>
+    {
         match value {
-            ParentNode::Document(r) => Ok(Either::A(r.into())),
-            ParentNode::DocumentFragment(r) => Ok(Either::B(r.into())),
+            ParentNode::Document(r) => Ok(Either::A(r)),
+            ParentNode::DocumentFragment(r) => Ok(Either::B(r)),
             _ => Err(Error::new(
                 Status::InvalidArg,
                 "Could not convert ParentNode to Document or DocumentFragment"

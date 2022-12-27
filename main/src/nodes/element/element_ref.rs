@@ -108,7 +108,7 @@ impl selectors::Element for ElementRef {
     fn parent_element(&self) -> Option<Self> {
         self.get_parent_element()
             .unwrap()
-            .map(|r| r.upgrade(self.inner.env).unwrap().unwrap().into())
+            .map(|r| r.upgrade(self.inner.env).unwrap().into())
     }
 
     fn parent_node_is_shadow_root(&self) -> bool {

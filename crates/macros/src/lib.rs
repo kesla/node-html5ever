@@ -281,7 +281,7 @@ pub fn create_node(
 
             #[napi(getter)]
             pub fn get_parent_element(&self) ->
-                napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Element>>> {
+                napi::Result<Option<crate::WeakReference<crate::Element>>> {
                 self.as_node().parent_iterator().try_next()
             }
 
@@ -294,7 +294,7 @@ pub fn create_node(
             #[napi(getter)]
             pub fn get_owner_document(
                 &self,
-            ) -> napi::Result<Option<napi::bindgen_prelude::WeakReference<crate::Document>>> {
+            ) -> napi::Result<Option<crate::WeakReference<crate::Document>>> {
                 self.as_node().parent_iterator().try_next()
             }
 

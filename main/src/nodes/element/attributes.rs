@@ -6,10 +6,7 @@ use html5ever::{
     QualName,
 };
 use napi::{
-    bindgen_prelude::{
-        Reference,
-        WeakReference,
-    },
+    bindgen_prelude::Reference,
     Env,
     Result,
 };
@@ -17,6 +14,7 @@ use napi::{
 use crate::{
     Document,
     Element,
+    WeakReference,
 };
 
 #[napi]
@@ -61,10 +59,7 @@ impl Attr {
     pub fn get_owner_document(
         &self
     ) -> Result<Option<WeakReference<Document>>> {
-        let element = match self.get_owner_element().upgrade(self.env)? {
-            Some(element) => element,
-            None => return Ok(None),
-        };
+        let element = self.get_owner_element().upgrade(self.env)?;
 
         element.get_owner_document()
     }
@@ -107,7 +102,7 @@ impl AttributesWrapper {
             .iter()
             .map(|attribute| Attr {
                 attribute: attribute.clone(),
-                owner_element: r.downgrade(),
+                owner_element: r.downgrade().into(),
                 env: r.env,
             })
             .collect()

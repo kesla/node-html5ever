@@ -40,15 +40,6 @@ where
     }
 }
 
-impl<T> Into<napi::bindgen_prelude::WeakReference<T>> for WeakReference<T>
-where
-    T: 'static,
-{
-    fn into(self) -> napi::bindgen_prelude::WeakReference<T> {
-        self.0
-    }
-}
-
 impl<T> WeakReference<T>
 where
     T: 'static,
