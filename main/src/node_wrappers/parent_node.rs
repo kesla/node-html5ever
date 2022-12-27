@@ -9,7 +9,6 @@ use napi::{
         FromNapiValue,
         Result,
         ToNapiValue,
-        WeakReference,
     },
     Either,
     Env,
@@ -21,6 +20,7 @@ use crate::{
     DocumentFragment,
     Element,
     Node,
+    WeakReference,
 };
 
 #[derive(Clone)]
@@ -101,12 +101,41 @@ macro_rules! impl_from {
             }
         }
 
+        impl From<napi::bindgen_prelude::WeakReference<$type>> for ParentNode {
+            fn from(
+                value: napi::bindgen_prelude::WeakReference<$type>
+            ) -> Self {
+                ParentNode::$variant(value.into())
+            }
+        }
+
         impl TryFrom<ParentNode> for WeakReference<$type> {
             type Error = Error;
 
             fn try_from(value: ParentNode) -> Result<WeakReference<$type>> {
                 match value {
                     ParentNode::$variant(r) => Ok(r),
+                    _ => Err(Error::new(
+                        Status::InvalidArg,
+                        format!(
+                            "Could not convert ParentNode to {}",
+                            stringify!($type)
+                        ),
+                    )),
+                }
+            }
+        }
+
+        impl TryFrom<ParentNode>
+            for napi::bindgen_prelude::WeakReference<$type>
+        {
+            type Error = Error;
+
+            fn try_from(
+                value: ParentNode
+            ) -> Result<napi::bindgen_prelude::WeakReference<$type>> {
+                match value {
+                    ParentNode::$variant(r) => Ok(r.into()),
                     _ => Err(Error::new(
                         Status::InvalidArg,
                         format!(
@@ -131,28 +160,35 @@ impl From<&Node> for ParentNode {
             Node::DocumentType(_) => {
                 panic!("DocumentType cannot be a parent node")
             },
-            Node::Element(r) => ParentNode::Element(r.downgrade()),
+            Node::Element(r) => ParentNode::Element(r.downgrade().into()),
             Node::Text(_) => panic!("Text nodes cannot be a parent node"),
-            Node::Document(r) => ParentNode::Document(r.downgrade()),
+            Node::Document(r) => ParentNode::Document(r.downgrade().into()),
             Node::DocumentFragment(r) => {
-                ParentNode::DocumentFragment(r.downgrade())
+                ParentNode::DocumentFragment(r.downgrade().into())
             },
         }
     }
 }
 
 impl TryFrom<ParentNode>
-    for Either<WeakReference<Document>, WeakReference<DocumentFragment>>
+    for Either<
+        napi::bindgen_prelude::WeakReference<Document>,
+        napi::bindgen_prelude::WeakReference<DocumentFragment>,
+    >
 {
     type Error = Error;
 
     fn try_from(
         value: ParentNode
-    ) -> Result<Either<WeakReference<Document>, WeakReference<DocumentFragment>>>
-    {
+    ) -> Result<
+        Either<
+            napi::bindgen_prelude::WeakReference<Document>,
+            napi::bindgen_prelude::WeakReference<DocumentFragment>,
+        >,
+    > {
         match value {
-            ParentNode::Document(r) => Ok(Either::A(r)),
-            ParentNode::DocumentFragment(r) => Ok(Either::B(r)),
+            ParentNode::Document(r) => Ok(Either::A(r.into())),
+            ParentNode::DocumentFragment(r) => Ok(Either::B(r.into())),
             _ => Err(Error::new(
                 Status::InvalidArg,
                 "Could not convert ParentNode to Document or DocumentFragment"
@@ -162,19 +198,6 @@ impl TryFrom<ParentNode>
     }
 }
 
-macro_rules! upgrade_to_node {
-    ($reference:tt, $env:tt) => {
-        match $reference.upgrade($env) {
-            Ok(Some(r)) => Ok(r.into()),
-            Ok(None) => Err(Error::new(
-                Status::InvalidArg,
-                "Could not upgrade Document".to_string(),
-            )),
-            Err(err) => Err(err),
-        }
-    };
-}
-
 impl ParentNode {
     pub(crate) fn upgrade(
         &self,
@@ -182,13 +205,13 @@ impl ParentNode {
     ) -> Result<Node> {
         match self {
             ParentNode::Document(weak_reference) => {
-                upgrade_to_node!(weak_reference, env)
+                weak_reference.upgrade(env).map(Into::into)
             },
             ParentNode::DocumentFragment(weak_reference) => {
-                upgrade_to_node!(weak_reference, env)
+                weak_reference.upgrade(env).map(Into::into)
             },
             ParentNode::Element(weak_reference) => {
-                upgrade_to_node!(weak_reference, env)
+                weak_reference.upgrade(env).map(Into::into)
             },
         }
     }

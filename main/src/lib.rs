@@ -22,6 +22,7 @@ mod selectors;
 mod serializer;
 mod style_declaration;
 mod traits;
+mod weak_reference;
 
 pub use cyclic_reference::CyclicReference;
 pub use dom::Html5everDom;
@@ -54,5 +55,6 @@ pub use quirks_mode::QuirksMode;
 pub use serializer::serialize;
 pub use style_declaration::StyleDeclaration;
 pub use traits::*;
+pub use weak_reference::WeakReference;
 
 pub use crate::selectors::Selectors;

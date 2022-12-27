@@ -5,14 +5,12 @@ use std::{
 };
 
 use napi::{
-    bindgen_prelude::{
-        Reference,
-        WeakReference,
-    },
+    bindgen_prelude::Reference,
     Env,
-    Error,
     Result,
 };
+
+use crate::WeakReference;
 
 struct MyLazyCell<T> {
     inner: UnsafeCell<MaybeUninit<T>>,
@@ -58,16 +56,12 @@ impl<T> CyclicReference<T> {
             inner: lazy.clone(),
         };
         let reference = init(me)?;
-        lazy.init(reference.downgrade());
+        lazy.init(reference.downgrade().into());
         Ok(reference)
     }
 
     pub fn get(&self) -> Result<Reference<T>> {
-        self.get_weak().upgrade(self.env)?.ok_or_else(|| {
-            Error::from_reason(
-                "self reference is not available anymore".to_string(),
-            )
-        })
+        self.get_weak().upgrade(self.env)
     }
 
     pub fn get_weak(&self) -> WeakReference<T> {

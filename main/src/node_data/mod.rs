@@ -61,23 +61,14 @@ impl TryFrom<&ParentContext> for NodeData {
 
     fn try_from(parent_context: &ParentContext) -> Result<Self> {
         match &parent_context.node {
-            ParentNode::Document(document) => {
-                let document = document
-                    .upgrade(parent_context.env)?
-                    .expect("Document is gone");
-                Ok(document.into())
+            ParentNode::Document(weak_reference) => {
+                weak_reference.upgrade(parent_context.env).map(Into::into)
             },
-            ParentNode::DocumentFragment(document_fragment) => {
-                let document_fragment = document_fragment
-                    .upgrade(parent_context.env)?
-                    .expect("DocumentFragment is gone");
-                Ok(document_fragment.into())
+            ParentNode::DocumentFragment(weak_reference) => {
+                weak_reference.upgrade(parent_context.env).map(Into::into)
             },
-            ParentNode::Element(element) => {
-                let element = element
-                    .upgrade(parent_context.env)?
-                    .expect("Element is gone");
-                Ok(element.into())
+            ParentNode::Element(weak_reference) => {
+                weak_reference.upgrade(parent_context.env).map(Into::into)
             },
         }
     }
