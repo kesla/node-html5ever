@@ -2,12 +2,8 @@ mod properties;
 mod property_cache;
 
 use napi::{
-    bindgen_prelude::{
-        Reference,
-        WeakReference,
-    },
+    bindgen_prelude::Reference,
     Env,
-    Error,
     Result,
 };
 use property_cache::{
@@ -18,6 +14,7 @@ use property_cache::{
 use crate::{
     CyclicReference,
     Element,
+    WeakReference,
     WithDataInBrackets,
 };
 
@@ -92,16 +89,13 @@ impl StyleDeclaration {
     ) -> Result<()> {
         self.set_properties()?;
 
-        self.owner.upgrade(self.env)?.map_or_else(
-            || Err(Error::from_reason("Element not found")),
-            |mut owner| {
-                owner
-                    .attributes_wrapper
-                    .set_attribute("style".into(), value.into());
+        let mut owner = self.owner.upgrade(self.env)?;
 
-                Ok(())
-            },
-        )
+        owner
+            .attributes_wrapper
+            .set_attribute("style".into(), value.into());
+
+        Ok(())
     }
 
     pub(crate) fn clear(&mut self) -> Result<()> {

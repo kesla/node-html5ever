@@ -103,7 +103,7 @@ impl Html5everDom {
             Window::new_reference(env, document_reference.clone(env)?)?;
 
         document_reference.clone(env)?.window =
-            Some(window_reference.clone(env)?.downgrade());
+            Some(window_reference.clone(env)?.downgrade().into());
 
         let sink = Html5everDom {
             window_reference,

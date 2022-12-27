@@ -1,10 +1,7 @@
 use indexmap::IndexSet;
 use itertools::join;
 use napi::{
-    bindgen_prelude::{
-        Reference,
-        WeakReference,
-    },
+    bindgen_prelude::Reference,
     Env,
     Error,
     Result,
@@ -13,6 +10,7 @@ use napi::{
 use crate::{
     CyclicReference,
     Element,
+    WeakReference,
     WithDataInBrackets,
 };
 
@@ -73,16 +71,12 @@ impl ClassList {
     ) -> Result<()> {
         self.set_properties()?;
 
-        self.owner.upgrade(self.env)?.map_or_else(
-            || Err(Error::from_reason("Element not found")),
-            |mut owner| {
-                owner
-                    .attributes_wrapper
-                    .set_attribute("class".into(), value.into());
+        let mut owner = self.owner.upgrade(self.env)?;
+        owner
+            .attributes_wrapper
+            .set_attribute("class".into(), value.into());
 
-                Ok(())
-            },
-        )
+        Ok(())
     }
 
     pub(crate) fn clear(&mut self) -> Result<()> {
@@ -188,10 +182,9 @@ impl ClassList {
 
     #[napi(getter)]
     pub fn get_value(&self) -> Result<String> {
-        self.owner.upgrade(self.env)?.map_or_else(
-            || Err(Error::from_reason("Element not found")),
-            |owner| Ok(owner.get_attribute("class".into()).unwrap_or_default()),
-        )
+        self.owner.upgrade(self.env).map(|owner| {
+            owner.get_attribute("class".into()).unwrap_or_default()
+        })
     }
 
     #[napi]
