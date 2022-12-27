@@ -36,12 +36,12 @@
         "node": ">= 10"
     },
     "scripts": {
-        "_build": "mkdir -p generated && napi build --platform --dts=types/generated.d.ts --no-dts-header --cargo-cwd main",
+        "_build": "napi build --platform --dts=types/generated.d.ts --no-dts-header --cargo-cwd main",
         "artifacts": "napi artifacts",
         "build": "yarn _build --release && yarn merge-dts",
         "build:debug": "yarn _build && yarn merge-dts",
         "build:json-debug": "yarn _build --cargo-flags=\"--message-format=json --quiet\" && yarn merge-dts",
-        "merge-dts": "cat types/additional.d.ts types/generated.d.ts > index.d.ts && prettier --write index.d.ts",
+        "merge-dts": "./scripts/merge-dts.rs && prettier --write index.d.ts",
         "prepublishOnly": "napi prepublish -t npm",
         "test": "cargo test && yarn build:debug && tap",
         "test:update": "yarn build:debug && tap --snapshot",
