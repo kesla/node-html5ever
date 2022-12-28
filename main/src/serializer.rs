@@ -29,7 +29,7 @@ impl html5ever::serialize::Serialize for Node {
     {
         let mut ops: VecDeque<SerializeOp> = match traversal_scope {
             html5ever::serialize::TraversalScope::IncludeNode => {
-                VecDeque::from([SerializeOp::Open((self).into())])
+                VecDeque::from([SerializeOp::Open(self.into())])
             },
             html5ever::serialize::TraversalScope::ChildrenOnly(_) => {
                 if let Node::Element(element) = &self {
